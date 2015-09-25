@@ -15,14 +15,16 @@ reg clk = 0;
 //-- Simulacion de la señal de reset
 reg rst = 0;
 
-wire [3:0] dataled;
+wire [2:0] dataled;
+wire stop;
 
 //-- Instanciar el componente
 simplez 
   CPU0 (
     .clk(clk),
     .rstn(rst),
-    .dataled(dataled)
+    .dataled(dataled),
+    .stop(stop)
   );
 
 //-- Generador de reloj. Periodo 2 unidades

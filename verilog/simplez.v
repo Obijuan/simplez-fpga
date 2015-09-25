@@ -17,7 +17,8 @@
 module simplez (input wire clk,
                 input wire rstn,
                 output wire LED0,
-                output wire [3:0] dataled
+                output wire [2:0] dataled,
+                output reg stop
                 );
 
 wire [8:0] busAi;
@@ -55,8 +56,18 @@ always @(negedge clk)
   else if (incp)
     CP <= CP + 1;
 
-//-- Registro de instruccion
+//------------------------------------------------------
+//--             Registro de instruccion
+//------------------------------------------------------
+localparam HALT = 3'o7;
+
 reg [11:0] RI;
+
+//-- Formato de las intrucciones
+//-- Todas las instrucciones tienen el mismo formato
+//--  CO  | CD.    CO de 3 bits.  CD de 9 bits
+wire [2:0] CO = RI[11:9];  //-- Codigo de operacion
+wire [8:0] CD = RI[8:0];   //-- Campo de direccion
 
 always @(negedge clk)
   if (rstn == 0)
@@ -70,7 +81,7 @@ assign LED0 = rstn;
 
 assign era = 0;
 
-assign dataled = {1'b0, RI[11], RI[10], RI[9]};
+assign dataled = {RI[11], RI[10], RI[9]};
 
 
 //-- Memoria
@@ -101,7 +112,12 @@ always @(negedge clk)
       I0: state <= I1;
 
       //-- Decodificacion de la instruccion
-      I1: state <= I1;
+      I1: begin
+        if (CO == HALT)
+          state <= I1;
+        else
+          state <= I1;
+      end 
     endcase
 
 always @*
@@ -110,18 +126,27 @@ always @*
       lec <= 1;  //-- Leer en MP
       eri <= 1;  //-- Habilitar registro de instruccion
       incp <= 1; //-- Incrementar contador de programa
+      stop <= 0;
     end
 
     I1: begin
       lec <= 0; 
       eri <= 0;
       incp <= 0;
+
+      //-- Instruccion HALT
+      if (CO == HALT)
+        stop <= 1;
+      else
+        stop <= 0;
+
     end
 
     default: begin
       lec <= 0;
       eri <= 0;
       incp <= 0;
+      stop <= 0;
     end
 
   endcase

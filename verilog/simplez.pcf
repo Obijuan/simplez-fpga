@@ -3,7 +3,7 @@ set_io LED0 95
 set_io dataled[0] 99
 set_io dataled[1] 98
 set_io dataled[2] 97
-set_io dataled[3] 96
+set_io stop 96
 set_io clk  21
 
 
