@@ -25,11 +25,18 @@ wire [8:0] busAi;
 
 //-- Microordenes
 wire era;  //-- Enable registro RA
-reg eri;  //-- Enable registro RI
-reg incp; //-- Incrementar el contador de programa
-reg lec;  //-- Lectura de la memoria principal
+reg eri;   //-- Enable registro RI
+reg lec;   //-- Lectura de la memoria principal
+
+//-- Microordenaes para el CP
+reg ccp;   //-- Clear CP
+reg ecp;   //-- Enable CP (para carga)
+reg incp;  //-- Incrementar el contador de programa
+reg scp;   //-- Activar salida del CP
 
 wire [11:0] busD;
+
+
 
 //-- Registro RA
 reg [8:0] RA;
@@ -44,17 +51,24 @@ always @(negedge clk)
 
 
 //-- Cablear la direccion 0 al bus de direcciones
-assign busAi = 9'b0_0000_0000; 
+//assign busAi = 9'b0_0000_0000; 
 
 
-//-- Contador de programa
+//-------------------- Contador de programa
 reg [8:0] CP;
 
 always @(negedge clk)
-  if (rstn == 0)
+  if (rstn == 0)    //-- Reset (inicio)
     CP <= 0;
-  else if (incp)
+  else if (ccp)     //-- Clear
+    CP <= 0;
+  else if (incp)    //-- Incrementar
     CP <= CP + 1;
+  else if (ecp)     //-- Load
+    CP <= busAi;
+
+//-- Conexión al bus Ai
+assign busAi = scp ? CP : 'bz;
 
 //------------------------------------------------------
 //--             Registro de instruccion
@@ -125,13 +139,21 @@ always @*
     I0: begin
       lec <= 1;  //-- Leer en MP
       eri <= 1;  //-- Habilitar registro de instruccion
+
+			ccp <= 0;
       incp <= 1; //-- Incrementar contador de programa
+      scp <= 0;  //-- Salida del contador programa
+
+
       stop <= 0;
+      
     end
 
     I1: begin
       lec <= 0; 
       eri <= 0;
+      
+      scp <= 0;
       incp <= 0;
 
       //-- Instruccion HALT
@@ -145,7 +167,11 @@ always @*
     default: begin
       lec <= 0;
       eri <= 0;
+
+      ccp <= 0;
       incp <= 0;
+      scp <= 0;
+
       stop <= 0;
     end
 
