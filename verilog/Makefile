@@ -2,7 +2,7 @@
 #-- Establecer nombre del componente
 #----------------------------------------
 NAME = simplez
-DEPS = 
+DEPS = memory.v
 
 NAME2 = project1
 DEPS2 =  
