@@ -14,7 +14,7 @@ module memory(
 
     initial begin
       memory[0] = 12'o0400;  //-- ST /400o (Dir. 100h)
-      //memory[1] = 12'o7000;  //-- HALT
-      //memory[2] = 12'h555;
+      memory[1] = 12'o7000;  //-- HALT
+      memory[2] = 12'h555;
     end
 endmodule
