@@ -64,13 +64,14 @@ reg [8:0] CP;
 
 always @(negedge clk)
   if (rstn == 0)    //-- Reset (inicio)
-    CP <= 0;
-  else if (ccp)     //-- Clear
-    CP <= 0;
+    CP <= 'b0;
+  //else if (ccp)     //-- Clear
+  //  CP <= 'b0;
+  //else if (ecp)     //-- Load
+  //  CP <= busAi;
   else if (incp)    //-- Incrementar
     CP <= CP + 1;
-  else if (ecp)     //-- Load
-    CP <= busAi;
+  
 
 //-- Conexión al bus Ai
 assign busAi = scp ? CP : 'bz;
@@ -162,7 +163,7 @@ always @*
       sri <= 0;
       era <= 0;
       esc <= 0;
-			ccp <= 0;
+      ccp <= 0;
 
       scp <= 0;  //-- Salida del contador programa
 
@@ -176,8 +177,9 @@ always @*
       eri <= 0;
       incp <= 0;
       sri <= 1;  //-- Salida de CD (del RI)
-      era <= 0;  //-- Habilitar registro A
+      era <= 1;  //-- Habilitar registro A
       esc <= 0;
+      ccp <= 0;
       scp <= 0;
       
 
@@ -209,7 +211,7 @@ always @*
       eri <= 0;
       incp <= 0;
       sri <= 0;
-      era <= 0;
+      era <= 1;
       esc <= 0;
 
       ccp <= 0;
