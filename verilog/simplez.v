@@ -59,12 +59,14 @@ reg [ADDRW-1: 0] RA;
 
 //---------------- Memoria -------------------------
 
+wire [DATAW-1-4:0] temp; //-- Temp!!!!!
+
 //-- Instanciar la memoria rom
-rom32x4 
+memory
   ROM (
         .clk(clk),
-        .addr(4'h5),
-        .data(leds)
+        .addr(12'h0),
+        .data_out({temp,leds})
       );
 
 
