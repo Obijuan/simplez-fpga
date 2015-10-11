@@ -1,16 +1,15 @@
 module memory(
-    output reg [11:0] data_out,
-    input [8:0] address,
-    input read_enable,
-    input clk
+    input wire clk,
+    input wire [8:0] address,
+    input wire read_enable,
+    output reg [11:0] data_out
 );
     reg [11:0] memory [0:511];
 
     always @(negedge clk) begin
-        if (read_enable) begin
-            data_out <=memory[address];
-        end
+      data_out <= (read_enable) ? memory[address] : 'bz;
     end
+
 
     initial begin
       memory[0] = 12'o0400;  //-- ST /400o (Dir. 100h)
