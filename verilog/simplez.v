@@ -53,9 +53,17 @@ reg sac;
 wire [DATAW-1: 0] busD;   //-- Bus de datos
 wire [ADDRW-1: 0] busAi;  //-- Bus de direcciones (interno)
 
-
 //-------- Registro de direcciones externas
 reg [ADDRW-1: 0] RA;
+
+always @(negedge clk)
+  if (rstn == 0)
+    RA <= 0;
+  else if (era)
+    RA <= busAi;
+
+//-- Volcar el campo de direccion al bus de direcciones
+assign busAi = (sri) ? CD : {ADDRW{1'bz}};
 
 
 //--------------- Registro de instruccion
@@ -145,6 +153,9 @@ always @* begin
   //--- Valores por defecto de las señales
   //--  (para que no se generen latches)
   lec <= 0;
+  eri <= 0;
+  sri <= 0;
+  era <= 0;
   esc <= 0;
   stop <= 0;
 
@@ -157,10 +168,13 @@ always @* begin
       eri  <= 1;  //-- Capturar la instruccion y meterla en RI
     end
 
-    I1: lec <= 0; //-- DEBUG. QUITAR
+    I1: begin 
+      era <= 1; //-- ST: Capturar la direccion donde hacer store
+      sri <= 1; //-- ST: Volcar direccion operando en bus Ai
+    end
 
     O0: begin
-      esc <= 1;
+      esc <= 1; //-- ST: Escritura del dato en memoria
     end
 
     O1: begin
