@@ -31,7 +31,7 @@ parameter ADDRW = 9;
 //---------------------------------------------------------------------
 
 //--------------- Microordenes
-reg lec;
+reg lec=1;
 reg era;
 reg esc;
 
@@ -61,14 +61,17 @@ reg [ADDRW-1: 0] RA;
 
 wire [DATAW-1-4:0] temp; //-- Temp!!!!!
 
-//-- Instanciar la memoria rom
+//-- Instanciar la memoria principal
 memory
   ROM (
         .clk(clk),
         .addr(12'h0),
-        .data_out({temp,leds})
+        .rd(lec),
+        .data_out(busD)
       );
 
+
+assign {temp,leds} = busD;
 
 endmodule
 

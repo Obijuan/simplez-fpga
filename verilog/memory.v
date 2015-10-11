@@ -1,12 +1,13 @@
 module memory (input clk,
                input wire [8:0] addr,
+               input wire rd,
                output reg [11:0] data_out);
 
   //-- Memoria
   reg [11:0] mem [0:511];
 
   always @(negedge clk) begin
-    data_out <= mem[addr];
+    data_out <= (rd) ? mem[addr] : {12{1'bz}};
   end
     
 
