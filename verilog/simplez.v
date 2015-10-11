@@ -57,6 +57,22 @@ wire [ADDRW-1: 0] busAi;  //-- Bus de direcciones (interno)
 //-------- Registro de direcciones externas
 reg [ADDRW-1: 0] RA;
 
+
+//--------------- Registro de instruccion
+reg [DATAW-1: 0] RI;
+
+//-- Formato de las intrucciones
+//-- Todas las instrucciones tienen el mismo formato
+//--  CO  | CD.    CO de 3 bits.  CD de 9 bits
+wire [2:0] CO = RI[11:9];  //-- Codigo de operacion
+wire [ADDRW-1: 0] CD = RI[ADDRW-1: 0];   //-- Campo de direccion
+
+always @(negedge clk)
+  if (rstn == 0)
+    RI <= 0;
+  else if (eri)
+    RI <= busD;
+
 //---------------- Memoria -------------------------
 
 wire [DATAW-1-4:0] temp; //-- Temp!!!!!
@@ -137,7 +153,8 @@ always @* begin
 
     //-- Lectura de instruccion
     I0: begin
-      lec  <= 1;
+      lec  <= 1;  //-- Habilitar lectura en memoria
+      eri  <= 1;  //-- Capturar la instruccion y meterla en RI
     end
 
     I1: lec <= 0; //-- DEBUG. QUITAR
