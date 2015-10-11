@@ -31,7 +31,7 @@ parameter ADDRW = 9;
 //---------------------------------------------------------------------
 
 //--------------- Microordenes
-reg lec=1;
+reg lec;
 reg era;
 reg esc;
 
@@ -67,6 +67,8 @@ memory
         .clk(clk),
         .addr(12'h0),
         .rd(lec),
+        .wr(esc),
+        .data_in(busD),
         .data_out(busD)
       );
 
@@ -127,6 +129,7 @@ always @* begin
   //--- Valores por defecto de las señales
   //--  (para que no se generen latches)
   lec <= 0;
+  esc <= 0;
   stop <= 0;
 
   //-- Cambios en las señales
@@ -139,7 +142,9 @@ always @* begin
 
     I1: lec <= 0; //-- DEBUG. QUITAR
 
-    O0: lec <= 0; //-- DEBUG. QUITAR
+    O0: begin
+      esc <= 1;
+    end
 
     O1: begin
       stop <= 1;

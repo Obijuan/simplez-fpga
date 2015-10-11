@@ -1,6 +1,8 @@
 module memory (input clk,
                input wire [8:0] addr,
                input wire rd,
+               input wire wr,
+               input wire [11:0] data_in,
                output reg [11:0] data_out);
 
   //-- Memoria
@@ -8,6 +10,10 @@ module memory (input clk,
 
   always @(negedge clk) begin
     data_out <= (rd) ? mem[addr] : {12{1'bz}};
+
+    if (wr) 
+      mem[addr] <= data_in;
+
   end
     
 
