@@ -65,6 +65,27 @@ always @(negedge clk)
 //-- Volcar el campo de direccion al bus de direcciones
 assign busAi = (sri) ? CD : {ADDRW{1'bz}};
 
+//--------------------- Contador de programa ------------------------
+reg [ADDRW-1: 0] CP;
+
+always @(negedge clk)
+  if (rstn == 0)
+    CP <= 0;
+
+  //-- Incrementar contador programa
+  else if (incp)
+    CP <= CP + 1;
+
+  //-- Cargar el contador programa
+  else if (ecp)
+    CP <= busAi;
+
+  //-- Poner a cero contador de programa
+  else if (ccp)
+    CP <= 0;
+
+//-- Conectar el contador de programa al bus de direcciones interno
+assign busAi = (scp) ? CP : {ADDRW{1'bz}};
 
 //--------------- Registro de instruccion
 reg [DATAW-1: 0] RI;
@@ -86,27 +107,28 @@ reg [DATAW-1: 0] AC;
 
 always @(negedge clk)
   if (rstn == 0)
-    AC <= 0;
+    AC <= 3;
   else if (eac)
     AC <= {DATAW{1'b1}};   //---- DEBUG!! MODIFICAR!!!
 
-//---------------- Memoria -------------------------
+assign busD = (sac) ? AC : {DATAW{1'bz}};
 
-wire [DATAW-1-4:0] temp; //-- Temp!!!!!
+//---------------- Memoria -------------------------
 
 //-- Instanciar la memoria principal
 memory
   ROM (
         .clk(clk),
-        .addr(12'h0),
-        .rd(lec),
+        .addr(RA),
         .wr(esc),
         .data_in(busD),
-        .data_out(busD)
+        .data_out(data_out)
       );
 
+wire [11:0] data_out;
+wire [11:0] data_in;
 
-assign {temp,leds} = busD;
+assign busD = (lec) ? data_out : {12{1'bz}}
 
 //-----------------------------------------------------------
 //-- SECUENCIADOR
@@ -135,7 +157,8 @@ reg [2:0] state;
 always @(negedge clk)
   if (rstn == 0)
     state <= I0;  //--Estado inicial: Lectura de instruccion
-  else 
+  else begin
+    state <= I0;  //--- Caso por defecto
     case (state)
 
       //-- Lectura de instruccion
@@ -143,17 +166,21 @@ always @(negedge clk)
       I0: state <= I1;
 
       //-- Decodificacion de la instruccion
-      I1: state <= O0;
+      I1: begin
+        case (CO)
+          HALT: state <= I1;
+        endcase 
+        
+      end
 
       //-- Lectura o escritura del operando
       O0: state <= O1;
 
       //-- Terminacion de ciclo
-      O1: state <= O1;
-
-      default: state <= I0;
+      O1: state <= I0;
 
     endcase
+  end
 
 
 //-- Generacion de las microordenes
@@ -163,11 +190,16 @@ always @* begin
   //--  (para que no se generen latches)
   lec <= 0;
   eri <= 0;
+  incp <= 0;
   sri <= 0;
   era <= 0;
   esc <= 0;
+  sac <= 0;
   stop <= 0;
   eac  <= 0;
+  ccp  <= 0;
+  ecp  <= 0;
+  scp  <= 0;
 
   //-- Cambios en las señales
   case (state)
@@ -176,19 +208,35 @@ always @* begin
     I0: begin
       lec  <= 1;  //-- Habilitar lectura en memoria
       eri  <= 1;  //-- Capturar la instruccion y meterla en RI
+      incp <= 1;  //-- Incrementar contador de programa
     end
 
     I1: begin 
-      era <= 1; //-- ST: Capturar la direccion donde hacer store
-      sri <= 1; //-- ST: Volcar direccion operando en bus Ai
+
+      case (CO)
+
+        HALT: begin
+          stop <= 1;
+        end
+
+        ST: begin
+           era <= 1; //-- ST: Capturar la direccion donde hacer store
+           sri <= 1; //-- ST: Volcar direccion operando en bus Ai
+        end
+
+      endcase
+     
     end
 
     O0: begin
       esc <= 1; //-- ST: Escritura del dato en memoria
+      sac <= 1; //-- ST: Acumulador al bus de datos
     end
 
     O1: begin
-      stop <= 1;
+      era <= 1;
+      sac <= 1;  //-- ST: Acumulador al bus de datos
+      scp <= 1;  //-- Contador de programa a bus de direcciones interno
     end
 
   endcase

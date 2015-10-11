@@ -1,24 +1,23 @@
 [*]
 [*] GTKWave Analyzer v3.3.64 (w)1999-2014 BSI
-[*] Sun Oct 11 17:59:35 2015
+[*] Sun Oct 11 19:07:23 2015
 [*]
 [dumpfile] "/home/obijuan/development/simplez-fpga/verilog/simplez_tb.vcd"
-[dumpfile_mtime] "Sun Oct 11 17:59:22 2015"
-[dumpfile_size] 2363
+[dumpfile_mtime] "Sun Oct 11 19:05:06 2015"
+[dumpfile_size] 3011
 [savefile] "/home/obijuan/development/simplez-fpga/verilog/simplez_tb.gtkw"
 [timestart] 0
 [size] 1761 750
 [pos] 125 128
-*-1.932037 1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-1.932037 3 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] simplez_tb.
 [treeopen] simplez_tb.CPU0.
 [sst_width] 223
 [signals_width] 262
 [sst_expanded] 1
 [sst_vpaned_height] 208
-@29
-simplez_tb.clk
 @28
+simplez_tb.clk
 simplez_tb.CPU0.rstn
 @22
 simplez_tb.CPU0.state[2:0]
@@ -28,9 +27,12 @@ simplez_tb.CPU0.state[2:0]
 @28
 simplez_tb.CPU0.lec
 simplez_tb.CPU0.eri
+simplez_tb.CPU0.incp
 simplez_tb.CPU0.sri
 simplez_tb.CPU0.era
 simplez_tb.CPU0.esc
+simplez_tb.CPU0.sac
+simplez_tb.CPU0.scp
 simplez_tb.CPU0.stop
 simplez_tb.CPU0.eac
 @200
@@ -42,9 +44,11 @@ simplez_tb.CPU0.busAi[8:0]
 @200
 -
 -Registros
+@22
+simplez_tb.CPU0.CP[8:0]
 @30
 simplez_tb.CPU0.RI[11:0]
-@28
+@31
 simplez_tb.CPU0.CO[2:0]
 @30
 simplez_tb.CPU0.CD[8:0]
