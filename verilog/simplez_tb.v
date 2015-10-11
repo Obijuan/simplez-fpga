@@ -40,10 +40,10 @@ initial begin
   $dumpvars(0, simplez_tb);
 
   //-- Reset 
-  #4 rst <= 0;
+  #2 rst <= 0;
   #2 rst <= 1;
 
-  #10 $display("FIN de la simulacion");
+  #100 $display("FIN de la simulacion");
   $finish;
 end
 

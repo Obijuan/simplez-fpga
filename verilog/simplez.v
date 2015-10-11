@@ -21,33 +21,34 @@ module simplez (input wire clk,
                 output reg stop
                 );
 
-wire [8:0] busAi;
+//-- Anchura de los datos: Bus datos, acumulador, RI
+parameter DATAW = 12;
 
-//-- Microordenes
-reg era;  //-- Enable registro RA
-reg lec;   //-- Lectura de la memoria principal
-reg esc;   //-- Escritura en la memoria principal
+//-- Anchura de las direcciones: Bus direciones, CP, RA
+parameter ADDRW = 9;
 
-//-- Microordenaes para el CP
-reg ccp;   //-- Clear CP
-reg ecp;   //-- Enable CP (para carga)
-reg incp;  //-- Incrementar el contador de programa
-reg scp;   //-- Activar salida del CP
+//---------------------------------------------------------------------
+//-- RUTA DE DATOS
+//---------------------------------------------------------------------
 
-//-- Microordenes para el de instruccion RI
-reg eri;   //-- Enable registro RI
-reg sri;   //-- Activar salida del RI
+//--------------- Microordenes
+reg lec;
+reg era;
 
-wire [11:0] busD;
-wire [11:0] test;
+//-- Para CP
+reg incp;
+reg ecp;
+reg ccp;
+reg scp;
+
+//-------- Buses
+wire [DATAW-1: 0] busD;   //-- Bus de datos
+wire [ADDRW-1: 0] busAi;  //-- Bus de direcciones (interno)
 
 
+//-------- Registro de direcciones externas
+reg [ADDRW-1: 0] RA;
 
-//-- Registro RA
-reg [8:0] RA;
-
-//-- Capturar la direccion que hay en el bus A SOLO si la
-//-- microorden era esta activa
 always @(negedge clk)
   if (rstn == 0)
     RA <= 0;
@@ -55,34 +56,8 @@ always @(negedge clk)
     RA <= busAi;
 
 
-//-- Cablear la direccion 0 al bus de direcciones
-//assign busAi = 9'b0_0000_0000; 
-
-
-//-------------------- Contador de programa
-reg [8:0] CP;
-
-always @(negedge clk)
-  if (rstn == 0)    //-- Reset (inicio)
-    CP <= 'b0;
-  //else if (ccp)     //-- Clear
-  //  CP <= 'b0;
-  //else if (ecp)     //-- Load
-  //  CP <= busAi;
-  else if (incp)    //-- Incrementar
-    CP <= CP + 1;
-  
-
-//-- Conexión al bus Ai
-assign busAi = scp ? CP : 'bz;
-
-//------------------------------------------------------
-//--             Registro de instruccion
-//------------------------------------------------------
-localparam HALT = 3'o7;
-localparam ST = 3'o0;
-
-reg [11:0] RI;
+//--------------- Registro de instruccion
+reg [DATAW-1: 0] RI;
 
 //-- Formato de las intrucciones
 //-- Todas las instrucciones tienen el mismo formato
@@ -93,19 +68,33 @@ wire [8:0] CD = RI[8:0];   //-- Campo de direccion
 always @(negedge clk)
   if (rstn == 0)
     RI <= 0;
-  else if (eri)
+  else
     RI <= busD;
 
-//-- Conexión al bus Ai
-assign busAi = sri ? CD : 'bz;
 
+//--------------- Contador de programa
+reg [ADDRW-1: 0] CP;
 
-//-- Hello world! encender el led!
-assign LED0 = rstn;
+always @(negedge clk)
+  if (rstn == 0)
+    CP <= 0;
 
-assign dataled = {RI[11], RI[10], RI[9]};
+  //-- Incrementar contador programa
+  else if (incp)
+    CP <= CP + 1;
 
-//-- Memoria
+  //-- Cargar el contador programa
+  else if (ecp)
+    CP <= busAi;
+
+  //-- Poner a cero contador de programa
+  else if (ccp)
+    CP <= 0;
+
+//-- Conectar el contador de programa al bus de direcciones interno
+assign busAi = (scp) ? CP : {ADDRW{1'bz}};
+
+//---------------- Memoria 
 memory 
   MP(
      .clk(clk),
@@ -115,12 +104,28 @@ memory
      );
 
 
-//-- Secuenciador
+//-----------------------------------------------------------
+//-- SECUENCIADOR
+//-----------------------------------------------------------
+
+//-- Estados del secuenciador
 localparam I0 = 0; //-- Lectura de instruccion. Incremento del PC
 localparam I1 = 1; //-- Decodificacion y ejecucion
 localparam O0 = 2; //-- Lectura o escritura del operando
 localparam O1 = 3; //-- Terminacion del ciclo
 
+//-- Codigos de operacion de las instrucciones
+localparam ST   = 3'o0;
+localparam LD   = 3'o1;
+localparam ADD  = 3'o2;
+localparam BR   = 3'o3;
+localparam BZ   = 3'o4;
+localparam CLR  = 3'o5;
+localparam DEC  = 3'o6;
+localparam HALT = 3'o7;
+
+
+//-- Registro de estado
 reg [1:0] state;
 
 always @(negedge clk)
@@ -152,93 +157,70 @@ always @(negedge clk)
 
     endcase
 
-//-- OJO!!! SEÑAL ERA esta mal!!!!! comprobar!!!!!
 
+//-- Generacion de las microordenes
 always @*
   case (state)
     I0: begin
-      lec <= 1;  //-- Leer en MP
-      eri <= 1;  //-- Habilitar registro de instruccion
-      incp <= 1; //-- Incrementar contador de programa
-      sri <= 0;
-      era <= 0;
-      esc <= 0;
-      ccp <= 0;
+      lec  <= 1;
+      incp <= 1;
+      era  <= 0;
+      scp  <= 0;
+      ecp  <= 0;
+      ccp  <= 0;
 
-      scp <= 0;  //-- Salida del contador programa
-
-
-      stop <= 0;
-      
+      stop  <= 0;
     end
 
     I1: begin
-      lec <= 0; 
-      eri <= 0;
+      lec  <= 0;
       incp <= 0;
-      sri <= 1;  //-- Salida de CD (del RI)
-      era <= 1;  //-- Habilitar registro A
-      esc <= 0;
-      ccp <= 0;
-      scp <= 0;
-      
-
-      //-- Instruccion HALT
-      if (CO == HALT)
-        stop <= 1;
-      else
-        stop <= 0;
-
+      era  <= 1;
+      scp  <= 0;
+      ecp  <= 0;  //-- Depende de BZ (poner a 1)
+      ccp  <= 0;  //-- Depende de HALT (Poner a 1)
+      stop <= 1;  //-- Depende de HALT (poner a 1)
     end
 
     O0: begin
-      lec <= 0;
-      eri <= 0;
+      lec  <= 0;
       incp <= 0;
-      sri <= 0;
-      era <= 0;
-      esc <= 1;  //-- Escritura en la memoria
-
-      ccp <= 0;
-      
-      scp <= 0;
-
+      era  <= 0;
+      scp  <= 0;
+      ecp  <= 0;
+      ccp  <= 0;
       stop <= 0;
     end
 
     O1: begin
-      lec <= 0;
-      eri <= 0;
+      lec  <= 0;
       incp <= 0;
-      sri <= 0;
-      era <= 1;
-      esc <= 0;
-
-      ccp <= 0;
-      
-      scp <= 0;
-
+      era  <= 1;
+      scp  <= 1;
+      ecp  <= 0;
+      ccp  <= 0;
       stop <= 0;
     end
 
+    //-- Para evitar latches
     default: begin
-      lec <= 0;
-      eri <= 0;
+      lec  <= 0;
       incp <= 0;
-      sri <= 0;
-      era <= 0;
-      esc <= 0;
-
-      ccp <= 0;
-      
-      scp <= 0;
-
+      era  <= 0;
+      scp  <= 0;
+      ecp  <= 0;
+      ccp  <= 0;
       stop <= 0;
     end
 
   endcase
 
+
+
 endmodule
+
+
+
 
 
 

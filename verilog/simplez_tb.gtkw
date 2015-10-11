@@ -1,58 +1,84 @@
 [*]
 [*] GTKWave Analyzer v3.3.64 (w)1999-2014 BSI
-[*] Sun Oct 11 07:26:34 2015
+[*] Sun Oct 11 09:02:14 2015
 [*]
 [dumpfile] "/home/obijuan/development/simplez-fpga/verilog/simplez_tb.vcd"
-[dumpfile_mtime] "Sun Oct 11 07:25:46 2015"
-[dumpfile_size] 1561
+[dumpfile_mtime] "Sun Oct 11 09:01:59 2015"
+[dumpfile_size] 2221
 [savefile] "/home/obijuan/development/simplez-fpga/verilog/simplez_tb.gtkw"
 [timestart] 0
 [size] 1353 750
 [pos] 222 120
-*-1.932037 11 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-1.932037 5 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] simplez_tb.
 [treeopen] simplez_tb.CPU0.
 [sst_width] 223
-[signals_width] 201
+[signals_width] 188
 [sst_expanded] 1
 [sst_vpaned_height] 208
 @28
 simplez_tb.clk
 simplez_tb.CPU0.rstn
+@24
 simplez_tb.CPU0.state[1:0]
-@30
-simplez_tb.CPU0.busAi[8:0]
-@22
-simplez_tb.CPU0.CP[8:0]
-simplez_tb.CPU0.RA[8:0]
-@30
+@c00030
 simplez_tb.CPU0.RI[11:0]
+@28
+(0)simplez_tb.CPU0.RI[11:0]
+(1)simplez_tb.CPU0.RI[11:0]
+(2)simplez_tb.CPU0.RI[11:0]
+(3)simplez_tb.CPU0.RI[11:0]
+(4)simplez_tb.CPU0.RI[11:0]
+(5)simplez_tb.CPU0.RI[11:0]
+(6)simplez_tb.CPU0.RI[11:0]
+(7)simplez_tb.CPU0.RI[11:0]
+(8)simplez_tb.CPU0.RI[11:0]
+(9)simplez_tb.CPU0.RI[11:0]
+(10)simplez_tb.CPU0.RI[11:0]
+(11)simplez_tb.CPU0.RI[11:0]
+@1401200
+-group_end
+@30
 simplez_tb.CPU0.CO[2:0]
-@23
-simplez_tb.CPU0.CP[8:0]
+@22
+simplez_tb.CPU0.CD[8:0]
 @200
 -
+-Microordenes
 @28
 simplez_tb.CPU0.lec
-simplez_tb.CPU0.eri
 simplez_tb.CPU0.incp
 simplez_tb.CPU0.era
-simplez_tb.CPU0.esc
+simplez_tb.CPU0.ccp
 simplez_tb.CPU0.scp
-simplez_tb.CPU0.sri
+@29
+simplez_tb.CPU0.stop
 @200
 -
--
-@22
-simplez_tb.CPU0.MP.address[8:0]
+-Buses
+@c00022
+simplez_tb.CPU0.busAi[8:0]
 @28
-simplez_tb.CPU0.MP.read_enable
-@22
-simplez_tb.CPU0.MP.data_out[11:0]
-simplez_tb.CPU0.busD[11:0]
+(0)simplez_tb.CPU0.busAi[8:0]
+(1)simplez_tb.CPU0.busAi[8:0]
+(2)simplez_tb.CPU0.busAi[8:0]
+(3)simplez_tb.CPU0.busAi[8:0]
+(4)simplez_tb.CPU0.busAi[8:0]
+(5)simplez_tb.CPU0.busAi[8:0]
+(6)simplez_tb.CPU0.busAi[8:0]
+(7)simplez_tb.CPU0.busAi[8:0]
+(8)simplez_tb.CPU0.busAi[8:0]
+@1401200
+-group_end
 @30
-simplez_tb.dataled[2:0]
-@28
-simplez_tb.stop
+simplez_tb.CPU0.busD[11:0]
+@200
+-
+-Registros
+@22
+simplez_tb.CPU0.RA[8:0]
+simplez_tb.CPU0.CP[8:0]
+@200
+-
 [pattern_trace] 1
 [pattern_trace] 0
