@@ -73,6 +73,82 @@ memory
 
 assign {temp,leds} = busD;
 
+//-----------------------------------------------------------
+//-- SECUENCIADOR
+//-----------------------------------------------------------
+
+//-- Estados del secuenciador
+localparam I0 = 0; //-- Lectura de instruccion. Incremento del PC
+localparam I1 = 1; //-- Decodificacion y ejecucion
+localparam O0 = 2; //-- Lectura o escritura del operando
+localparam O1 = 3; //-- Terminacion del ciclo
+
+//-- Codigos de operacion de las instrucciones
+localparam ST   = 3'o0;
+localparam LD   = 3'o1;
+localparam ADD  = 3'o2;
+localparam BR   = 3'o3;
+localparam BZ   = 3'o4;
+localparam CLR  = 3'o5;
+localparam DEC  = 3'o6;
+localparam HALT = 3'o7;
+
+
+//-- Registro de estado
+reg [2:0] state;
+
+always @(negedge clk)
+  if (rstn == 0)
+    state <= I0;  //--Estado inicial: Lectura de instruccion
+  else 
+    case (state)
+
+      //-- Lectura de instruccion
+      //-- Pasar al siguiente estado
+      I0: state <= I1;
+
+      //-- Decodificacion de la instruccion
+      I1: state <= O0;
+
+      //-- Lectura o escritura del operando
+      O0: state <= O1;
+
+      //-- Terminacion de ciclo
+      O1: state <= O1;
+
+      default: state <= I0;
+
+    endcase
+
+
+//-- Generacion de las microordenes
+always @* begin
+
+  //--- Valores por defecto de las señales
+  //--  (para que no se generen latches)
+  lec <= 0;
+  stop <= 0;
+
+  //-- Cambios en las señales
+  case (state)
+
+    //-- Lectura de instruccion
+    I0: begin
+      lec  <= 1;
+    end
+
+    I1: lec <= 0; //-- DEBUG. QUITAR
+
+    O0: lec <= 0; //-- DEBUG. QUITAR
+
+    O1: begin
+      stop <= 1;
+    end
+
+  endcase
+end
+
+
 endmodule
 
 
