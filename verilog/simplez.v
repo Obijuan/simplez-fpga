@@ -81,6 +81,15 @@ always @(negedge clk)
   else if (eri)
     RI <= busD;
 
+//---------------- Registro acumulador ---------------------------------
+reg [DATAW-1: 0] AC;
+
+always @(negedge clk)
+  if (rstn == 0)
+    AC <= 0;
+  else if (eac)
+    AC <= {DATAW{1'b1}};   //---- DEBUG!! MODIFICAR!!!
+
 //---------------- Memoria -------------------------
 
 wire [DATAW-1-4:0] temp; //-- Temp!!!!!
@@ -158,6 +167,7 @@ always @* begin
   era <= 0;
   esc <= 0;
   stop <= 0;
+  eac  <= 0;
 
   //-- Cambios en las señales
   case (state)
