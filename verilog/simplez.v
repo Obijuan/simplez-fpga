@@ -246,18 +246,12 @@ always @(negedge clk)
 
 always @* begin
 
-  //-- Valor de las microordenes por defecto
-  stop <= 0;
-  lec <= 0;
-  eri <= 0;
-  incp <= 0;
-  sri <= 0;
-  era <= 0;
-  esc <= 0;
-  tra2 <= 0;
-  sac <= 0;
-  eac <= 0;
+  //-- Por defecto todas las microordenes a 0
+  {lec, eri, incp} <= {1'b0, 1'b0, 1'b0};
+  {sri, era, esc}  <= {1'b0, 1'b0, 1'b0};
+  {tra2, sac, eac} <= {1'b0, 1'b0, 1'b0};
   scp <= 0;
+  stop <= 0;
 
   case (state)
 
