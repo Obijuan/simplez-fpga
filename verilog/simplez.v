@@ -213,37 +213,43 @@ localparam HALT = 3'o7;
 //-- Registro de estado
 reg [2:0] state;
 
+//-- Transiciones entre los estados
 always @(negedge clk)
 
   if (rstn == 0)
     state <= INI;  //--Estado inicial: Lectura de instruccion
 
   else begin
+    //-- Estado por defecto
+    state <= INI;
     case (state)
 
+      //-- Estado inicial
       INI: state <= I0;
 
+      //-- Fetch
       I0: state <= I1;
 
-      I1: begin
-        case (CO)
-          HALT: state <= I1;
+      //-- Decodificacion de la instruccion
+      I1: case (CO)
+            //-- Instruccion Halt: permanecer en este estado
+            //-- Se dejan de ejecutar instrucciones
+            HALT: state <= I1;
 
-          default:
-            state <= O0;
-        endcase 
-      end
+            default:
+              state <= O0;
+          endcase 
 
+      //-- Lectura del operando
       O0: state <= O1;
 
+      //-- Terminacion de ciclo
       O1: state <= INI;
-
-      default:
-        state <= INI;
         
     endcase
   end
 
+//-- Asignacion de las microordenes, segun el estado
 always @* begin
 
   //-- Por defecto todas las microordenes a 0
