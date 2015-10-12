@@ -68,12 +68,12 @@ reg [ADDRW-1: 0] RA;
 reg [DATAW-1: 0] RI;
 
 always @(negedge clk)
-  RI <= busD;
+  if (eri)
+    RI <= busD;
 
 //-- Monitorizar RI
 always @(negedge clk)
-  if (eri)
-    leds_r <= RI[3:0];
+  leds_r <= RI[3:0];
 
 assign leds = leds_r;
 
