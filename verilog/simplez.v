@@ -63,6 +63,12 @@ always @(negedge clk)
 //-------- Registro de direcciones externas
 reg [ADDRW-1: 0] RA;
 
+always @(negedge clk)
+  if (rstn == 0)
+    RA <= 0;
+  else if (era)
+    RA <= busAi;
+
 //-------- Registro de instruccion
 reg [DATAW-1: 0] RI;
 
@@ -78,9 +84,8 @@ always @(negedge clk)
   else if (eri)
     RI <= busD;
 
-//-- Monitorizar RI
+//-- Monitorizar CO
 always @(negedge clk)
-  //leds_r <= {1'b0, RI[11:9]};
   leds_r <= {1'b0, CO};
 
 assign leds = leds_r;
@@ -90,7 +95,7 @@ assign leds = leds_r;
 memory
   ROM (
         .clk(clk),
-        .addr(0),
+        .addr(RA),
         .wr(0),
         .data_in(0),
         .data_out(data_out)
@@ -116,10 +121,11 @@ assign busD =  (lec) ? data_out :      //-- Conectar la memoria
 //-----------------------------------------------------------
 
 //-- Estados del secuenciador
-localparam I0 = 0; //-- Lectura de instruccion. Incremento del PC
-localparam I1 = 1; //-- Decodificacion y ejecucion
-localparam O0 = 2; //-- Lectura o escritura del operando
-localparam O1 = 3; //-- Terminacion del ciclo
+localparam INI = 0; //-- Estado de inicializacion
+localparam I0 = 1;  //-- Lectura de instruccion. Incremento del PC
+localparam I1 = 2;  //-- Decodificacion y ejecucion
+localparam O0 = 3;  //-- Lectura o escritura del operando
+localparam O1 = 4;  //-- Terminacion del ciclo
 
 //-- Codigos de operacion de las instrucciones
 localparam ST   = 3'o0;
@@ -137,10 +143,12 @@ reg [1:0] state;
 always @(negedge clk)
 
   if (rstn == 0)
-    state <= I0;  //--Estado inicial: Lectura de instruccion
+    state <= INI;  //--Estado inicial: Lectura de instruccion
 
   else begin
     case (state)
+
+      INI: state <= I0;
 
       I0: state <= I1;
 
@@ -153,7 +161,9 @@ always @(negedge clk)
         endcase 
       end
 
-      O0: state <= O0;
+      O0: state <= O1;
+
+      O1: state <= I0;
 
       default:
         state <= I0;
@@ -164,15 +174,24 @@ always @(negedge clk)
 always @*
   case (state)
 
+    INI: begin
+      stop <= 0;
+      lec <= 1;
+      eri <= 1;
+      era <= 0;
+    end
+
     I0: begin 
       stop <= 0;
       lec <= 1;
       eri <= 1;
+      era <= 0;
     end
 
     I1: begin
-      lec <= 0;
+      lec <= 1;   //--- Cambiar a 0
       eri <= 0;
+      era <= 0;
       case (CO)
         HALT: stop <= 1;
         default: stop <= 0;
@@ -182,6 +201,14 @@ always @*
     O0: begin
       lec <= 0;
       eri <= 0;
+      era <= 0;
+      stop <= 0;
+    end
+
+    O1: begin
+      lec <= 0;
+      eri <= 0;
+      era <= 0;
       stop <= 0;
     end
 
@@ -189,6 +216,7 @@ always @*
       stop <= 0;
       lec <= 0;
       eri <= 0;
+      era <= 0;
     end
 
   endcase
