@@ -15,7 +15,6 @@
 `default_nettype none
 
 module simplez (input wire clk,
-                input wire rstn,
                 output wire [3:0] leds,
                 output reg stop
                 );
@@ -55,6 +54,11 @@ reg [3:0] leds_r;
 //-------- Buses
 wire [DATAW-1: 0] busD;   //-- Bus de datos
 wire [ADDRW-1: 0] busAi;  //-- Bus de direcciones (interno)
+
+//-- Inicializador
+reg rstn = 0;
+always @(negedge clk)
+  rstn <= 1;
 
 //-------- Registro de direcciones externas
 reg [ADDRW-1: 0] RA;
