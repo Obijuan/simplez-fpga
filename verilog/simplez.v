@@ -224,6 +224,7 @@ always @*
       era <= 0;
       sac <= 1;
       scp <= 1;
+      eac <= 0;
     end
 
     I0: begin 
@@ -233,6 +234,7 @@ always @*
       era <= 0;
       sac <= 0;
       scp <= 0;
+      eac <= 0;
     end
 
     I1: begin
@@ -241,6 +243,7 @@ always @*
       era <= 1;
       sac <= 0;
       scp <= 0;
+      eac <= 0;
       case (CO)
         HALT: stop <= 1;
         default: stop <= 0;
@@ -254,6 +257,7 @@ always @*
       sac <= 0;
       scp <= 0;
       stop <= 0;
+      eac <= 0;
     end
 
     O1: begin
@@ -262,6 +266,7 @@ always @*
       era <= 1;
       sac <= 0;
       scp <= 1;
+      eac <= 0;
       stop <= 0;
     end
 
@@ -272,6 +277,7 @@ always @*
       era <= 0;
       sac <= 0;
       scp <= 0;
+      eac <= 0;
     end
 
   endcase
