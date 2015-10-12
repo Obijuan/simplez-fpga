@@ -49,6 +49,9 @@ reg sri;
 reg eac;
 reg sac;
 
+//-- Registro para monitorizar
+reg [3:0] leds_r;
+
 //-------- Buses
 wire [DATAW-1: 0] busD;   //-- Bus de datos
 wire [ADDRW-1: 0] busAi;  //-- Bus de direcciones (interno)
@@ -56,6 +59,17 @@ wire [ADDRW-1: 0] busAi;  //-- Bus de direcciones (interno)
 //-------- Registro de direcciones externas
 reg [ADDRW-1: 0] RA;
 
+//-------- Registro de instruccion
+
+reg [DATAW-1: 0] RI;
+
+always @(negedge clk)
+  RI <= busD;
+
+//-- Monitorizar RI
+always @(negedge clk)
+  leds_r <= RI[3:0];
+assign leds = leds_r;
 
 //-- Instanciar la memoria principal
 memory
@@ -70,11 +84,11 @@ memory
 wire [11:0] data_out;
 
 //-- Monitorizar bus de datos
-reg [3:0] leds_r;
+/*
 always @(negedge clk)
   leds_r <= busD[3:0];
-
 assign leds = leds_r;
+*/
 
 //-------- ACCESO AL BUS DE DATOS ----------------------------
 assign busD =  (lec) ? data_out :      //-- Conectar la memoria
