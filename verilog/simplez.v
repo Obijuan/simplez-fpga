@@ -71,11 +71,10 @@ always @(negedge clk)
   RI <= busD;
 
 //-- Monitorizar RI
-/*
 always @(negedge clk)
   leds_r <= RI[3:0];
 assign leds = leds_r;
-*/
+
 
 //-- Instanciar la memoria principal
 memory
@@ -89,12 +88,13 @@ memory
 
 wire [11:0] data_out;
 
+/*
 //-- Monitorizar bus de datos
 always @(negedge clk)
   leds_r <= busD[3:0];
 
 assign leds = leds_r;
-
+*/
 
 //-------- ACCESO AL BUS DE DATOS ----------------------------
 assign busD =  (lec) ? data_out :      //-- Conectar la memoria
@@ -136,11 +136,13 @@ always @*
     I0: begin 
       stop <= 1;
       lec <= 1;
+      eri <= 1;
     end
 
     default: begin
       stop <= 0;
       lec <= 0;
+      eri <= 0;
     end
 
   endcase
