@@ -247,10 +247,10 @@ always @(negedge clk)
 always @* begin
 
   stop <= 0;
+  lec <= 0;
   case (state)
 
     INI: begin
-      lec <= 1;
       eri <= 1;
       incp <= 0;
       sri <= 0;
@@ -276,7 +276,6 @@ always @* begin
     end
 
     I1: begin
-      lec <= 0; 
       eri <= 0;
       incp <= 0;
       sri <= 1;
@@ -313,7 +312,6 @@ always @* begin
         end
 
         ST: begin
-          lec <= 0;
           esc <= 1;
           tra2 <= 0;
           eac <= 0;
@@ -321,7 +319,6 @@ always @* begin
         end
 
         default: begin
-          lec <= 0;
           esc <= 0;
           tra2 <= 0;
           eac <= 0;
@@ -339,21 +336,18 @@ always @* begin
       scp <= 1;
       case (CO)
         LD: begin 
-          lec <= 1;
           sac <= 0;
           tra2 <= 1;
           eac <= 1;
         end
        
         ST: begin
-          lec <= 0;
           sac <= 1;
           tra2 <= 0;
           eac <= 0;
         end
 
         default: begin
-          lec <= 0;
           sac <= 0;
           eac <= 0;
           tra2 <= 0;
@@ -362,7 +356,6 @@ always @* begin
     end
 
     default: begin
-      lec <= 0;
       eri <= 0;
       incp <= 0;
       sri <= 0;
