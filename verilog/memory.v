@@ -24,7 +24,7 @@ module memory (input clk,
      mem[3] = 12'o0003;
      mem[4] = 12'o0004;
      mem[5] = 12'o0005;
-     mem[6] = 12'o0005;
+     mem[6] = 12'o0003;
      mem[7] = 12'o0007;
      
      mem[8] = 12'o0001;  //-- Octal: 10

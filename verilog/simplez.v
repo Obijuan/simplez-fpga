@@ -266,8 +266,7 @@ always @* begin
     I0: {lec, eri, incp} <= {1'b1, 1'b1, 1'b1};
 
     I1: begin
-      sri <= 1;
-      era <= 1;
+      {sri, era} <= {1'b1, 1'b1};
       case (CO)
         HALT: begin 
           stop <= 1;
@@ -275,19 +274,11 @@ always @* begin
       endcase
     end
 
-    O0: begin
-
+    O0:
       case (CO)
-        LD: begin 
-          lec <= 1;
-        end
-
-        ST: begin
-          esc <= 1;
-          sac <= 1;
-        end
+        LD:  lec <= 1;
+        ST: {esc, sac} <= {1'b1, 1'b1};
       endcase
-    end
 
     O1: begin
       era <= 1;
