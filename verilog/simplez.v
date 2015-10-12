@@ -15,6 +15,7 @@
 `default_nettype none
 
 module simplez (input wire clk,
+                input wire rstn,
                 output wire [3:0] leds,
                 output reg stop
                 );
@@ -56,9 +57,9 @@ wire [DATAW-1: 0] busD;   //-- Bus de datos
 wire [ADDRW-1: 0] busAi;  //-- Bus de direcciones (interno)
 
 //-- Inicializador
-reg rstn = 0;
-always @(negedge clk)
-  rstn <= 1;
+//reg rstn = 0;
+//always @(negedge clk)
+//  rstn <= 1;
 
 //--------------------- Contador de programa ------------------------
 reg [ADDRW-1: 0] CP;
@@ -240,13 +241,18 @@ always @*
     I1: begin
       lec <= 1;   //--- Cambiar a 0
       eri <= 0;
-      era <= 1;
       sac <= 0;
       scp <= 0;
       eac <= 0;
       case (CO)
-        HALT: stop <= 1;
-        default: stop <= 0;
+        HALT: begin 
+          stop <= 1;
+          era <= 0;
+        end
+        default: begin
+          stop <= 0;
+          era <= 1;
+        end
       endcase
     end
 

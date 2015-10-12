@@ -15,10 +15,13 @@ reg clk = 0;
 wire [3:0] leds;
 wire stop;
 
+reg rstn=0;
+
 //-- Instanciar el componente
 simplez 
   CPU0 (
     .clk(clk),
+    .rstn(rstn),
     .leds(leds),
     .stop(stop)
   );
@@ -34,6 +37,8 @@ initial begin
   //-- Fichero donde almacenar los resultados
   $dumpfile("simplez_tb.vcd");
   $dumpvars(0, simplez_tb);
+
+  #1 rstn <= 1;
 
   #100 $display("FIN de la simulacion");
   $finish;
