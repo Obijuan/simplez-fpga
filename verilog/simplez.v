@@ -91,7 +91,7 @@ wire [11:0] data_out;
 
 //-- Monitorizar bus de datos
 always @(negedge clk)
-  leds_r <= data_out;
+  leds_r <= busD[3:0];
 
 assign leds = leds_r;
 
