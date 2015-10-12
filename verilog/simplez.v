@@ -132,7 +132,7 @@ localparam DEC  = 3'o6;
 localparam HALT = 3'o7;
 
 //-- Registro de estado
-reg state;
+reg [1:0] state;
 
 always @(negedge clk)
 
@@ -144,7 +144,16 @@ always @(negedge clk)
 
       I0: state <= I1;
 
-      I1: state <= I1;
+      I1: begin
+        case (CO)
+          HALT: state <= I1;
+
+          default:
+            state <= O0;
+        endcase 
+      end
+
+      O0: state <= O0;
 
       default:
         state <= I0;
@@ -168,6 +177,12 @@ always @*
         HALT: stop <= 1;
         default: stop <= 0;
       endcase
+    end
+
+    O0: begin
+      lec <= 0;
+      eri <= 0;
+      stop <= 0;
     end
 
     default: begin
