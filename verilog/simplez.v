@@ -114,10 +114,13 @@ always @(negedge clk)
     RI <= busD;
 
 //-- Monitorizar CO
+/*
 always @(negedge clk)
   leds_r <= {1'b0, CO};
 
 assign leds = leds_r;
+*/
+
 
 //---------------- Registro acumulador ---------------------------------
 reg [DATAW-1: 0] AC;
@@ -148,18 +151,30 @@ memory
 
 wire [11:0] data_out;
 
-/*
-//-- Monitorizar bus de datos
+//------------------ Perifericos
+wire cs_leds;
+
+assign cs_leds = (RA == 9'o100) ? 1 : 0;
+
 always @(negedge clk)
-  leds_r <= busD[3:0];
+  if (rstn == 0)
+    leds_r <= 0;
+  else if (cs_leds && esc == 1)
+    leds_r <= 4'b0010;
 
 assign leds = leds_r;
-*/
 
 //-------- ACCESO AL BUS DE DATOS ----------------------------
 assign busD =  (sac) ? AC :          //-- conectar el acumulador
                        data_out;     //-- Conectar la memoria
 
+
+/*
+//-- Monitorizar bus de datos
+always @(negedge clk)
+  leds_r <= busD[3:0];
+
+*/
 
 
 //-----------------------------------------------------------
