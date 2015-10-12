@@ -72,7 +72,9 @@ always @(negedge clk)
 
 //-- Monitorizar RI
 always @(negedge clk)
-  leds_r <= RI[3:0];
+  if (eri)
+    leds_r <= RI[3:0];
+
 assign leds = leds_r;
 
 
