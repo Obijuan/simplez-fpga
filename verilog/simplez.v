@@ -261,16 +261,9 @@ always @* begin
 
   case (state)
 
-    INI: begin
-      eri <= 1;
-      scp <= 1;
-    end
+    INI:  {eri, scp} <= {1'b1, 1'b1};
 
-    I0: begin 
-      lec <= 1;
-      eri <= 1;
-      incp <= 1;
-    end
+    I0: {lec, eri, incp} <= {1'b1, 1'b1, 1'b1};
 
     I1: begin
       sri <= 1;
