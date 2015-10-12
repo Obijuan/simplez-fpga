@@ -124,7 +124,9 @@ always @(negedge clk)
   else begin
     case (state)
 
-      I0: state <= I0;
+      I0: state <= I1;
+
+      I1: state <= I1;
 
       default:
         state <= I0;
@@ -136,9 +138,15 @@ always @*
   case (state)
 
     I0: begin 
-      stop <= 1;
+      stop <= 0;
       lec <= 1;
       eri <= 1;
+    end
+
+    I1: begin
+      stop <= 1;
+      lec <= 0;
+      eri <= 0;
     end
 
     default: begin
