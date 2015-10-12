@@ -49,6 +49,9 @@ reg sri;
 reg eac;
 reg sac;
 
+//-- ALU
+reg tra2;
+
 //-- Registro para monitorizar
 reg [3:0] leds_r;
 
@@ -127,9 +130,9 @@ reg [DATAW-1: 0] AC;
 
 always @(negedge clk)
   if (rstn == 0)
-    AC <= 4;
+    AC <= 0;
   else if (eac)
-    AC <= {DATAW{1'b1}};   //---- DEBUG!! MODIFICAR!!!
+    AC <= alu_out;
 
 //-- Si hubiese soporte de puertas tri-estado, la conexion del acumulador
 //-- al bus de datos seria:
@@ -137,7 +140,16 @@ always @(negedge clk)
 //-- Como no lo hay , esta conexion se hace mas adelante, en el elemento:
 //-- ACCESO AL BUS DE DATOS
 
+//----------- Unidad aritmetico logica
+wire [DATAW-1: 0] op1;
+wire [DATAW-1: 0] op2;
 
+wire [DATAW-1: 0] alu_out;
+
+assign op1 = AC;
+assign op2 = busD;
+
+assign alu_out = (tra2) ? op2 : 0;
 
 //-- Instanciar la memoria principal
 memory
@@ -242,6 +254,7 @@ always @*
       incp <= 0;
       sri <= 0;
       era <= 0;
+      tra2 <= 0;
       esc <= 0;
       sac <= 0;
       scp <= 1;
@@ -255,6 +268,7 @@ always @*
       incp <= 1;
       sri <= 0;
       era <= 0;
+      tra2 <= 0;
       esc <= 0;
       sac <= 0;
       scp <= 0;
@@ -262,7 +276,7 @@ always @*
     end
 
     I1: begin
-      lec <= 0;   //--- Cambiar a 0
+      lec <= 0; 
       eri <= 0;
       incp <= 0;
       sri <= 1;
@@ -270,6 +284,7 @@ always @*
       scp <= 0;
       eac <= 0;
       esc <= 0;
+      tra2 <= 0;
       case (CO)
         HALT: begin 
           stop <= 1;
@@ -283,29 +298,70 @@ always @*
     end
 
     O0: begin
-      lec <= 0;
       eri <= 0;
       incp <= 0;
       sri <= 0;
       era <= 0;
-      esc <= 1;
-      sac <= 1;
       scp <= 0;
       stop <= 0;
-      eac <= 0;
+
+      case (CO)
+        LD: begin 
+          lec <= 1;
+          esc <= 0;
+          tra2 <= 0;
+          eac <= 0;
+          sac <= 0;
+        end
+
+        ST: begin
+          lec <= 0;
+          esc <= 1;
+          tra2 <= 0;
+          eac <= 0;
+          sac <= 1;
+        end
+
+        default: begin
+          lec <= 0;
+          esc <= 0;
+          tra2 <= 0;
+          eac <= 0;
+          sac <= 0;
+        end
+      endcase
     end
 
     O1: begin
-      lec <= 0;
       eri <= 0;
       incp <= 0;
       sri <= 0;
       era <= 1;
       esc <= 0;
-      sac <= 1;
       scp <= 1;
-      eac <= 0;
       stop <= 0;
+      case (CO)
+        LD: begin 
+          lec <= 1;
+          sac <= 0;
+          tra2 <= 1;
+          eac <= 1;
+        end
+       
+        ST: begin
+          lec <= 0;
+          sac <= 1;
+          tra2 <= 0;
+          eac <= 0;
+        end
+
+        default: begin
+          lec <= 0;
+          sac <= 0;
+          eac <= 0;
+          tra2 <= 0;
+        end
+      endcase
     end
 
     default: begin
@@ -319,6 +375,7 @@ always @*
       sac <= 0;
       scp <= 0;
       eac <= 0;
+      tra2 <= 0;
     end
 
   endcase
