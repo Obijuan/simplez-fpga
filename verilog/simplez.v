@@ -141,8 +141,8 @@ memory
   ROM (
         .clk(clk),
         .addr(RA),
-        .wr(0),
-        .data_in(0),
+        .wr(esc),
+        .data_in(busD),
         .data_out(data_out)
       );
 
@@ -227,6 +227,7 @@ always @*
       incp <= 0;
       sri <= 0;
       era <= 0;
+      esc <= 0;
       sac <= 1;
       scp <= 1;
       eac <= 0;
@@ -239,19 +240,21 @@ always @*
       incp <= 1;
       sri <= 0;
       era <= 0;
+      esc <= 0;
       sac <= 0;
       scp <= 0;
       eac <= 0;
     end
 
     I1: begin
-      lec <= 1;   //--- Cambiar a 0
-      eri <= 1;
+      lec <= 0;   //--- Cambiar a 0
+      eri <= 0;
       incp <= 0;
       sri <= 1;
       sac <= 0;
       scp <= 0;
       eac <= 0;
+      esc <= 0;
       case (CO)
         HALT: begin 
           stop <= 1;
@@ -270,6 +273,7 @@ always @*
       incp <= 0;
       sri <= 0;
       era <= 0;
+      esc <= 1;
       sac <= 0;
       scp <= 0;
       stop <= 0;
@@ -282,6 +286,7 @@ always @*
       incp <= 0;
       sri <= 0;
       era <= 1;
+      esc <= 0;
       sac <= 0;
       scp <= 1;
       eac <= 0;
@@ -295,6 +300,7 @@ always @*
       incp <= 0;
       sri <= 0;
       era <= 0;
+      esc <= 0;
       sac <= 0;
       scp <= 0;
       eac <= 0;

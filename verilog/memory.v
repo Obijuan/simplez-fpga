@@ -17,10 +17,10 @@ module memory (input clk,
     
 
   initial begin
-     mem[0] = 12'o0000;  //-- ST
-     mem[1] = 12'o7000;  //-- HALT
+     mem[0] = 12'o0001;  //-- ST
+     mem[1] = 12'o0000;  //-- HALT
       
-     mem[2] = 12'o0002;
+     mem[2] = 12'o7002;
      mem[3] = 12'o0003;
      mem[4] = 12'o0004;
      mem[5] = 12'o0005;
