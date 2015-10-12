@@ -172,7 +172,7 @@ always @(negedge clk)
   if (rstn == 0)
     leds_r <= 0;
   else if (cs_leds && esc == 1)
-    leds_r <= {1'b1 ,busD[2:0]};
+    leds_r <= {1'b0 ,busD[2:0]};
 
 assign leds = leds_r;
 
@@ -244,11 +244,12 @@ always @(negedge clk)
     endcase
   end
 
-always @*
+always @* begin
+
+  stop <= 0;
   case (state)
 
     INI: begin
-      stop <= 0;
       lec <= 1;
       eri <= 1;
       incp <= 0;
@@ -262,7 +263,6 @@ always @*
     end
 
     I0: begin 
-      stop <= 0;
       lec <= 1;
       eri <= 1;
       incp <= 1;
@@ -291,7 +291,6 @@ always @*
           era <= 0;
         end
         default: begin
-          stop <= 0;
           era <= 1;
         end
       endcase
@@ -303,7 +302,6 @@ always @*
       sri <= 0;
       era <= 0;
       scp <= 0;
-      stop <= 0;
 
       case (CO)
         LD: begin 
@@ -339,7 +337,6 @@ always @*
       era <= 1;
       esc <= 0;
       scp <= 1;
-      stop <= 0;
       case (CO)
         LD: begin 
           lec <= 1;
@@ -365,7 +362,6 @@ always @*
     end
 
     default: begin
-      stop <= 0;
       lec <= 0;
       eri <= 0;
       incp <= 0;
@@ -379,7 +375,7 @@ always @*
     end
 
   endcase
-
+end
 
 endmodule
 
