@@ -51,6 +51,7 @@ reg sac;
 
 //-- ALU
 reg tra2;
+reg sum;
 
 //-- Registro para monitorizar
 reg [3:0] leds_r;
@@ -149,7 +150,9 @@ wire [DATAW-1: 0] alu_out;
 assign op1 = AC;
 assign op2 = busD;
 
-assign alu_out = (tra2) ? op2 : 0;
+assign alu_out = (tra2) ? op2 :        //-- Obtener operando 2
+                 (sum)  ? op1 + op2 :  //-- Suma
+                          0;
 
 //-- Instanciar la memoria principal
 memory
@@ -258,6 +261,7 @@ always @* begin
   {tra2, sac, eac} <= {1'b0, 1'b0, 1'b0};
   scp <= 0;
   stop <= 0;
+  sum <= 0;
 
   case (state)
 
@@ -283,8 +287,9 @@ always @* begin
     O1: begin
       {era, scp} <= {1'b1, 1'b1};
       case (CO)
-        LD: {tra2, eac} <= {1'b1, 1'b1};
         ST: sac <= 1;
+        LD: {tra2, eac} <= {1'b1, 1'b1};
+        ADD: {sum, eac} <= {1'b1, 1'b1};
       endcase
     end
 
