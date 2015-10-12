@@ -250,13 +250,13 @@ always @* begin
   stop <= 0;
   lec <= 0;
   eri <= 0;
+  incp <= 0;
+  sri <= 0;
 
   case (state)
 
     INI: begin
       eri <= 1;
-      incp <= 0;
-      sri <= 0;
       era <= 0;
       tra2 <= 0;
       esc <= 0;
@@ -269,7 +269,6 @@ always @* begin
       lec <= 1;
       eri <= 1;
       incp <= 1;
-      sri <= 0;
       era <= 0;
       tra2 <= 0;
       esc <= 0;
@@ -279,7 +278,6 @@ always @* begin
     end
 
     I1: begin
-      incp <= 0;
       sri <= 1;
       sac <= 0;
       scp <= 0;
@@ -298,8 +296,6 @@ always @* begin
     end
 
     O0: begin
-      incp <= 0;
-      sri <= 0;
       era <= 0;
       scp <= 0;
 
@@ -329,8 +325,6 @@ always @* begin
     end
 
     O1: begin
-      incp <= 0;
-      sri <= 0;
       era <= 1;
       esc <= 0;
       scp <= 1;
@@ -356,8 +350,6 @@ always @* begin
     end
 
     default: begin
-      incp <= 0;
-      sri <= 0;
       era <= 0;
       esc <= 0;
       sac <= 0;
