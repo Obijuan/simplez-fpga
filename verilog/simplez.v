@@ -60,6 +60,33 @@ reg rstn = 0;
 always @(negedge clk)
   rstn <= 1;
 
+//--------------------- Contador de programa ------------------------
+reg [ADDRW-1: 0] CP;
+
+always @(negedge clk)
+  if (rstn == 0)
+    CP <= 0;
+
+  //-- Incrementar contador programa
+  else if (incp)
+    CP <= CP + 1;
+
+  //-- Cargar el contador programa
+  else if (ecp)
+    CP <= busAi;
+
+  //-- Poner a cero contador de programa
+  else if (ccp)
+    CP <= 0;
+
+//----------- ACCESO AL BUS DE DIRECCIONES Ai --------------------
+//assign busAi = (sri) ? CD : {ADDRW{1'bz}};
+//-- Conectar el contador de programa al bus de direcciones interno
+//assign busAi = (scp) ? CP : {ADDRW{1'bz}};
+
+assign busAi = (scp) ? CP : {ADDRW{1'b1}};
+
+
 //-------- Registro de direcciones externas
 reg [ADDRW-1: 0] RA;
 
@@ -68,6 +95,8 @@ always @(negedge clk)
     RA <= 0;
   else if (era)
     RA <= busAi;
+
+
 
 //-------- Registro de instruccion
 reg [DATAW-1: 0] RI;
@@ -179,6 +208,7 @@ always @*
       lec <= 1;
       eri <= 1;
       era <= 0;
+      scp <= 1;
     end
 
     I0: begin 
@@ -186,12 +216,14 @@ always @*
       lec <= 1;
       eri <= 1;
       era <= 0;
+      scp <= 0;
     end
 
     I1: begin
       lec <= 1;   //--- Cambiar a 0
       eri <= 0;
       era <= 0;
+      scp <= 0;
       case (CO)
         HALT: stop <= 1;
         default: stop <= 0;
@@ -202,6 +234,7 @@ always @*
       lec <= 0;
       eri <= 0;
       era <= 0;
+      scp <= 0;
       stop <= 0;
     end
 
@@ -209,6 +242,7 @@ always @*
       lec <= 0;
       eri <= 0;
       era <= 0;
+      scp <= 0;
       stop <= 0;
     end
 
@@ -217,6 +251,7 @@ always @*
       lec <= 0;
       eri <= 0;
       era <= 0;
+      scp <= 0;
     end
 
   endcase
