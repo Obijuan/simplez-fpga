@@ -69,11 +69,16 @@ memory
 
 wire [11:0] data_out;
 
-assign leds = data_out[3:0];
+//-- Monitorizar bus de datos
+reg [3:0] leds_r;
+always @(negedge clk)
+  leds_r <= busD[3:0];
+
+assign leds = leds_r;
 
 //-------- ACCESO AL BUS DE DATOS ----------------------------
 assign busD =  (lec) ? data_out :      //-- Conectar la memoria
-                       {DATAW{1'b0}};  //-- Valor por defecto
+                       {DATAW{1'b1}};  //-- Valor por defecto
 
 
 //-----------------------------------------------------------
