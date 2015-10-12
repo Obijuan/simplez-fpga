@@ -121,6 +121,16 @@ localparam I1 = 1; //-- Decodificacion y ejecucion
 localparam O0 = 2; //-- Lectura o escritura del operando
 localparam O1 = 3; //-- Terminacion del ciclo
 
+//-- Codigos de operacion de las instrucciones
+localparam ST   = 3'o0;
+localparam LD   = 3'o1;
+localparam ADD  = 3'o2;
+localparam BR   = 3'o3;
+localparam BZ   = 3'o4;
+localparam CLR  = 3'o5;
+localparam DEC  = 3'o6;
+localparam HALT = 3'o7;
+
 //-- Registro de estado
 reg state;
 
@@ -152,9 +162,12 @@ always @*
     end
 
     I1: begin
-      stop <= 1;
       lec <= 0;
       eri <= 0;
+      case (CO)
+        HALT: stop <= 1;
+        default: stop <= 0;
+      endcase
     end
 
     default: begin
