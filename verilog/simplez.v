@@ -256,27 +256,24 @@ always @* begin
   esc <= 0;
   tra2 <= 0;
   sac <= 0;
+  eac <= 0;
+  scp <= 0;
 
   case (state)
 
     INI: begin
       eri <= 1;
       scp <= 1;
-      eac <= 0;
     end
 
     I0: begin 
       lec <= 1;
       eri <= 1;
       incp <= 1;
-      scp <= 0;
-      eac <= 0;
     end
 
     I1: begin
       sri <= 1;
-      scp <= 0;
-      eac <= 0;
       era <= 1;
       case (CO)
         HALT: begin 
@@ -286,22 +283,15 @@ always @* begin
     end
 
     O0: begin
-      scp <= 0;
 
       case (CO)
         LD: begin 
           lec <= 1;
-          eac <= 0;
         end
 
         ST: begin
           esc <= 1;
-          eac <= 0;
           sac <= 1;
-        end
-
-        default: begin
-          eac <= 0;
         end
       endcase
     end
@@ -317,18 +307,8 @@ always @* begin
        
         ST: begin
           sac <= 1;
-          eac <= 0;
-        end
-
-        default: begin
-          eac <= 0;
         end
       endcase
-    end
-
-    default: begin
-      scp <= 0;
-      eac <= 0;
     end
 
   endcase
