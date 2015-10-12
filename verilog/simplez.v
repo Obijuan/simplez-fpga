@@ -281,17 +281,10 @@ always @* begin
       endcase
 
     O1: begin
-      era <= 1;
-      scp <= 1;
+      {era, scp} <= {1'b1, 1'b1};
       case (CO)
-        LD: begin 
-          tra2 <= 1;
-          eac <= 1;
-        end
-       
-        ST: begin
-          sac <= 1;
-        end
+        LD: {tra2, eac} <= {1'b1, 1'b1};
+        ST: sac <= 1;
       endcase
     end
 
