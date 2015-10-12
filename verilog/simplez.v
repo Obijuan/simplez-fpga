@@ -64,11 +64,18 @@ always @(negedge clk)
 reg [ADDRW-1: 0] RA;
 
 //-------- Registro de instruccion
-
 reg [DATAW-1: 0] RI;
 
+//-- Formato de las intrucciones
+//-- Todas las instrucciones tienen el mismo formato
+//--  CO  | CD.    CO de 3 bits.  CD de 9 bits
+wire [2:0] CO = RI[11:9];  //-- Codigo de operacion
+wire [ADDRW-1: 0] CD = RI[ADDRW-1: 0];   //-- Campo de direccion
+
 always @(negedge clk)
-  if (eri)
+  if (rstn == 0)
+    RI <= 0;
+  else if (eri)
     RI <= busD;
 
 //-- Monitorizar RI
