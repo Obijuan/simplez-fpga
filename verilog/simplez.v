@@ -127,7 +127,7 @@ reg [DATAW-1: 0] AC;
 
 always @(negedge clk)
   if (rstn == 0)
-    AC <= 0;
+    AC <= 4;
   else if (eac)
     AC <= {DATAW{1'b1}};   //---- DEBUG!! MODIFICAR!!!
 
@@ -160,7 +160,7 @@ always @(negedge clk)
   if (rstn == 0)
     leds_r <= 0;
   else if (cs_leds && esc == 1)
-    leds_r <= 4'b0010;
+    leds_r <= {1'b1 ,busD[2:0]};
 
 assign leds = leds_r;
 
@@ -243,7 +243,7 @@ always @*
       sri <= 0;
       era <= 0;
       esc <= 0;
-      sac <= 1;
+      sac <= 0;
       scp <= 1;
       eac <= 0;
     end
@@ -289,7 +289,7 @@ always @*
       sri <= 0;
       era <= 0;
       esc <= 1;
-      sac <= 0;
+      sac <= 1;
       scp <= 0;
       stop <= 0;
       eac <= 0;
@@ -302,7 +302,7 @@ always @*
       sri <= 0;
       era <= 1;
       esc <= 0;
-      sac <= 0;
+      sac <= 1;
       scp <= 1;
       eac <= 0;
       stop <= 0;
