@@ -71,9 +71,11 @@ always @(negedge clk)
   RI <= busD;
 
 //-- Monitorizar RI
+/*
 always @(negedge clk)
   leds_r <= RI[3:0];
 assign leds = leds_r;
+*/
 
 //-- Instanciar la memoria principal
 memory
@@ -88,11 +90,11 @@ memory
 wire [11:0] data_out;
 
 //-- Monitorizar bus de datos
-/*
 always @(negedge clk)
-  leds_r <= busD[3:0];
+  leds_r <= data_out;
+
 assign leds = leds_r;
-*/
+
 
 //-------- ACCESO AL BUS DE DATOS ----------------------------
 assign busD =  (lec) ? data_out :      //-- Conectar la memoria
@@ -109,92 +111,40 @@ localparam I1 = 1; //-- Decodificacion y ejecucion
 localparam O0 = 2; //-- Lectura o escritura del operando
 localparam O1 = 3; //-- Terminacion del ciclo
 
-//-- Codigos de operacion de las instrucciones
-localparam ST   = 3'o0;
-localparam LD   = 3'o1;
-localparam ADD  = 3'o2;
-localparam BR   = 3'o3;
-localparam BZ   = 3'o4;
-localparam CLR  = 3'o5;
-localparam DEC  = 3'o6;
-localparam HALT = 3'o7;
-
-
 //-- Registro de estado
-reg [1:0] state;
+reg state;
 
 always @(negedge clk)
+
   if (rstn == 0)
     state <= I0;  //--Estado inicial: Lectura de instruccion
+
   else begin
-    state <= I0;  //--- Caso por defecto
     case (state)
 
-      //-- Lectura de instruccion
-      //-- Pasar al siguiente estado
-      I0: state <= I1;
+      I0: state <= I0;
 
-      //-- Decodificacion de la instruccion
-      I1: begin
-         state <= I1;
+      default:
+        state <= I0;
         
-      end
-
-      //-- Lectura o escritura del operando
-      O0: state <= O1;
-
-      //-- Terminacion de ciclo
-      O1: state <= I0;
-
     endcase
   end
 
-
-//-- Generacion de las microordenes
-always @* begin
-
-  //--- Valores por defecto de las señales
-  //--  (para que no se generen latches)
-  lec <= 0;
-  eri <= 0;
-  incp <= 0;
-  sri <= 0;
-  era <= 0;
-  esc <= 0;
-  sac <= 0;
-  stop <= 0;
-  eac  <= 0;
-  ccp  <= 0;
-  ecp  <= 0;
-  scp  <= 0;
-
-  //-- Cambios en las señales
+always @*
   case (state)
 
-    //-- Lectura de instruccion
-    I0: begin
-      lec  <= 1;  //-- Habilitar lectura en memoria
-      eri  <= 1;  //-- Capturar la instruccion y meterla en RI
-      incp <= 1;  //-- Incrementar contador de programa
-    end
-
-    I1: begin 
+    I0: begin 
       stop <= 1;
+      lec <= 1;
     end
 
-    O0: begin
-      esc <= 1; //-- ST: Escritura del dato en memoria
-      sac <= 1; //-- ST: Acumulador al bus de datos
-    end
-
-    O1: begin
-      era <= 1;
-      sac <= 1;  //-- ST: Acumulador al bus de datos
-      scp <= 1;  //-- Contador de programa a bus de direcciones interno
+    default: begin
+      stop <= 0;
+      lec <= 0;
     end
 
   endcase
-end
+
 
 endmodule
 
