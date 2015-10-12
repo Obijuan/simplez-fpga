@@ -81,9 +81,6 @@ always @(negedge clk)
 
 //----------- ACCESO AL BUS DE DIRECCIONES Ai --------------------
 //assign busAi = (sri) ? CD : {ADDRW{1'bz}};
-//-- Conectar el contador de programa al bus de direcciones interno
-//assign busAi = (scp) ? CP : {ADDRW{1'bz}};
-
 assign busAi = (scp) ? CP : {ADDRW{1'b1}};
 
 
@@ -119,6 +116,22 @@ always @(negedge clk)
 
 assign leds = leds_r;
 
+//---------------- Registro acumulador ---------------------------------
+reg [DATAW-1: 0] AC;
+
+always @(negedge clk)
+  if (rstn == 0)
+    AC <= 0;
+  else if (eac)
+    AC <= {DATAW{1'b1}};   //---- DEBUG!! MODIFICAR!!!
+
+//-- Si hubiese soporte de puertas tri-estado, la conexion del acumulador
+//-- al bus de datos seria:
+//assign busD = (sac) ? AC : {DATAW{1'bz}};
+//-- Como no lo hay , esta conexion se hace mas adelante, en el elemento:
+//-- ACCESO AL BUS DE DATOS
+
+
 
 //-- Instanciar la memoria principal
 memory
@@ -141,8 +154,9 @@ assign leds = leds_r;
 */
 
 //-------- ACCESO AL BUS DE DATOS ----------------------------
-assign busD =  (lec) ? data_out :      //-- Conectar la memoria
-                       {DATAW{1'b1}};  //-- Valor por defecto
+assign busD =  (sac) ? AC :          //-- conectar el acumulador
+                       data_out;     //-- Conectar la memoria
+
 
 
 //-----------------------------------------------------------
@@ -167,7 +181,7 @@ localparam DEC  = 3'o6;
 localparam HALT = 3'o7;
 
 //-- Registro de estado
-reg [1:0] state;
+reg [2:0] state;
 
 always @(negedge clk)
 
@@ -208,6 +222,7 @@ always @*
       lec <= 1;
       eri <= 1;
       era <= 0;
+      sac <= 1;
       scp <= 1;
     end
 
@@ -216,13 +231,15 @@ always @*
       lec <= 1;
       eri <= 1;
       era <= 0;
+      sac <= 0;
       scp <= 0;
     end
 
     I1: begin
       lec <= 1;   //--- Cambiar a 0
       eri <= 0;
-      era <= 0;
+      era <= 1;
+      sac <= 0;
       scp <= 0;
       case (CO)
         HALT: stop <= 1;
@@ -234,6 +251,7 @@ always @*
       lec <= 0;
       eri <= 0;
       era <= 0;
+      sac <= 0;
       scp <= 0;
       stop <= 0;
     end
@@ -241,8 +259,9 @@ always @*
     O1: begin
       lec <= 0;
       eri <= 0;
-      era <= 0;
-      scp <= 0;
+      era <= 1;
+      sac <= 0;
+      scp <= 1;
       stop <= 0;
     end
 
@@ -251,6 +270,7 @@ always @*
       lec <= 0;
       eri <= 0;
       era <= 0;
+      sac <= 0;
       scp <= 0;
     end
 

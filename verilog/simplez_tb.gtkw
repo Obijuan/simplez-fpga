@@ -1,26 +1,27 @@
 [*]
 [*] GTKWave Analyzer v3.3.64 (w)1999-2014 BSI
-[*] Mon Oct 12 13:36:42 2015
+[*] Mon Oct 12 14:02:38 2015
 [*]
 [dumpfile] "/home/obijuan/development/simplez-fpga/verilog/simplez_tb.vcd"
-[dumpfile_mtime] "Mon Oct 12 13:35:08 2015"
-[dumpfile_size] 2329
+[dumpfile_mtime] "Mon Oct 12 14:01:13 2015"
+[dumpfile_size] 2421
 [savefile] "/home/obijuan/development/simplez-fpga/verilog/simplez_tb.gtkw"
 [timestart] 0
 [size] 1761 750
 [pos] 125 128
-*-1.932037 0 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-1.932037 9 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] simplez_tb.
 [treeopen] simplez_tb.CPU0.
 [sst_width] 223
 [signals_width] 262
 [sst_expanded] 1
 [sst_vpaned_height] 208
-@28
+@29
 simplez_tb.clk
+@28
 simplez_tb.CPU0.rstn
 @30
-simplez_tb.CPU0.state[1:0]
+simplez_tb.CPU0.state[2:0]
 @200
 -
 -Microordenes
@@ -28,9 +29,8 @@ simplez_tb.CPU0.state[1:0]
 simplez_tb.CPU0.lec
 simplez_tb.CPU0.eri
 simplez_tb.CPU0.era
-@29
+simplez_tb.CPU0.sac
 simplez_tb.CPU0.scp
-@28
 simplez_tb.CPU0.stop
 @200
 -
