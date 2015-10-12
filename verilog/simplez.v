@@ -246,8 +246,11 @@ always @(negedge clk)
 
 always @* begin
 
+  //-- Valor de las microordenes por defecto
   stop <= 0;
   lec <= 0;
+  eri <= 0;
+
   case (state)
 
     INI: begin
@@ -276,7 +279,6 @@ always @* begin
     end
 
     I1: begin
-      eri <= 0;
       incp <= 0;
       sri <= 1;
       sac <= 0;
@@ -296,7 +298,6 @@ always @* begin
     end
 
     O0: begin
-      eri <= 0;
       incp <= 0;
       sri <= 0;
       era <= 0;
@@ -328,7 +329,6 @@ always @* begin
     end
 
     O1: begin
-      eri <= 0;
       incp <= 0;
       sri <= 0;
       era <= 1;
@@ -356,7 +356,6 @@ always @* begin
     end
 
     default: begin
-      eri <= 0;
       incp <= 0;
       sri <= 0;
       era <= 0;
