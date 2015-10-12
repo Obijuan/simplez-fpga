@@ -82,7 +82,9 @@ always @(negedge clk)
 
 //----------- ACCESO AL BUS DE DIRECCIONES Ai --------------------
 //assign busAi = (sri) ? CD : {ADDRW{1'bz}};
-assign busAi = (scp) ? CP : {ADDRW{1'b1}};
+assign busAi = (scp) ? CP :             //-- Sacar CP 
+               (sri) ? CD :             //-- Sacar CD del RI
+                       {ADDRW{1'b1}};   //-- valor por defecto
 
 
 //-------- Registro de direcciones externas
@@ -207,10 +209,10 @@ always @(negedge clk)
 
       O0: state <= O1;
 
-      O1: state <= I0;
+      O1: state <= INI;
 
       default:
-        state <= I0;
+        state <= INI;
         
     endcase
   end
@@ -222,6 +224,8 @@ always @*
       stop <= 0;
       lec <= 1;
       eri <= 1;
+      incp <= 0;
+      sri <= 0;
       era <= 0;
       sac <= 1;
       scp <= 1;
@@ -232,6 +236,8 @@ always @*
       stop <= 0;
       lec <= 1;
       eri <= 1;
+      incp <= 1;
+      sri <= 0;
       era <= 0;
       sac <= 0;
       scp <= 0;
@@ -240,7 +246,9 @@ always @*
 
     I1: begin
       lec <= 1;   //--- Cambiar a 0
-      eri <= 0;
+      eri <= 1;
+      incp <= 0;
+      sri <= 1;
       sac <= 0;
       scp <= 0;
       eac <= 0;
@@ -259,6 +267,8 @@ always @*
     O0: begin
       lec <= 0;
       eri <= 0;
+      incp <= 0;
+      sri <= 0;
       era <= 0;
       sac <= 0;
       scp <= 0;
@@ -269,6 +279,8 @@ always @*
     O1: begin
       lec <= 0;
       eri <= 0;
+      incp <= 0;
+      sri <= 0;
       era <= 1;
       sac <= 0;
       scp <= 1;
@@ -280,6 +292,8 @@ always @*
       stop <= 0;
       lec <= 0;
       eri <= 0;
+      incp <= 0;
+      sri <= 0;
       era <= 0;
       sac <= 0;
       scp <= 0;
