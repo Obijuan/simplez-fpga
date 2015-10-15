@@ -135,6 +135,11 @@ always @(negedge clk)
   else if (eac)
     AC <= alu_out;
 
+//-- Debug! Conexion del acumulador a los leds
+//-- Solo los 4 bits menos significativos
+
+assign leds = AC[3:0];
+
 //-- Si hubiese soporte de puertas tri-estado, la conexion del acumulador
 //-- al bus de datos seria:
 //assign busD = (sac) ? AC : {DATAW{1'bz}};
@@ -177,7 +182,8 @@ always @(negedge clk)
   else if (cs_leds && esc == 1)
     leds_r <= {1'b0 ,busD[2:0]};
 
-assign leds = leds_r;
+//-- Sacar por los leds
+//assign leds = leds_r;
 
 //-------- ACCESO AL BUS DE DATOS ----------------------------
 assign busD =  (sac) ? AC :          //-- conectar el acumulador
