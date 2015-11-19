@@ -1,215 +1,16 @@
-//---------------------------------------------------------------------------
-//-- Implementacion del procesador docente SIMPLEZ en verilog
-//-- Diseñado para ser sintetizado usando las herramientas libres del 
-//-- proyecto icestorm:  http://www.clifford.at/icestorm/
-//--
-//----------------------------------------------------------------------------
-//-- Simplez es una cpu clásica, con la memoria y los periféricos situados
-//-- "fuera del chip". Sin embargo, en esta implementación se tomará el 
-//-- enfoque de convertir simplez en un "microcontrolador", que disponga en 
-//-- su interior de memoria y periféricos
-//----------------------------------------------------------------------------
-//-- (C) BQ, september 2015. Written by Juan Gonzalez Gomez (Obijuan)
-//-- Released under the GPL license
-//----------------------------------------------------------------------------
 `default_nettype none
 
-module simplez (input wire clk,
-                input wire rstn,
-                output wire [3:0] leds,
-                output reg stop
-                );
 
-//-- Anchura de los datos: Bus datos, acumulador, RI
-parameter DATAW = 12;
+//-- Procesador Simplez
+module microbio (input wire clk,          //-- Reloj del sistema
+                 input wire rstn_ini,     //-- Reset
+                 output wire [3:0] leds,  //-- leds
+                 output wire stop);       //-- Indicador de stop
 
-//-- Anchura de las direcciones: Bus direciones, CP, RA
-parameter ADDRW = 9;
+//-- Parametro: fichero con el programa a cargar en la rom
+parameter ROMFILE = "prog.list";
 
-//---------------------------------------------------------------------
-//-- RUTA DE DATOS
-//---------------------------------------------------------------------
-
-//--------------- Microordenes
-reg lec;
-reg era;
-reg esc;
-
-//-- Para CP
-reg incp;
-reg ecp;
-reg ccp;
-reg scp;
-
-//-- Para RI
-reg eri;
-reg sri;
-
-//-- para AC
-reg eac;
-reg sac;
-
-//-- ALU
-reg tra2;
-reg sum;
-
-//-- Registro para monitorizar
-reg [3:0] leds_r;
-
-//-------- Buses
-wire [DATAW-1: 0] busD;   //-- Bus de datos
-wire [ADDRW-1: 0] busAi;  //-- Bus de direcciones (interno)
-
-//-- Inicializador
-//reg rstn = 0;
-//always @(negedge clk)
-//  rstn <= 1;
-
-//--------------------- Contador de programa ------------------------
-reg [ADDRW-1: 0] CP;
-
-always @(negedge clk)
-  if (rstn == 0)
-    CP <= 0;
-
-  //-- Incrementar contador programa
-  else if (incp)
-    CP <= CP + 1;
-
-  //-- Cargar el contador programa
-  else if (ecp)
-    CP <= busAi;
-
-  //-- Poner a cero contador de programa
-  else if (ccp)
-    CP <= 0;
-
-//----------- ACCESO AL BUS DE DIRECCIONES Ai --------------------
-//assign busAi = (sri) ? CD : {ADDRW{1'bz}};
-assign busAi = (scp) ? CP :             //-- Sacar CP 
-               (sri) ? CD :             //-- Sacar CD del RI
-                       {ADDRW{1'b1}};   //-- valor por defecto
-
-
-//-------- Registro de direcciones externas
-reg [ADDRW-1: 0] RA;
-
-always @(negedge clk)
-  if (rstn == 0)
-    RA <= 0;
-  else if (era)
-    RA <= busAi;
-
-
-
-//-------- Registro de instruccion
-reg [DATAW-1: 0] RI;
-
-//-- Formato de las intrucciones
-//-- Todas las instrucciones tienen el mismo formato
-//--  CO  | CD.    CO de 3 bits.  CD de 9 bits
-wire [2:0] CO = RI[11:9];  //-- Codigo de operacion
-wire [ADDRW-1: 0] CD = RI[ADDRW-1: 0];   //-- Campo de direccion
-
-always @(negedge clk)
-  if (rstn == 0)
-    RI <= 0;
-  else if (eri)
-    RI <= busD;
-
-//-- Monitorizar CO
-/*
-always @(negedge clk)
-  leds_r <= {1'b0, CO};
-
-assign leds = leds_r;
-*/
-
-
-//---------------- Registro acumulador ---------------------------------
-reg [DATAW-1: 0] AC;
-
-always @(negedge clk)
-  if (rstn == 0)
-    AC <= 0;
-  else if (eac)
-    AC <= alu_out;
-
-//-- Debug! Conexion del acumulador a los leds
-//-- Solo los 4 bits menos significativos
-
-assign leds = AC[3:0];
-
-//-- Si hubiese soporte de puertas tri-estado, la conexion del acumulador
-//-- al bus de datos seria:
-//assign busD = (sac) ? AC : {DATAW{1'bz}};
-//-- Como no lo hay , esta conexion se hace mas adelante, en el elemento:
-//-- ACCESO AL BUS DE DATOS
-
-//----------- Unidad aritmetico logica
-wire [DATAW-1: 0] op1;
-wire [DATAW-1: 0] op2;
-
-wire [DATAW-1: 0] alu_out;
-
-assign op1 = AC;
-assign op2 = busD;
-
-assign alu_out = (tra2) ? op2 :        //-- Obtener operando 2
-                 (sum)  ? op1 + op2 :  //-- Suma
-                          0;
-
-//-- Instanciar la memoria principal
-memory
-  ROM (
-        .clk(clk),
-        .addr(RA),
-        .wr(esc),
-        .data_in(busD),
-        .data_out(data_out)
-      );
-
-wire [11:0] data_out;
-
-//------------------ Perifericos
-wire cs_leds;
-
-assign cs_leds = (RA == 9'o100) ? 1 : 0;
-
-always @(negedge clk)
-  if (rstn == 0)
-    leds_r <= 0;
-  else if (cs_leds && esc == 1)
-    leds_r <= {1'b0 ,busD[2:0]};
-
-//-- Sacar por los leds
-//assign leds = leds_r;
-
-//-------- ACCESO AL BUS DE DATOS ----------------------------
-assign busD =  (sac) ? AC :          //-- conectar el acumulador
-                       data_out;     //-- Conectar la memoria
-
-
-/*
-//-- Monitorizar bus de datos
-always @(negedge clk)
-  leds_r <= busD[3:0];
-
-*/
-
-
-//-----------------------------------------------------------
-//-- SECUENCIADOR
-//-----------------------------------------------------------
-
-//-- Estados del secuenciador
-localparam INI = 0; //-- Estado de inicializacion
-localparam I0 = 1;  //-- Lectura de instruccion. Incremento del PC
-localparam I1 = 2;  //-- Decodificacion y ejecucion
-localparam O0 = 3;  //-- Lectura o escritura del operando
-localparam O1 = 4;  //-- Terminacion del ciclo
-
-//-- Codigos de operacion de las instrucciones
+//-- Codigos de operacion de las instrucciones de simplez
 localparam ST   = 3'o0;
 localparam LD   = 3'o1;
 localparam ADD  = 3'o2;
@@ -219,97 +20,175 @@ localparam CLR  = 3'o5;
 localparam DEC  = 3'o6;
 localparam HALT = 3'o7;
 
-//-- Registro de estado
+//-- Tamaño de la memoria ROM a instanciar
+localparam AW = 9;     //-- Anchura del bus de direcciones
+localparam DW = 12;     //-- Anchura del bus de datos
+
+//-- Instanciar la memoria RAM
+wire [DW-1: 0] mem_dout;
+wire [AW-1: 0] addr;
+
+genrom
+  #( .ROMFILE(ROMFILE),
+     .AW(AW),
+     .DW(DW))
+  ROM (
+        .clk(clk),
+        .addr(addr),
+        .data_out(mem_dout)
+      );
+
+//-- Registrar la señal de reset
+reg rstn = 0;
+
+always @(posedge clk)
+  rstn <= rstn_ini;
+
+  //-- Declaracion de las microordenes
+  reg cp_inc = 0;   //-- Incrementar contador de programa
+  reg cp_load = 0;  //-- Cargar el contador de programa
+  reg cp_sel = 0;   //-- Seleccion de la direccion del contador de programa
+  reg ri_load = 0;  //-- Cargar el registro de instruccion
+  reg halt = 0;     //-- Instruccion halt ejecutada
+  reg a_load = 0;   //-- Cargar el acumulador
+
+  //-- Contador de programa
+  reg [AW-1: 0] cp;
+
+  always @(posedge clk)
+    if (!rstn)
+      cp <= 0;
+    else if (cp_load)
+      cp <= 5;
+    else if (cp_inc)
+      cp <= cp + 1;
+
+
+  //-- Multiplexor de acceso a la direccion de memoria
+  //-- cp_sel = 1 ---> Se direcciona la memoria desde el CP
+  //-- cp_sel = 0 ---> Se direcciona la memoria desde el CD del RI
+  assign addr = (cp_sel) ? cp : CD;
+  /*always @(*)
+    if (cp_sel)
+      addr = cp;
+    else
+      addr = CD;*/
+
+
+  //-- Registro de instruccion
+  reg [DW-1: 0] ri;
+
+  //-- Descomponer la instruccion en los campos CO y CD
+  wire [2:0] CO = ri[11:9];  //-- Codigo de operacion
+  wire [8:0] CD = ri[8:0];   //-- Campo de direccion
+
+  always @(posedge clk)
+    if (!rstn)
+      ri <= 0;
+    else if (ri_load)
+      ri <= mem_dout;
+
+//-- Registro de stop
+//-- Se pone a 1 cuando se ha ejecutado una instruccion de HALT
+reg reg_stop;
+
+always @(posedge clk)
+  if (!rstn)
+    reg_stop <= 0;
+  else if (halt)
+    reg_stop <= 1;
+
+//-- Registro acumulador
+reg [DW-1:0] reg_a;
+
+always @(posedge clk)
+  if (!rstn)
+    reg_a <= 0;
+  else if (a_load)
+    reg_a <= mem_dout;
+
+
+
+//-- Debug
+assign leds = reg_a[3:0];
+
+//-- Debug
+assign stop = reg_stop;
+
+
+
+//-------------------- UNIDAD DE CONTROL
+localparam INIT = 0;
+localparam FETCH = 1;
+localparam EXEC1 = 2;
+localparam EXEC2 = 3;
+localparam END = 4;
+
+//-- Estado del automata
 reg [2:0] state;
+reg [2:0] next_state;
 
-//-- Transiciones entre los estados
-always @(negedge clk)
+//-- Transiciones de estados
 
-  if (rstn == 0)
-    state <= INI;  //--Estado inicial: Lectura de instruccion
+always @(posedge clk)
+  if (!rstn)
+    state <= INIT;
+  else
+    state <= next_state;
 
-  else begin
-    //-- Estado por defecto
-    state <= INI;
-    case (state)
+//-- Generacion de microordenes
+//-- y siguientes estados
+always @(*) begin
 
-      //-- Estado inicial
-      INI: state <= I0;
+  //-- Valores por defecto
+  next_state = state;      //-- Por defecto permanecer en el mismo estado
+  cp_inc = 0;
+  cp_load = 0;
+  cp_sel = 1;
+  ri_load = 0;
+  halt = 0;
+  a_load = 0;
 
-      //-- Fetch
-      I0: state <= I1;
+  case(state)
+    //-- Estado inicial
+    INIT:
+      next_state = FETCH;
 
-      //-- Decodificacion de la instruccion
-      I1: case (CO)
-            //-- Instruccion Halt: permanecer en este estado
-            //-- Se dejan de ejecutar instrucciones
-            HALT: state <= I1;
+    FETCH: begin
+      next_state = EXEC1;
+      ri_load = 1;
+    end
 
-            default:
-              state <= O0;
-          endcase 
-
-      //-- Lectura del operando
-      O0: state <= O1;
-
-      //-- Terminacion de ciclo
-      O1: state <= INI;
-        
-    endcase
-  end
-
-//-- Asignacion de las microordenes, segun el estado
-always @* begin
-
-  //-- Por defecto todas las microordenes a 0
-  {lec, eri, incp} <= {1'b0, 1'b0, 1'b0};
-  {sri, era, esc}  <= {1'b0, 1'b0, 1'b0};
-  {tra2, sac, eac} <= {1'b0, 1'b0, 1'b0};
-  scp <= 0;
-  stop <= 0;
-  sum <= 0;
-
-  case (state)
-
-    INI:  {eri, scp} <= {1'b1, 1'b1};
-
-    I0: {lec, eri, incp} <= {1'b1, 1'b1, 1'b1};
-
-    I1: begin
-      {sri, era} <= {1'b1, 1'b1};
+    EXEC1: begin
       case (CO)
-        HALT: begin 
-          stop <= 1;
+        HALT: begin
+          halt = 1;
+          next_state = EXEC1;  //-- Permanecer en el mismo estado... para siempre...
+        end
+
+        LD: begin
+          cp_sel = 0;
+          next_state = EXEC2;
+        end
+
+      endcase
+    end
+
+    EXEC2: begin
+      case (CO)
+        LD: begin
+          a_load = 1;
+          next_state = END;
         end
       endcase
     end
 
-    O0:
-      case (CO)
-        LD:  lec <= 1;
-        ST: {esc, sac} <= {1'b1, 1'b1};
-      endcase
-
-    O1: begin
-      {era, scp} <= {1'b1, 1'b1};
-      case (CO)
-        ST: sac <= 1;
-        LD: {tra2, eac} <= {1'b1, 1'b1};
-        ADD: {sum, eac} <= {1'b1, 1'b1};
-      endcase
+    END: begin
+      next_state = FETCH;
+      cp_inc = 1;
     end
 
   endcase
 end
 
 endmodule
-
-
-
-
-
-
-
-
-
-

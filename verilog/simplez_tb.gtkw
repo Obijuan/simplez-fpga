@@ -1,71 +1,49 @@
 [*]
 [*] GTKWave Analyzer v3.3.64 (w)1999-2014 BSI
-[*] Mon Oct 12 17:11:10 2015
+[*] Thu Nov 19 17:57:40 2015
 [*]
-[dumpfile] "/home/obijuan/development/simplez-fpga/verilog/simplez_tb.vcd"
-[dumpfile_mtime] "Mon Oct 12 17:10:45 2015"
-[dumpfile_size] 3313
-[savefile] "/home/obijuan/development/simplez-fpga/verilog/simplez_tb.gtkw"
+[dumpfile] "/home/obijuan/development/simplez-fpga/verilog/new-version/simplez_tb.vcd"
+[dumpfile_mtime] "Thu Nov 19 17:54:09 2015"
+[dumpfile_size] 3103
+[savefile] "/home/obijuan/development/simplez-fpga/verilog/new-version/simplez_tb.gtkw"
 [timestart] 0
-[size] 1761 928
-[pos] 120 122
-*-2.932037 12 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[size] 1290 600
+[pos] -1 -1
+*-3.624078 20 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] simplez_tb.
-[treeopen] simplez_tb.CPU0.
+[treeopen] simplez_tb.dut.
 [sst_width] 223
-[signals_width] 262
+[signals_width] 182
 [sst_expanded] 1
-[sst_vpaned_height] 270
+[sst_vpaned_height] 160
 @28
 simplez_tb.clk
-simplez_tb.CPU0.rstn
+simplez_tb.rstn
+simplez_tb.stop
+@31
+simplez_tb.dut.cp[8:0]
+@22
+simplez_tb.dut.addr[8:0]
+simplez_tb.dut.mem_dout[11:0]
+simplez_tb.dut.reg_a[11:0]
+simplez_tb.dut.ri[11:0]
 @30
-simplez_tb.CPU0.state[2:0]
+simplez_tb.dut.CO[2:0]
+@22
+simplez_tb.dut.CD[8:0]
+simplez_tb.dut.state[1:0]
+simplez_tb.leds[3:0]
+@28
+simplez_tb.stop
 @200
 -
 -Microordenes
 @28
-simplez_tb.CPU0.lec
-simplez_tb.CPU0.eri
-simplez_tb.CPU0.incp
-simplez_tb.CPU0.sri
-simplez_tb.CPU0.era
-simplez_tb.CPU0.esc
-simplez_tb.CPU0.sac
-simplez_tb.CPU0.scp
-simplez_tb.CPU0.stop
-simplez_tb.CPU0.tra2
-simplez_tb.CPU0.eac
-@200
--
--Buses
-@30
-simplez_tb.CPU0.busD[11:0]
-simplez_tb.CPU0.busAi[8:0]
-@200
--
--Registros
-@22
-simplez_tb.CPU0.CP[8:0]
-@30
-simplez_tb.CPU0.RA[8:0]
-simplez_tb.CPU0.RI[11:0]
-simplez_tb.CPU0.CO[2:0]
-simplez_tb.CPU0.CD[8:0]
-simplez_tb.CPU0.AC[11:0]
-simplez_tb.CPU0.data_out[11:0]
-@200
--
-@31
-simplez_tb.CPU0.leds[3:0]
-@28
-simplez_tb.CPU0.cs_leds
-@200
--
--ALU
-@30
-simplez_tb.CPU0.op1[11:0]
-simplez_tb.CPU0.op2[11:0]
-simplez_tb.CPU0.alu_out[11:0]
+simplez_tb.dut.cp_inc
+simplez_tb.dut.cp_load
+simplez_tb.dut.ri_load
+simplez_tb.dut.halt
+simplez_tb.dut.cp_sel
+simplez_tb.dut.a_load
 [pattern_trace] 1
 [pattern_trace] 0
