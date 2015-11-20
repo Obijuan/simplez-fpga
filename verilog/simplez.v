@@ -36,14 +36,16 @@ localparam DW = 12;     //-- Anchura del bus de datos
 wire [DW-1: 0] mem_dout;
 wire [AW-1: 0] addr;
 
-genrom
+genram
   #( .ROMFILE(ROMFILE),
      .AW(AW),
      .DW(DW))
   ROM (
         .clk(clk),
+        .rw(rw),
         .addr(addr),
-        .data_out(mem_dout)
+        .data_out(mem_dout),
+        .data_in(reg_a)
       );
 
 //-- Registrar la señal de reset
@@ -59,6 +61,7 @@ always @(posedge clk)
   reg ri_load = 0;  //-- Cargar el registro de instruccion
   reg halt = 0;     //-- Instruccion halt ejecutada
   reg a_load = 0;   //-- Cargar el acumulador
+  reg rw = 1;
 
   //-- Contador de programa
   reg [AW-1: 0] cp;
@@ -167,6 +170,7 @@ always @(*) begin
   ri_load = 0;
   halt = 0;
   a_load = 0;
+  rw = 1;
 
   case(state)
     //-- Estado inicial
@@ -234,10 +238,5 @@ always @(*) begin
 
   endcase
 end
-
-
-
-
-
 
 endmodule
