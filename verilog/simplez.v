@@ -67,7 +67,7 @@ always @(posedge clk)
     if (!rstn)
       cp <= 0;
     else if (cp_load)
-      cp <= 5;
+      cp <= CD;
     else if (cp_inc)
       cp <= cp + 1;
 
@@ -180,6 +180,11 @@ always @(*) begin
 
     EXEC1: begin
       case (CO)
+
+        BR: begin
+          cp_load = 1;
+          next_state = INIT;
+        end
 
         //-- Procesar codigos de operacion extendidos
         HALT: begin
