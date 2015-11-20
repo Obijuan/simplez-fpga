@@ -1,13 +1,15 @@
 //-- codigo maquina simples (en hexadecimal)
 
 280   //-- LOAD /80
+F00   //-- WAIT
+281   //-- LOAD /81
 E00   //-- HALT
 000
 000
 
 @80
 155
-000
+0AA
 000
 000
 000

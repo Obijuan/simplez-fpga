@@ -1,4 +1,5 @@
 `default_nettype none
+`include "divider.vh"
 
 
 //-- Procesador Simplez
@@ -10,6 +11,9 @@ module microbio (input wire clk,          //-- Reloj del sistema
 //-- Parametro: fichero con el programa a cargar en la rom
 parameter ROMFILE = "prog.list";
 
+//-- Parametro: Tiempo de espera para la instruccion WAIT
+parameter WAIT_DELAY = `T_200ms;
+
 //-- Codigos de operacion de las instrucciones de simplez
 localparam ST   = 3'o0;
 localparam LD   = 3'o1;
@@ -19,6 +23,10 @@ localparam BZ   = 3'o4;
 localparam CLR  = 3'o5;
 localparam DEC  = 3'o6;
 localparam HALT = 3'o7;
+
+//-- Codigos de operacion extendidos
+localparam HALTE = 4'hE; //-- Halt extended
+localparam WAIT = 4'hF;  //-- Wait
 
 //-- Tamaño de la memoria ROM a instanciar
 localparam AW = 9;     //-- Anchura del bus de direcciones
@@ -81,6 +89,7 @@ always @(posedge clk)
   //-- Descomponer la instruccion en los campos CO y CD
   wire [2:0] CO = ri[11:9];  //-- Codigo de operacion
   wire [8:0] CD = ri[8:0];   //-- Campo de direccion
+  wire [3:0] COE = ri[11:8]; //-- Código de operacion extendido
 
   always @(posedge clk)
     if (!rstn)
@@ -115,6 +124,16 @@ assign leds = reg_a[3:0];
 //-- Debug
 assign stop = reg_stop;
 
+
+//----------- PERIFERICOS --------
+//-- Divisor para marcar la duracion de cada estado del automata
+wire clk_tic;
+
+dividerp1 #(WAIT_DELAY)
+  TIMER0 (
+    .clk(clk),
+    .clk_out(clk_tic)
+  );
 
 
 //-------------------- UNIDAD DE CONTROL
@@ -161,9 +180,29 @@ always @(*) begin
 
     EXEC1: begin
       case (CO)
+
+        //-- Procesar codigos de operacion extendidos
         HALT: begin
-          halt = 1;
-          next_state = EXEC1;  //-- Permanecer en el mismo estado... para siempre...
+
+          //-- Instrucciones extendidas
+          case (COE)
+
+            //-- Instruccion HALT de simplez
+            HALTE: begin
+              halt = 1;
+              next_state = EXEC1;  //-- Permanecer en el mismo estado... para siempre...
+            end
+
+            //-- Instruccion WAIT de microbio
+            WAIT: begin
+                //-- Mientras no se active clk_tic, se sigue en el mismo
+                //-- estado de ejecucion
+                if (clk_tic) next_state = END;
+                else next_state = EXEC1;
+            end
+
+          endcase
+
         end
 
         LD: begin
@@ -190,5 +229,10 @@ always @(*) begin
 
   endcase
 end
+
+
+
+
+
 
 endmodule

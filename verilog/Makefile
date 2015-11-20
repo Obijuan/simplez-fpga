@@ -2,7 +2,7 @@
 #-- Establecer nombre del componente
 #----------------------------------------
 NAME = simplez
-DEPS = genrom.v
+DEPS = genrom.v dividerp1.v
 
 NAME2 = vacio1
 DEPS2 =

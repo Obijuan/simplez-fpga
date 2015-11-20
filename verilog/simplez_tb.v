@@ -10,6 +10,9 @@ module simplez_tb();
 //-- Programa en codigo maquina a cargar en la rom
 parameter ROMFILE = "prog.list";
 
+//-- Para la simulacion se usa un WAIT_DELAY de 3 ciclos de reloj
+parameter WAIT_DELAY = 10;
+
 //-- Registro para generar la señal de reloj
 reg clk = 0;
 
@@ -19,7 +22,7 @@ wire stop;
 reg rstn = 0;
 
 //-- Instanciar el componente
-microbio #(.ROMFILE(ROMFILE))
+microbio #(.ROMFILE(ROMFILE), .WAIT_DELAY(WAIT_DELAY))
   dut(
     .clk(clk),
     .rstn_ini(rstn),
