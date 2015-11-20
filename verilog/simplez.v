@@ -185,9 +185,20 @@ always @(*) begin
     EXEC1: begin
       case (CO)
 
+        ST: begin
+          rw = 0;  //-- Memoria en modo escritura
+          cp_sel = 0;
+          next_state = END;
+        end
+
         BR: begin
           cp_load = 1;
           next_state = INIT;
+        end
+
+        LD: begin
+          cp_sel = 0;
+          next_state = EXEC2;
         end
 
         //-- Procesar codigos de operacion extendidos
@@ -214,11 +225,6 @@ always @(*) begin
 
         end
 
-        LD: begin
-          cp_sel = 0;
-          next_state = EXEC2;
-        end
-
       endcase
     end
 
@@ -232,7 +238,7 @@ always @(*) begin
     end
 
     END: begin
-      next_state = FETCH;
+      next_state = INIT;
       cp_inc = 1;
     end
 
