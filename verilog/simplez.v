@@ -16,13 +16,13 @@ parameter WAIT_DELAY = `T_200ms;
 
 //-- Codigos de operacion de las instrucciones de simplez
 localparam ST   = 3'o0;
-localparam LD   = 3'o1;
+localparam LD   = 3'o1;  //-- OK
 localparam ADD  = 3'o2;
-localparam BR   = 3'o3;
+localparam BR   = 3'o3;  //-- OK
 localparam BZ   = 3'o4;
 localparam CLR  = 3'o5;
 localparam DEC  = 3'o6;
-localparam HALT = 3'o7;
+localparam HALT = 3'o7;  //-- OK
 
 //-- Codigos de operacion extendidos
 localparam HALTE = 4'hE; //-- Halt extended
