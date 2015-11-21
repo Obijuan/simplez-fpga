@@ -44,12 +44,13 @@ class SyntaxError(Exception):
 def is_comment(word):
     """Return True if the word is a commnet"""
 
-    # -- At least the string len should be 2 for being a comment
-    if len(word) < 2:
+    # -- At least there should be a character for being a comments
+    if len(word) == 0:
         return False
 
-    comment = word[0:2]
-    if (comment == "//"):
+    # -- Read the first character
+    comment = word[0]
+    if (comment == ";"):
         return True
     else:
         return False
@@ -78,6 +79,17 @@ def is_comment_line(line):
     return is_comment(words[0])
 
 
+def parse_line(prog, line,  nline):
+    """Parse one line of the assembly program"""
+
+    # - Split the line into words
+    words = line.split()
+
+    print ("[{}] {}".format(nline, words))
+    for word in words:
+        pass
+
+
 def syntax_analisis(prog, asmfile):
     """Perform the syntax analisis
         prog: AST with the processed program (outuput)
@@ -92,19 +104,32 @@ def syntax_analisis(prog, asmfile):
     for nline, line in enumerate(asmfile):
         print("[{}] {}".format(nline+1, line))
 
-    # -- Syntax analisis: line by line
+    # -- DEBUG: Show only the line with code
     print("\nPass 1:")
     for nline, line in enumerate(asmfile):
 
         # - Remove blank lines
-        if is_blank_line(line):
-            continue
-
-        # - Remove lines that only have comments
-        if is_comment_line(line):
+        if is_blank_line(line) or is_comment_line(line):
             continue
 
         print("[{}] {}".format(nline+1, line))
+
+    # -- Syntax analisis: line by line
+    print("\nPass 2:")
+    for nline, line in enumerate(asmfile):
+
+        # - Remove blank lines
+        if is_blank_line(line) or is_comment_line(line):
+            continue
+
+        # -- Parse line
+        try:
+            parse_line(prog, line, nline+1)
+
+        # -- There was a syntax error. Print the message and exit
+        except SyntaxError as e:
+            print(e.msg)
+            sys.exit()
 
 
 def parse_arguments():
