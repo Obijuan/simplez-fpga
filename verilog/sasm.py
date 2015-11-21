@@ -18,6 +18,84 @@ class Prog(object):
         # -- Symbol table. It is used for storing the pairs label - address
         self.symtable = {}
 
+    def add_instruction(self, inst):
+        """Add the instruction in the current address. The current dir is incremented
+        """
+
+        # -- Assign the current address
+        inst.addr = self._addr
+
+        # -- Insert the instruction
+        self.linst.append(inst)
+
+        # -- Increment the current address
+        self._addr += 1
+
+    def set_label(self, label, nline):
+        """Assign the label to the current address"""
+
+        if label in self.symtable:
+            msg = "ERROR. Label {} is duplicated in line {}".format(label, nline)
+            raise SyntaxError(msg, 0)
+        else:
+            self.symtable[label] = self._addr
+
+    def assign_labels(self):
+        """Check all the labels of the JP instructions of the program
+           to make sure they all have an address asigned. If not, the attribute addr
+           is updated with the right value
+           If there are unknown labels an exception is raised
+        """
+        for inst in self.linst:
+            if (inst.nemonic == "JP"):
+                try:
+                    if len(inst.label) != 0:
+                        inst._dat = prog.symtable[inst.label]
+                except KeyError:
+                    msg = "ERROR: Label {} unknow in line {}".format(inst.label, inst.nline)
+                    raise SyntaxError(msg, inst.nline)
+
+    def set_addr(self, addr):
+        """Set the current address"""
+        self._addr = addr
+
+    def get_addr(self):
+        """Return the current address"""
+        return self._addr
+
+    def __str__(self):
+        """Print the current program (in assembly language)"""
+        str = ""
+        addr = 0
+        for inst in self.linst:
+            if addr != inst.addr:
+                # -- there is a gap in the addresses
+                str += "\n     ORG 0x{:02X}\n".format(inst.addr)
+                addr = inst.addr
+
+            str += "{}\n".format(inst)
+            addr += 1
+
+        return str
+
+    def machine_code(self):
+        """Generate the program in microbio machine code"""
+
+        addr = 0
+        code = ""
+        for inst in self.linst:
+            inst_ascii = ""
+            if addr != inst.addr:
+                # -- There is a gap in the addresses
+                inst_ascii = "\n@{0:02X}  //-- ORG 0x{0:02X}\n".format(inst.addr)
+                addr = inst.addr
+
+            inst_ascii += "{:02X}   //-- {}".format(inst.mcode(), inst)
+            code += inst_ascii + "\n"
+            addr += 1
+
+        return code
+
 
 class Instruction(object):
     """Microbio instruction class"""
@@ -32,6 +110,22 @@ class Instruction(object):
         self.addr = addr    # -- Address where the instruction is stored in memory
         self.label = label  # -- Label (if any)
         self.nline = nline  # -- Line number
+
+    def opcode(self):
+        """Return the instruction opcode"""
+        return self.opcodes[self.nemonic]
+
+    def mcode(self):
+        """Return the machine code"""
+        return (self.opcode() << 6) + self._dat
+
+    def __str__(self):
+        """Print the instruction in assembly"""
+        saddr = "[{:02X}]".format(self.addr)
+        if self.nemonic in ["LEDS", "JP"]:
+            return "{} {} 0x{:X}".format(saddr, self.nemonic, self._dat)
+        else:
+            return "{} {}".format(saddr, self.nemonic)
 
 
 class SyntaxError(Exception):
@@ -70,7 +164,7 @@ def is_blank_line(line):
 
 
 def is_comment_line(line):
-    """Returns true if the line is a commnet"""
+    """Returns true if the line is a commenet"""
     # -- Divide the line into a list of words
 
     words = line.split()
@@ -79,12 +173,108 @@ def is_comment_line(line):
     return is_comment(words[0])
 
 
+def is_hexdigit(dat):
+    """Returns True if dat is a ASCII hexadecimal number"""
+
+    # -- Hex number have at least 3 characteres (2 for 0x and another for the hex digit)
+    # -- If not, it is not an hexadecimal number
+    if len(dat) < 3:
+        return False
+
+    prefix = dat[0:2]
+
+    if prefix == "H'":
+        return True
+    else:
+        return False
+
+
+def parse_dat(dat, nline):
+    """Parse a numerical data
+       * Returns (ok, dat)
+          -ok: True: Successfully parsed
+          -dat: Numerical data
+    """
+
+    if dat.isdigit():
+        return True, int(dat)
+
+    if is_hexdigit(dat):
+
+        # -- Convert the string into number
+        try:
+            hex = int(dat[2:], 16)
+        except ValueError:
+            msg = "ERROR: Invalid hexadecimal number in line {}".format(nline)
+            raise SyntaxError(msg, nline)
+
+        return True, hex
+
+    # -- Not a number
+    return False, 0
+
+
+def parse_org(prog, words, nline):
+    """Parse the org directive
+        Inputs:
+          * prog: AST tree were to store the information obtained from parsing the line
+          * words: List of words to parse
+          * nline: number of the line that is being parsed
+
+        Returns:
+          * False, If it is not an org directive
+          * True. Success
+          * An exception is raised in case of a sintax error
+    """
+
+    # -- The first word is not ORG. It is not an org directive
+    if not words[0] == "ORG":
+        return False
+
+    # -- Sintax error: The org directive should have one argument with the address
+    if len(words) == 1:
+        msg = "ERROR: No address is given after ORG in line {}".format(nline)
+        raise SyntaxError(msg, nline)
+
+    # -- Read the argument. It should be a number
+    okdat, dat = parse_dat(words[1], nline)
+
+    # -- Invalid data
+    if not okdat:
+        msg = "ERROR: ORG {}: Invalid address in line {}".format(words[1], nline)
+        raise SyntaxError(msg, nline)
+
+    # -- Update the current address. The next instruction will be stored in this
+    # -- address
+    prog.set_addr(dat)
+
+    # -- Get the following words if any. They should only be comments
+    words = words[2:]
+
+    # -- If no more words to parse, return
+    if len(words) == 0:
+        return True
+
+    # -- If there are comments, return true. If they are not comments, there
+    # -- is a sintax error
+    if is_comment(words[0]):
+        return True
+    else:
+        msg = "Syntax error in line {}: Unknow command {}".format(nline, words[0])
+        raise SyntaxError(msg, nline)
+
+
 def parse_line(prog, line,  nline):
     """Parse one line of the assembly program"""
 
     # - Split the line into words
     words = line.split()
 
+    # -- Check if the line is an ORG directive
+    if parse_org(prog, words, nline):
+        return
+
+    # --- Debug
     print ("[{}] {}".format(nline, words))
     for word in words:
         pass
@@ -186,3 +376,21 @@ if __name__ == "__main__":
     # -- In case of errors, it exits
     # -- If sucess, the program is stored in the prog object
     syntax_analisis(prog, asmfile)
+
+    # -- Only in verbose mode
+    if verbose:
+        # -- Print the symbol table
+        print()
+        print("Symbol table:\n")
+        for key in prog.symtable:
+            print("{} = 0x{:02X}".format(key, prog.symtable[key]))
+
+        # -- Print the parsed code
+        print()
+        print("Microbio assembly program:\n")
+        print(prog)
+
+        # -- Print the machine cod
+        print()
+        print("Machine code:\n")
+        print(prog.machine_code())
