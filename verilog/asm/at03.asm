@@ -6,5 +6,8 @@ etiq1
 
   ORG H'10
 
-hola
+hola              ;-- etiqueta...
 fin     HALT
+fin2    HALT2  ; -- ccaca
+fin3
+        HALT3

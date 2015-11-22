@@ -302,6 +302,35 @@ def parse_org(prog, words, nline):
         raise SyntaxError(msg, nline)
 
 
+def parse_instruction(prog, words, nline):
+    """Parse the instruction and insert into the prog AST tree
+        INPUTS:
+          -prog: AST tree where to insert the parsed instruction
+          -words: List of words to parse
+          -nline: Number of the line that is beign parsed
+
+        RETURNS:
+          -True: Success. Instruction parsed and added into the AST
+          -False: Not an instruction
+          -An exception is raised in case of a sintax error
+    """
+
+    # -- Check if the first word is a correct nemonic
+    if not words[0] in Instruction.opcodes.keys():
+        msg = "ERROR: Unkwown instruction {} in line {}".format(words[0], nline)
+        raise SyntaxError(msg, nline)
+
+    # -- Check if it is a nenomic with no arguments (WAIT or HALT)
+    # -if parse_instruction_arg0(prog, words, nline):
+    # -    return True
+
+    # -- Check if it is a nenomic with 1 argument (LEDS, JP)
+    # if parse_instruction_arg1(prog, words, nline):
+    #    return True
+
+    # return False
+
+
 def parse_line(prog, line,  nline):
     """Parse one line of the assembly program"""
 
@@ -316,13 +345,21 @@ def parse_line(prog, line,  nline):
     # -- If it is, insert into the simbol table
     if parse_label(prog, words[0], nline):
         words = words[1:]
+
+        # -- Etiqueta sola
         if len(words) == 0:
             return
 
+        # -- Comentarios
+        if is_comment(words[0]):
+            return True
+
     # --- Debug
     print ("[{}] {}".format(nline, words))
-    for word in words:
-        pass
+
+    # -- Parse instructions
+    parse_instruction(prog, words, nline)
+
 
 
 def syntax_analisis(prog, asmfile):
