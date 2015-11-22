@@ -103,7 +103,7 @@ class Instruction(object):
     """Microbio instruction class"""
 
     # -- Instruction opcodes
-    opcodes = {"WAIT": 0, "HALT": 1, "LEDS": 2, "JP": 3}
+    opcodes = {"WAIT": 0, "HALT": 7, "LEDS": 2, "JP": 3}
 
     def __init__(self, nemonic, dat=0, addr=0, label="", nline=0):
         """Create the instruction from the co and dat fields"""
@@ -119,7 +119,7 @@ class Instruction(object):
 
     def mcode(self):
         """Return the machine code"""
-        return (self.opcode() << 6) + self._dat
+        return (self.opcode() << 9) + self._dat
 
     def __str__(self):
         """Print the instruction in assembly"""
@@ -302,6 +302,44 @@ def parse_org(prog, words, nline):
         raise SyntaxError(msg, nline)
 
 
+def parse_instruction_arg0(prog, words, nline):
+    """Parse the instructions with no arguments: HALT and WAIT
+        INPUTS:
+          -prog: AST tree where to insert the parsed instruction
+          -words: List of words to parse
+          -nline: Number of the line that is beign parsed
+
+        RETURNS:
+          -True: Success. Instruction parsed and added into the AST
+          -False: Not the LEDS instruction
+          -An exception is raised in case of a syntax error
+    """
+    if (words[0] == "HALT" or words[0] == "WAIT"):
+
+        # -- Create the instruction from the nemonic
+        inst = Instruction(words[0])
+
+        # -- Insert it in the AST tree
+        prog.add_instruction(inst)
+
+        # -- Check that there are only comments or nothing after these nemonics
+        words = words[1:]
+
+        # -- If no more words to parse, return
+        if len(words) == 0:
+            return True
+
+        if is_comment(words[0]):
+            return True
+        else:
+            msg = "Syntax error in line {}: Unknow command".format(nline)
+            raise SyntaxError(msg, nline)
+            return False
+    else:
+        # -- The instructions are not HALT or WAIT
+        return False
+
+
 def parse_instruction(prog, words, nline):
     """Parse the instruction and insert into the prog AST tree
         INPUTS:
@@ -320,9 +358,9 @@ def parse_instruction(prog, words, nline):
         msg = "ERROR: Unkwown instruction {} in line {}".format(words[0], nline)
         raise SyntaxError(msg, nline)
 
-    # -- Check if it is a nenomic with no arguments (WAIT or HALT)
-    # -if parse_instruction_arg0(prog, words, nline):
-    # -    return True
+    # -- Check if it is a nenomic with no arguments
+    if parse_instruction_arg0(prog, words, nline):
+        return True
 
     # -- Check if it is a nenomic with 1 argument (LEDS, JP)
     # if parse_instruction_arg1(prog, words, nline):
@@ -342,7 +380,7 @@ def parse_line(prog, line,  nline):
         return
 
     # -- check if the first word in the line is a label
-    # -- If it is, insert into the simbol table
+    # -- If so, insert it into the symbol table
     if parse_label(prog, words[0], nline):
         words = words[1:]
 
@@ -359,7 +397,6 @@ def parse_line(prog, line,  nline):
 
     # -- Parse instructions
     parse_instruction(prog, words, nline)
-
 
 
 def syntax_analisis(prog, asmfile):
@@ -458,6 +495,10 @@ if __name__ == "__main__":
     # -- In case of errors, it exits
     # -- If sucess, the program is stored in the prog object
     syntax_analisis(prog, asmfile)
+
+    # -- Write the machine code in the output file file
+    with open(OUTPUT_FILE, mode='w') as f:
+        f.write(prog.machine_code())
 
     # -- Only in verbose mode
     if verbose:

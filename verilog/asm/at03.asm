@@ -8,6 +8,6 @@ etiq1
 
 hola              ;-- etiqueta...
 fin     HALT
-fin2    HALT2  ; -- ccaca
+;fin2    HALT2  ; -- ccaca
 fin3
         HALT3
