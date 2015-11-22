@@ -11,6 +11,8 @@ import sys
 class Prog(object):
     """Abstract syntax Tree for the assembled program"""
 
+    RESERVED_WORDS = ["ORG", "HALT"]
+
     def __init__(self):
         self._addr = 0   # -- Current address
         self.linst = []  # -- List of instructions
@@ -214,6 +216,42 @@ def parse_dat(dat, nline):
     return False, 0
 
 
+def is_label(word):
+    """Return True if the word is a label"""
+
+    # - it is a label if it is NOT a reserved word or
+    # - a number
+
+    # - It is a number (decirmal or hexadecila. It is NOT a label)
+    if word.isdigit() or is_hexdigit(word):
+        return False
+
+    # - It is a reserved word: not a label!
+    if word in Prog.RESERVED_WORDS:
+        return False
+
+    # - It should be a label
+    return True
+
+
+def parse_label(prog, label, nline):
+    """Parse the label and added it to the symbol table
+        INPUTS:
+        - prog: AST tree where the current program is being processed
+        - label: A string to parse
+
+        Returns:
+        -TRUE: If it is a label
+        -False: Not a label
+    """
+    if is_label(label):
+        # -- Inset the label in the symbol table
+        prog.set_label(label, nline)
+        return True
+    else:
+        return False
+
+
 def parse_org(prog, words, nline):
     """Parse the org directive
         Inputs:
@@ -273,6 +311,13 @@ def parse_line(prog, line,  nline):
     # -- Check if the line is an ORG directive
     if parse_org(prog, words, nline):
         return
+
+    # -- check if the first word in the line is a label
+    # -- If it is, insert into the simbol table
+    if parse_label(prog, words[0], nline):
+        words = words[1:]
+        if len(words) == 0:
+            return
 
     # --- Debug
     print ("[{}] {}".format(nline, words))
