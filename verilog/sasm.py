@@ -11,7 +11,7 @@ import sys
 class Prog(object):
     """Abstract syntax Tree for the assembled program"""
 
-    RESERVED_WORDS = ["ORG", "HALT"]
+    RESERVED_WORDS = ["ORG", "HALT", "LD"]
 
     def __init__(self):
         self._addr = 0   # -- Current address
@@ -103,7 +103,7 @@ class Instruction(object):
     """Microbio instruction class"""
 
     # -- Instruction opcodes
-    opcodes = {"WAIT": 0, "HALT": 7, "LEDS": 2, "JP": 3}
+    opcodes = {"LD": 1, "WAIT": 0, "HALT": 7, "JP": 3}
 
     def __init__(self, nemonic, dat=0, addr=0, label="", nline=0):
         """Create the instruction from the co and dat fields"""
@@ -302,6 +302,88 @@ def parse_org(prog, words, nline):
         raise SyntaxError(msg, nline)
 
 
+def parse_instruction_ld(prog, words, nline):
+    """Parse the LD instruction
+        INPUTS:
+          -prog: AST tree where to insert the parsed instruction
+          -words: List of words to parse
+          -nline: Number of the line that is beign parsed
+
+        RETURNS:
+          -True: Success. Instruction parsed and added into the AST
+          -False: Not the LEDS instruction
+          -An exception is raised in case of a syntax error
+    """
+    # -- Parse the LEDS instruction
+    if words[0] == "LD":
+
+        # -- Check the address mode. For simplez is always absolute
+        if words[1][0] != "/":
+            msg = """ERROR: Invalid argument {} for LD in line {}\n
+                   It should be an absolute direction (/)""".format(words[1][0], nline)
+            raise SyntaxError(msg, nline)
+
+        # -- Remove the / symbol
+        words[1] = words[1][1:]
+
+        # -- Read the data
+        okdat, dat = parse_dat(words[1], nline)
+
+        # -- Invalid data
+        if not okdat:
+            msg = "ERROR: Invalid data for the instruction {} in line {}".format(words[0], nline)
+            raise SyntaxError(msg, nline)
+
+        # -- Create the instruction
+        inst = Instruction(words[0], dat)
+
+        # -- Insert in the AST tree
+        prog.add_instruction(inst)
+
+        return True
+
+    else:
+        return False
+
+
+def parse_instruction_arg1(prog, words, nline):
+    """Parse the instruction with 1 argument: LD, ST ...and insert into the prog AST tree
+        INPUTS:
+          -prog: AST tree where to insert the parsed instruction
+          -words: List of words to parse
+          -nline: Number of the line that is beign parsed
+
+        RETURNS:
+          -True: Success. Instruction parsed and added into the AST
+          -False: Not an instruction
+          -An exception is raised in case of a sintax error
+    """
+    # -- Check that there are at least 2 words in the line (1 for the nemonic and
+    # -- one for the argument. If not, raise an exception)
+    if len(words) == 1:
+        msg = "ERROR: No data for the instruction {} in line {}".format(words[0], nline)
+        raise SyntaxError(msg, nline)
+
+    # -- Parse the ld instruction
+    parse_instruction_ld(prog, words, nline)
+
+    # -- Parse the comments, if any
+    words = words[2:]
+
+    # -- If no more words to parse, return
+    if len(words) == 0:
+        return True
+
+    # -- There can only be comments. If not, it is a syntax error
+    if is_comment(words[0]):
+        return True
+    else:
+        msg = "Syntax error in line {}: Unknow command".format(nline)
+        raise SyntaxError(msg, nline)
+
+    return False
+
+
 def parse_instruction_arg0(prog, words, nline):
     """Parse the instructions with no arguments: HALT and WAIT
         INPUTS:
@@ -358,15 +440,15 @@ def parse_instruction(prog, words, nline):
         msg = "ERROR: Unkwown instruction {} in line {}".format(words[0], nline)
         raise SyntaxError(msg, nline)
 
-    # -- Check if it is a nenomic with no arguments
+    # -- Check if it is a nenomic with no arguments (HALT, WAIT)
     if parse_instruction_arg0(prog, words, nline):
         return True
 
-    # -- Check if it is a nenomic with 1 argument (LEDS, JP)
-    # if parse_instruction_arg1(prog, words, nline):
-    #    return True
+    # -- Check if it is a nenomic with 1 argument (LD, ST...)
+    if parse_instruction_arg1(prog, words, nline):
+        return True
 
-    # return False
+    return False
 
 
 def parse_line(prog, line,  nline):
