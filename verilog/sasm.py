@@ -103,7 +103,7 @@ class Instruction(object):
     """Microbio instruction class"""
 
     # -- Instruction opcodes
-    opcodes = {"LD": 1, "WAIT": 0, "HALT": 7, "JP": 3}
+    opcodes = {"LD": 1, "WAIT": 0, "HALT": 7, "DATA": 0xFF}
 
     def __init__(self, nemonic, dat=0, addr=0, label="", nline=0):
         """Create the instruction from the co and dat fields"""
@@ -119,13 +119,18 @@ class Instruction(object):
 
     def mcode(self):
         """Return the machine code"""
-        return (self.opcode() << 9) + self._dat
+        if self.nemonic == "DATA":
+            return self._dat
+        else:
+            return (self.opcode() << 9) + self._dat
 
     def __str__(self):
         """Print the instruction in assembly"""
-        saddr = "[{:02X}]".format(self.addr)
-        if self.nemonic in ["LEDS", "JP"]:
-            return "{} {} 0x{:X}".format(saddr, self.nemonic, self._dat)
+        saddr = "[{:03X}]".format(self.addr)
+        if self.nemonic in ["LD", "JP"]:
+            return "{} {} /H'{:03X}".format(saddr, self.nemonic, self._dat)
+        elif self.nemonic == "DATA":
+            return "DATA H'{:03X}".format(self._dat)
         else:
             return "{} {}".format(saddr, self.nemonic)
 
@@ -346,6 +351,42 @@ def parse_instruction_ld(prog, words, nline):
         return False
 
 
+def parse_instruction_data(prog, words, nline):
+        """Parse the DATA assembler directive
+            INPUTS:
+              -prog: AST tree where to insert the parsed instruction
+              -words: List of words to parse
+              -nline: Number of the line that is beign parsed
+
+            RETURNS:
+              -True: Success. Instruction parsed and added into the AST
+              -False: Not data directive
+              -An exception is raised in case of a syntax error
+        """
+        # -- Parse the LEDS instruction
+        if words[0] == "DATA":
+
+            # -- Read the data
+            okdat, dat = parse_dat(words[1], nline)
+
+            # -- Invalid data
+            if not okdat:
+                msg = "ERROR: Invalid data for the instruction {} in line {}".format(
+                       words[0], nline)
+                raise SyntaxError(msg, nline)
+
+            # -- Create the instruction
+            inst = Instruction(words[0], dat)
+
+            # -- Insert in the AST tree
+            prog.add_instruction(inst)
+
+            return True
+
+        else:
+            return False
+
+
 def parse_instruction_arg1(prog, words, nline):
     """Parse the instruction with 1 argument: LD, ST ...and insert into the prog AST tree
         INPUTS:
@@ -366,6 +407,9 @@ def parse_instruction_arg1(prog, words, nline):
 
     # -- Parse the ld instruction
     parse_instruction_ld(prog, words, nline)
+
+    # -- Check if a data assembler directive
+    parse_instruction_data(prog, words, nline)
 
     # -- Parse the comments, if any
     words = words[2:]
@@ -472,13 +516,14 @@ def parse_line(prog, line,  nline):
 
         # -- Comentarios
         if is_comment(words[0]):
-            return True
+            return
+
+    # -- Parse instructions
+    if parse_instruction(prog, words, nline):
+        return
 
     # --- Debug
     print ("[{}] {}".format(nline, words))
-
-    # -- Parse instructions
-    parse_instruction(prog, words, nline)
 
 
 def syntax_analisis(prog, asmfile):
@@ -592,7 +637,7 @@ if __name__ == "__main__":
 
         # -- Print the parsed code
         print()
-        print("Microbio assembly program:\n")
+        print("SIMPLEZ assembly program:\n")
         print(prog)
 
         # -- Print the machine cod

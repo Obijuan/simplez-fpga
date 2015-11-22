@@ -5,4 +5,5 @@
      LD /h'20
 end  HALT        ;-- Terminar
 
-     org h'20
+       org h'20
+valor  DATA  h'F
