@@ -67,13 +67,21 @@ class Prog(object):
 
     def __str__(self):
         """Print the current program (in assembly language)"""
+
+        # -- Calculate the length of the longest label
+        labels = list(self.symtable.keys())
+        lenlabels = list(map(len, labels))
+        maxlen = max(lenlabels)
+
         str = ""
         addr = 0
 
         for inst in self.linst:
             if addr != inst.addr:
                 # -- there is a gap in the addresses
-                str += "\n     ORG 0x{:03X}\n".format(inst.addr)
+                str += "\n"
+                str += " " * (maxlen + 8)
+                str += "ORG 0x{:03X}\n".format(inst.addr)
                 addr = inst.addr
 
             str += "{}\n".format(inst.get_asmstr(symtable=self.symtable))
