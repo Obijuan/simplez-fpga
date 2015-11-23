@@ -11,7 +11,7 @@ import sys
 class Prog(object):
     """Abstract syntax Tree for the assembled program"""
 
-    RESERVED_WORDS = ["ORG", "HALT", "LD", "WAIT"]
+    RESERVED_WORDS = ["ORG", "HALT", "LD", "WAIT", "BR"]
 
     def __init__(self):
         self._addr = 0   # -- Current address
@@ -104,7 +104,7 @@ class Instruction(object):
     """Microbio instruction class"""
 
     # -- Instruction opcodes
-    opcodes = {"LD": 1, "WAIT": 0xF, "HALT": 7, "DATA": 0xFF}
+    opcodes = {"LD": 1, "WAIT": 0xF, "HALT": 7, "BR": 0x3, "DATA": 0xFF}
 
     def __init__(self, nemonic, dat=0, addr=0, label="", nline=0):
         """Create the instruction from the co and dat fields"""
@@ -143,7 +143,7 @@ class Instruction(object):
             index = list(symtable.values()).index(self.addr)
             saddr += "[{}]".format(list(symtable.keys())[index])
 
-        if self.nemonic in ["LD", "JP"]:
+        if self.nemonic in ["LD", "BR"]:
             return "{} {} {}".format(saddr, self.nemonic, sarg)
         elif self.nemonic == "DATA":
             return "{} DATA H'{:03X}".format(saddr, self._dat)
@@ -336,8 +336,9 @@ def parse_dir(prog, word, nline):
 
     # -- Check the address mode. For simplez is always absolute
     if word[0] != "/":
-        msg = """ERROR: Invalid argument {} for LD in line {}\n
-               It should be an absolute direction (/)""".format(word, nline)
+        msg = "ERROR: Invalid argument {} for LD in line {}".format(word, nline)
+        msg += "\nIt should be an absolute direction (/)"
+
         raise SyntaxError(msg, nline)
 
     # -- Remove the / symbol
@@ -378,6 +379,36 @@ def parse_instruction_ld(prog, words, nline):
 
         # -- Create the instruction
         inst = Instruction("LD", dat=dat, label=label, nline=nline)
+
+        # -- Insert in the AST tree
+        prog.add_instruction(inst)
+
+        return True
+
+    else:
+        return False
+
+
+def parse_instruction_br(prog, words, nline):
+    """Parse the BR instruction
+        INPUTS:
+          -prog: AST tree where to insert the parsed instruction
+          -words: List of words to parse
+          -nline: Number of the line that is beign parsed
+
+        RETURNS:
+          -True: Success. Instruction parsed and added into the AST
+          -False: Not the LEDS instruction
+          -An exception is raised in case of a syntax error
+    """
+    # -- Parse the LEDS instruction
+    if words[0] == "BR":
+
+        # -- Read the address argument
+        dat, label = parse_dir(prog, words[1], nline)
+
+        # -- Create the instruction
+        inst = Instruction("BR", dat=dat, label=label, nline=nline)
 
         # -- Insert in the AST tree
         prog.add_instruction(inst)
@@ -445,6 +476,9 @@ def parse_instruction_arg1(prog, words, nline):
     # -- Parse the ld instruction
     parse_instruction_ld(prog, words, nline)
 
+    # -- Parse the br instruction
+    parse_instruction_br(prog, words, nline)
+
     # -- Check if a data assembler directive
     parse_instruction_data(prog, words, nline)
 
@@ -478,8 +512,6 @@ def parse_instruction_arg0(prog, words, nline):
           -An exception is raised in case of a syntax error
     """
     if (words[0] == "HALT" or words[0] == "WAIT"):
-
-        print("ARG0")
 
         # -- Create the instruction from the nemonic
         inst = Instruction(words[0])
