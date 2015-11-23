@@ -1,7 +1,7 @@
 ;-- Programas de prueba para Simplez
 ;-- t05.asm: Prueba de saltos y etiquetas
 
-ini0  BR /ini1
+ini000  BR /ini1
 
 
         org h'10
@@ -46,7 +46,7 @@ ini8
         ld /val8
         Wait
 
-        BR /ini0        ;-- Vuelta al comienzo
+        BR /ini000        ;-- Vuelta al comienzo
 
 
 ;--- Datos

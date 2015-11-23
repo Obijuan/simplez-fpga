@@ -84,13 +84,20 @@ class Prog(object):
     def machine_code(self):
         """Generate the program in microbio machine code"""
 
+        # -- Calculate the length of the longest label
+        labels = list(self.symtable.keys())
+        lenlabels = list(map(len, labels))
+        maxlen = max(lenlabels)
+
         addr = 0
         code = ""
         for inst in self.linst:
             inst_ascii = ""
             if addr != inst.addr:
                 # -- There is a gap in the addresses
-                inst_ascii = "\n@{0:03X}  //-- ORG 0x{0:03X}\n".format(inst.addr)
+                inst_ascii = "\n@{0:03X}  //-- ".format(inst.addr)
+                inst_ascii += " " * (8 + maxlen)
+                inst_ascii += "ORG 0x{0:03X}\n".format(inst.addr)
                 addr = inst.addr
 
             inst_ascii += "{:03X}   //-- {}".format(inst.mcode(), inst.get_asmstr(self.symtable))
@@ -129,6 +136,13 @@ class Instruction(object):
 
     def get_asmstr(self, symtable):
         """Print the instruction in assembly"""
+
+        # -- Calculate the length of the longest label
+        labels = list(symtable.keys())
+        lenlabels = list(map(len, labels))
+        maxlen = max(lenlabels)
+
+        # -- String for the address
         saddr = "[{:03X}]".format(self.addr)
 
         # -- Check if the argument has a label associated
@@ -141,7 +155,12 @@ class Instruction(object):
         # - Check if the current address has a label associated to it
         if self.addr in symtable.values():
             index = list(symtable.values()).index(self.addr)
-            saddr += "[{}]".format(list(symtable.keys())[index])
+            label = list(symtable.keys())[index]
+            saddr += "[{}]".format(label)
+            saddr += " " * (maxlen - len(label))
+        else:
+            # - Calculate the length of the longest label
+            saddr += " " * (maxlen + 2)
 
         if self.nemonic in ["LD", "BR"]:
             return "{} {} {}".format(saddr, self.nemonic, sarg)
