@@ -11,7 +11,7 @@ import sys
 class Prog(object):
     """Abstract syntax Tree for the assembled program"""
 
-    RESERVED_WORDS = ["ORG", "HALT", "LD"]
+    RESERVED_WORDS = ["ORG", "HALT", "LD", "WAIT"]
 
     def __init__(self):
         self._addr = 0   # -- Current address
@@ -104,7 +104,7 @@ class Instruction(object):
     """Microbio instruction class"""
 
     # -- Instruction opcodes
-    opcodes = {"LD": 1, "WAIT": 0, "HALT": 7, "DATA": 0xFF}
+    opcodes = {"LD": 1, "WAIT": 0xF, "HALT": 7, "DATA": 0xFF}
 
     def __init__(self, nemonic, dat=0, addr=0, label="", nline=0):
         """Create the instruction from the co and dat fields"""
@@ -122,6 +122,8 @@ class Instruction(object):
         """Return the machine code"""
         if self.nemonic == "DATA":
             return self._dat
+        elif self.nemonic == "WAIT":
+            return 0xF00
         else:
             return (self.opcode() << 9) + self._dat
 
@@ -476,6 +478,8 @@ def parse_instruction_arg0(prog, words, nline):
           -An exception is raised in case of a syntax error
     """
     if (words[0] == "HALT" or words[0] == "WAIT"):
+
+        print("ARG0")
 
         # -- Create the instruction from the nemonic
         inst = Instruction(words[0])
