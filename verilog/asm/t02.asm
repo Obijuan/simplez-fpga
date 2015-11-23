@@ -2,8 +2,9 @@
 ;-- t02.asm: Prueba de LD
 
 
-     LD /h'20
+     LD /val
 end  HALT        ;-- Terminar
 
-       org h'20
-valor  DATA  h'F
+
+;--- Datos
+val    DATA  h'E

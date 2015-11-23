@@ -49,7 +49,7 @@ class Prog(object):
            If there are unknown labels an exception is raised
         """
         for inst in self.linst:
-            if (inst.nemonic == "JP"):
+            if (inst.nemonic == "LD"):
                 try:
                     if len(inst.label) != 0:
                         inst._dat = prog.symtable[inst.label]
@@ -69,13 +69,14 @@ class Prog(object):
         """Print the current program (in assembly language)"""
         str = ""
         addr = 0
+
         for inst in self.linst:
             if addr != inst.addr:
                 # -- there is a gap in the addresses
-                str += "\n     ORG 0x{:02X}\n".format(inst.addr)
+                str += "\n     ORG 0x{:03X}\n".format(inst.addr)
                 addr = inst.addr
 
-            str += "{}\n".format(inst)
+            str += "{}\n".format(inst.get_asmstr(symtable=self.symtable))
             addr += 1
 
         return str
@@ -89,10 +90,10 @@ class Prog(object):
             inst_ascii = ""
             if addr != inst.addr:
                 # -- There is a gap in the addresses
-                inst_ascii = "\n@{0:02X}  //-- ORG 0x{0:02X}\n".format(inst.addr)
+                inst_ascii = "\n@{0:03X}  //-- ORG 0x{0:03X}\n".format(inst.addr)
                 addr = inst.addr
 
-            inst_ascii += "{:02X}   //-- {}".format(inst.mcode(), inst)
+            inst_ascii += "{:03X}   //-- {}".format(inst.mcode(), inst.get_asmstr(self.symtable))
             code += inst_ascii + "\n"
             addr += 1
 
@@ -124,13 +125,26 @@ class Instruction(object):
         else:
             return (self.opcode() << 9) + self._dat
 
-    def __str__(self):
+    def get_asmstr(self, symtable):
         """Print the instruction in assembly"""
         saddr = "[{:03X}]".format(self.addr)
+
+        # -- Check if the argument has a label associated
+        if self._dat in symtable.values():
+            index = list(symtable.values()).index(self._dat)
+            sarg = "/{0} ;-- {0} = H'{1:03X} ".format(list(symtable.keys())[index], self._dat)
+        else:
+            sarg = "/H'{:03X}".format(self._dat)
+
+        # - Check if the current address has a label associated to it
+        if self.addr in symtable.values():
+            index = list(symtable.values()).index(self.addr)
+            saddr += "[{}]".format(list(symtable.keys())[index])
+
         if self.nemonic in ["LD", "JP"]:
-            return "{} {} /H'{:03X}".format(saddr, self.nemonic, self._dat)
+            return "{} {} {}".format(saddr, self.nemonic, sarg)
         elif self.nemonic == "DATA":
-            return "DATA H'{:03X}".format(self._dat)
+            return "{} DATA H'{:03X}".format(saddr, self._dat)
         else:
             return "{} {}".format(saddr, self.nemonic)
 
@@ -194,6 +208,14 @@ def is_hexdigit(dat):
         return True
     else:
         return False
+
+
+def is_number(word):
+    """Determine if the word is a number (in decimal) or in hexadecimal
+       It returns:
+       -True: is a number
+       -False: is not a number"""
+    return word.isdigit() or is_hexdigit(word)
 
 
 def parse_dat(dat, nline):
@@ -307,6 +329,33 @@ def parse_org(prog, words, nline):
         raise SyntaxError(msg, nline)
 
 
+def parse_dir(prog, word, nline):
+    """Parse the address argument"""
+
+    # -- Check the address mode. For simplez is always absolute
+    if word[0] != "/":
+        msg = """ERROR: Invalid argument {} for LD in line {}\n
+               It should be an absolute direction (/)""".format(word, nline)
+        raise SyntaxError(msg, nline)
+
+    # -- Remove the / symbol
+    word = word[1:]
+
+    # -- The next string could be a number ...
+    if is_number(word):
+        # -- Read the data
+        okdat, dat = parse_dat(word, nline)
+
+        # -- It returns the address and blank label
+        return dat, ""
+
+    # -- Or a label
+    if is_label(word):
+
+        # -- It returns the address 0 and the label
+        return 0, word
+
+
 def parse_instruction_ld(prog, words, nline):
     """Parse the LD instruction
         INPUTS:
@@ -322,25 +371,11 @@ def parse_instruction_ld(prog, words, nline):
     # -- Parse the LEDS instruction
     if words[0] == "LD":
 
-        # -- Check the address mode. For simplez is always absolute
-        if words[1][0] != "/":
-            msg = """ERROR: Invalid argument {} for LD in line {}\n
-                   It should be an absolute direction (/)""".format(words[1][0], nline)
-            raise SyntaxError(msg, nline)
-
-        # -- Remove the / symbol
-        words[1] = words[1][1:]
-
-        # -- Read the data
-        okdat, dat = parse_dat(words[1], nline)
-
-        # -- Invalid data
-        if not okdat:
-            msg = "ERROR: Invalid data for the instruction {} in line {}".format(words[0], nline)
-            raise SyntaxError(msg, nline)
+        # -- Read the address argument
+        dat, label = parse_dir(prog, words[1], nline)
 
         # -- Create the instruction
-        inst = Instruction(words[0], dat)
+        inst = Instruction("LD", dat=dat, label=label, nline=nline)
 
         # -- Insert in the AST tree
         prog.add_instruction(inst)
@@ -622,6 +657,15 @@ if __name__ == "__main__":
     # -- In case of errors, it exits
     # -- If sucess, the program is stored in the prog object
     syntax_analisis(prog, asmfile)
+
+    # -- Semantics analisis: Check if all the labels are ok
+    # -- All the labels should have an address
+    try:
+        prog.assign_labels()
+
+    except SyntaxError as e:
+        print(e.msg)
+        sys.exit()
 
     # -- Write the machine code in the output file file
     with open(OUTPUT_FILE, mode='w') as f:
