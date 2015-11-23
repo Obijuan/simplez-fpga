@@ -22,7 +22,7 @@ wire stop;
 reg rstn = 0;
 
 //-- Instanciar el componente
-microbio #(.ROMFILE(ROMFILE), .WAIT_DELAY(WAIT_DELAY))
+simplez #(.ROMFILE(ROMFILE), .WAIT_DELAY(WAIT_DELAY))
   dut(
     .clk(clk),
     .rstn_ini(rstn),

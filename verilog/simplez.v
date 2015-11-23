@@ -3,7 +3,7 @@
 
 
 //-- Procesador Simplez
-module microbio (input wire clk,          //-- Reloj del sistema
+module simplez  (input wire clk,          //-- Reloj del sistema
                  input wire rstn_ini,     //-- Reset
                  output wire [3:0] leds,  //-- leds
                  output wire stop);       //-- Indicador de stop
