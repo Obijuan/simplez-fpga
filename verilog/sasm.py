@@ -49,7 +49,7 @@ class Prog(object):
            If there are unknown labels an exception is raised
         """
         for inst in self.linst:
-            if (inst.nemonic == "LD"):
+            if inst.nemonic in ["LD", "BR"]:
                 try:
                     if len(inst.label) != 0:
                         inst._dat = prog.symtable[inst.label]
