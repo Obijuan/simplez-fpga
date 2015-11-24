@@ -19,4 +19,4 @@ NOP  DATA 0    ;-- Ignorar esta intruccion
 
 
 ;--- Datos
-val    DATA  h'5
+val    DATA  h'F

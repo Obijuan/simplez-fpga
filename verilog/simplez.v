@@ -63,6 +63,10 @@ always @(posedge clk)
   reg a_load = 0;   //-- Cargar el acumulador
   reg rw = 1;
 
+  //-- Microordenes para la ALU
+  reg alu_op2;  //-- Sacar el operando 2 por la salida (sin modificar)
+  reg alu_clr;  //-- Sacar un 0 por la salida
+
   //-- Contador de programa
   reg [AW-1: 0] cp;
 
@@ -79,11 +83,6 @@ always @(posedge clk)
   //-- cp_sel = 1 ---> Se direcciona la memoria desde el CP
   //-- cp_sel = 0 ---> Se direcciona la memoria desde el CD del RI
   assign addr = (cp_sel) ? cp : CD;
-  /*always @(*)
-    if (cp_sel)
-      addr = cp;
-    else
-      addr = CD;*/
 
 
   //-- Registro de instruccion
@@ -111,13 +110,13 @@ always @(posedge clk)
     reg_stop <= 1;
 
 //-- Registro acumulador
-reg [DW-1:0] reg_a;
+reg [DW-1: 0] reg_a;
 
 always @(posedge clk)
   if (!rstn)
     reg_a <= 0;
   else if (a_load)
-    reg_a <= mem_dout;
+    reg_a <= alu_out;
 
 
 
@@ -126,6 +125,21 @@ assign leds = reg_a[3:0];
 
 //-- Debug
 assign stop = reg_stop;
+
+
+//----- ALU ----
+reg [DW-1: 0] alu_out;
+
+always @(*) begin
+  if (alu_op2)
+    alu_out = mem_dout;
+  else if (alu_clr)
+    alu_out = 0;
+  else
+    alu_out = 0;
+end
+
+
 
 
 //----------- PERIFERICOS --------
@@ -171,6 +185,7 @@ always @(*) begin
   halt = 0;
   a_load = 0;
   rw = 1;
+  alu_op2 = 1;
 
   case(state)
     //-- Estado inicial
