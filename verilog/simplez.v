@@ -66,6 +66,7 @@ always @(posedge clk)
   //-- Microordenes para la ALU
   reg alu_op2;  //-- Sacar el operando 2 por la salida (sin modificar)
   reg alu_clr;  //-- Sacar un 0 por la salida
+  reg alu_add;  //-- Sumar al acumulador el operando 2
 
   //-- Contador de programa
   reg [AW-1: 0] cp;
@@ -135,6 +136,8 @@ always @(*) begin
     alu_out = mem_dout;
   else if (alu_clr)
     alu_out = 0;
+  else if (alu_add)
+    alu_out = mem_dout + reg_a;
   else
     alu_out = 0;
 end
@@ -185,7 +188,8 @@ always @(*) begin
   halt = 0;
   a_load = 0;
   rw = 1;
-  alu_op2 = 1;
+  alu_op2 = 0;
+  alu_add = 0;
 
   case(state)
     //-- Estado inicial
@@ -212,6 +216,11 @@ always @(*) begin
         end
 
         LD: begin
+          cp_sel = 0;
+          next_state = EXEC2;
+        end
+
+        ADD: begin
           cp_sel = 0;
           next_state = EXEC2;
         end
@@ -247,8 +256,16 @@ always @(*) begin
       case (CO)
         LD: begin
           a_load = 1;
+          alu_op2 = 1;
           next_state = END;
         end
+
+        ADD: begin
+          a_load = 1;
+          alu_add = 1;
+          next_state = END;
+        end
+
       endcase
     end
 
