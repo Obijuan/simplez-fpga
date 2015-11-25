@@ -20,7 +20,7 @@ localparam LD   = 3'o1;  //-- OK
 localparam ADD  = 3'o2;  //-- OK
 localparam BR   = 3'o3;  //-- OK
 localparam BZ   = 3'o4;
-localparam CLR  = 3'o5;
+localparam CLR  = 3'o5;  //-- OK
 localparam DEC  = 3'o6;
 localparam HALT = 3'o7;  //-- OK
 
@@ -130,6 +130,7 @@ assign stop = reg_stop;
 
 //----- ALU ----
 reg [DW-1: 0] alu_out;
+reg flag_z;
 
 always @(*) begin
 
@@ -147,9 +148,19 @@ always @(*) begin
 
   //-- Evitar latches
   else
-    alu_out = 0;
+    alu_out = 1;
 end
 
+  //-- Captura del flag de z
+  //-- Se captura con la misma señal de carga del registro A
+  always @(posedge clk)
+    if (!rstn)
+      flag_z <= 0;
+    else if (a_load)
+      if (alu_out == 0)
+        flag_z <= 1;
+      else
+        flag_z <= 0;
 
 
 
@@ -222,6 +233,16 @@ always @(*) begin
         BR: begin
           cp_load = 1;
           next_state = INIT;
+        end
+
+        BZ: begin
+          if (flag_z) begin
+            cp_load = 1;
+            next_state = INIT;
+          end
+          else
+            next_state = END;
+
         end
 
         LD: begin

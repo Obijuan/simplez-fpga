@@ -11,7 +11,7 @@ import sys
 class Prog(object):
     """Abstract syntax Tree for the assembled program"""
 
-    RESERVED_WORDS = ["ORG", "HALT", "LD", "ST", "WAIT", "BR", "ADD", "CLR"]
+    RESERVED_WORDS = ["ORG", "HALT", "LD", "ST", "WAIT", "BR", "BZ", "ADD", "CLR"]
 
     def __init__(self):
         self._addr = 0   # -- Current address
@@ -49,7 +49,7 @@ class Prog(object):
            If there are unknown labels an exception is raised
         """
         for inst in self.linst:
-            if inst.nemonic in ["LD", "BR", "ST", "ADD"]:
+            if inst.nemonic in ["LD", "BR", "BZ", "ST", "ADD"]:
                 try:
                     if len(inst.label) != 0:
                         inst._dat = prog.symtable[inst.label]
@@ -119,8 +119,8 @@ class Instruction(object):
     """Microbio instruction class"""
 
     # -- Instruction opcodes
-    opcodes = {"ST": 0, "LD": 1, "ADD": 2, "WAIT": 0xF, "HALT": 7, "BR": 0x3, "DATA": 0xFF,
-               "CLR": 0x5}
+    opcodes = {"ST": 0, "LD": 1, "ADD": 2, "WAIT": 0xF, "HALT": 7, "BR": 0x3, "BZ": 0x4,
+               "DATA": 0xFF, "CLR": 0x5}
 
     def __init__(self, nemonic, dat=0, addr=0, label="", nline=0):
         """Create the instruction from the co and dat fields"""
@@ -171,7 +171,7 @@ class Instruction(object):
             # - Calculate the length of the longest label
             saddr += " " * (maxlen + 2)
 
-        if self.nemonic in ["LD", "BR", "ST", "ADD"]:
+        if self.nemonic in ["LD", "BR", "BZ", "ST", "ADD"]:
             return "{} {} {}".format(saddr, self.nemonic, sarg)
         elif self.nemonic == "DATA":
             return "{} DATA H'{:03X}".format(saddr, self._dat)
@@ -506,6 +506,35 @@ def parse_instruction_br(prog, words, nline):
     else:
         return False
 
+def parse_instruction_bz(prog, words, nline):
+    """Parse the BZ instruction
+        INPUTS:
+          -prog: AST tree where to insert the parsed instruction
+          -words: List of words to parse
+          -nline: Number of the line that is beign parsed
+
+        RETURNS:
+          -True: Success. Instruction parsed and added into the AST
+          -False: Not the LEDS instruction
+          -An exception is raised in case of a syntax error
+    """
+    # -- Parse the LEDS instruction
+    if words[0] == "BZ":
+
+        # -- Read the address argument
+        dat, label = parse_dir(prog, words[1], nline)
+
+        # -- Create the instruction
+        inst = Instruction("BZ", dat=dat, label=label, nline=nline)
+
+        # -- Insert in the AST tree
+        prog.add_instruction(inst)
+
+        return True
+
+    else:
+        return False
+
 
 def parse_instruction_data(prog, words, nline):
         """Parse the DATA assembler directive
@@ -566,6 +595,8 @@ def parse_instruction_arg1(prog, words, nline):
 
     # -- Parse the br instruction
     parse_instruction_br(prog, words, nline)
+
+    parse_instruction_bz(prog, words, nline)
 
     # -- Check if a data assembler directive
     parse_instruction_data(prog, words, nline)

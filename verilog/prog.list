@@ -1,7 +1,10 @@
-000   //-- [000][NOP]  DATA H'000
-206   //-- [001][INI]  LD /VAL1 ;-- VAL1 = H'006 
-F00   //-- [002]       WAIT
-A00   //-- [003]       CLR
-F00   //-- [004]       WAIT
-601   //-- [005]       BR /INI ;-- INI = H'001 
-00F   //-- [006][VAL1] DATA H'00F
+000   //-- [000][NOP]    DATA H'000
+207   //-- [001]         LD /COMP ;-- COMP = H'007 
+805   //-- [002]         BZ /ISCERO ;-- ISCERO = H'005 
+209   //-- [003]         LD /VALN0 ;-- VALN0 = H'009 
+E00   //-- [004]         HALT
+208   //-- [005][ISCERO] LD /VAL0 ;-- VAL0 = H'008 
+E00   //-- [006]         HALT
+000   //-- [007][COMP]   DATA H'000
+001   //-- [008][VAL0]   DATA H'001
+00F   //-- [009][VALN0]  DATA H'00F
