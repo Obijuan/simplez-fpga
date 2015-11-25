@@ -1,7 +1,7 @@
-000   //-- [000][NOP]   DATA H'000
-205   //-- [001]        LD /VAL1 ;-- VAL1 = H'005 
-F00   //-- [002][BUCLE] WAIT
-406   //-- [003]        ADD /UNO ;-- UNO = H'006 
-602   //-- [004]        BR /BUCLE ;-- BUCLE = H'002 
-001   //-- [005][VAL1]  DATA H'001
-001   //-- [006][UNO]   DATA H'001
+000   //-- [000][NOP]  DATA H'000
+206   //-- [001][INI]  LD /VAL1 ;-- VAL1 = H'006 
+F00   //-- [002]       WAIT
+A00   //-- [003]       CLR
+F00   //-- [004]       WAIT
+601   //-- [005]       BR /INI ;-- INI = H'001 
+00F   //-- [006][VAL1] DATA H'00F

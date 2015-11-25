@@ -15,9 +15,9 @@ parameter ROMFILE = "prog.list";
 parameter WAIT_DELAY = `T_200ms;
 
 //-- Codigos de operacion de las instrucciones de simplez
-localparam ST   = 3'o0;
+localparam ST   = 3'o0;  //-- OK
 localparam LD   = 3'o1;  //-- OK
-localparam ADD  = 3'o2;
+localparam ADD  = 3'o2;  //-- OK
 localparam BR   = 3'o3;  //-- OK
 localparam BZ   = 3'o4;
 localparam CLR  = 3'o5;
@@ -132,12 +132,20 @@ assign stop = reg_stop;
 reg [DW-1: 0] alu_out;
 
 always @(*) begin
+
+  //-- Operacion: transferencia del operando 2 a la salida
   if (alu_op2)
     alu_out = mem_dout;
+
+  //-- Sacar el valor 0
   else if (alu_clr)
     alu_out = 0;
+
+  //-- Suma de operador 1 + operador 2
   else if (alu_add)
     alu_out = mem_dout + reg_a;
+
+  //-- Evitar latches
   else
     alu_out = 0;
 end
@@ -190,6 +198,7 @@ always @(*) begin
   rw = 1;
   alu_op2 = 0;
   alu_add = 0;
+  alu_clr = 0;
 
   case(state)
     //-- Estado inicial
@@ -223,6 +232,12 @@ always @(*) begin
         ADD: begin
           cp_sel = 0;
           next_state = EXEC2;
+        end
+
+        CLR: begin
+          a_load = 1;
+          alu_clr = 1;
+          next_state = END;
         end
 
         //-- Procesar codigos de operacion extendidos
