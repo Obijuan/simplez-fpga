@@ -1,0 +1,11 @@
+#
+# Codigos de operacion de las instrucciones en Simplez
+#
+0 ST
+1 LD
+2 ADD
+3 BR
+4 BZ
+5 CLR
+6 DEC
+7 HALT

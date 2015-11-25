@@ -1,27 +1,29 @@
 [*]
 [*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
-[*] Wed Nov 25 07:54:48 2015
+[*] Wed Nov 25 08:40:23 2015
 [*]
 [dumpfile] "/home/obijuan/development/simplez-fpga/verilog/simplez_tb.vcd"
-[dumpfile_mtime] "Wed Nov 25 07:53:23 2015"
-[dumpfile_size] 4433
+[dumpfile_mtime] "Wed Nov 25 08:39:43 2015"
+[dumpfile_size] 4810
 [savefile] "/home/obijuan/development/simplez-fpga/verilog/simplez_tb.gtkw"
 [timestart] 0
 [size] 1290 825
-[pos] -240 -154
-*-3.624078 20 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] -458 -142
+*-3.624078 48 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] simplez_tb.
 [treeopen] simplez_tb.dut.
 [sst_width] 223
 [signals_width] 182
 [sst_expanded] 1
-[sst_vpaned_height] 239
+[sst_vpaned_height] 240
 @28
 simplez_tb.clk
 simplez_tb.rstn
 simplez_tb.dut.rw
 simplez_tb.stop
-@22
+@2023
+[color] 2
+^1 /home/obijuan/development/simplez-fpga/verilog/simplez_states.filter
 simplez_tb.dut.state[2:0]
 @30
 simplez_tb.dut.cp[8:0]
@@ -30,7 +32,9 @@ simplez_tb.dut.addr[8:0]
 simplez_tb.dut.mem_dout[11:0]
 simplez_tb.dut.reg_a[11:0]
 simplez_tb.dut.ri[11:0]
-@30
+@2022
+[color] 2
+^2 /home/obijuan/development/simplez-fpga/verilog/simplez_opcodes.filter
 simplez_tb.dut.CO[2:0]
 @22
 simplez_tb.dut.CD[8:0]
@@ -40,7 +44,7 @@ simplez_tb.leds[3:0]
 simplez_tb.stop
 simplez_tb.dut.clk_tic
 simplez_tb.dut.flag_z
-@23
+@22
 simplez_tb.dut.alu_out[11:0]
 @200
 -

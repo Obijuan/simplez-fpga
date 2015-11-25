@@ -1,0 +1,8 @@
+#
+# Filtro de los estados de la unidad de control de simplez
+#
+0 INIT
+1 FETCH
+2 EXEC1
+3 EXEC2
+4 END
