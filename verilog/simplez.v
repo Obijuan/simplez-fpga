@@ -67,6 +67,7 @@ always @(posedge clk)
   reg alu_op2;  //-- Sacar el operando 2 por la salida (sin modificar)
   reg alu_clr;  //-- Sacar un 0 por la salida
   reg alu_add;  //-- Sumar al acumulador el operando 2
+  reg alu_dec;  //-- Decrementar operando 1 en una unidad
 
   //-- Contador de programa
   reg [AW-1: 0] cp;
@@ -144,7 +145,10 @@ always @(*) begin
 
   //-- Suma de operador 1 + operador 2
   else if (alu_add)
-    alu_out = mem_dout + reg_a;
+    alu_out = reg_a + mem_dout;
+
+  else if (alu_dec)
+    alu_out = reg_a - 1;
 
   //-- Evitar latches
   else
@@ -210,6 +214,7 @@ always @(*) begin
   alu_op2 = 0;
   alu_add = 0;
   alu_clr = 0;
+  alu_dec = 0;
 
   case(state)
     //-- Estado inicial
@@ -258,6 +263,12 @@ always @(*) begin
         CLR: begin
           a_load = 1;
           alu_clr = 1;
+          next_state = END;
+        end
+
+        DEC: begin
+          a_load = 1;
+          alu_dec = 1;
           next_state = END;
         end
 

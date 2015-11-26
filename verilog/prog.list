@@ -1,10 +1,7 @@
 000   //-- [000][NOP]    DATA H'000
-207   //-- [001]         LD /COMP ;-- COMP = H'007 
-805   //-- [002]         BZ /ISCERO ;-- ISCERO = H'005 
-209   //-- [003]         LD /VALN0 ;-- VALN0 = H'009 
-E00   //-- [004]         HALT
-208   //-- [005][ISCERO] LD /VAL0 ;-- VAL0 = H'008 
-E00   //-- [006]         HALT
-000   //-- [007][COMP]   DATA H'000
-001   //-- [008][VAL0]   DATA H'001
-00F   //-- [009][VALN0]  DATA H'00F
+206   //-- [001]         LD /VALINI ;-- VALINI = H'006 
+F00   //-- [002][LOOP]   WAIT
+C00   //-- [003]         DEC
+602   //-- [004]         BR /LOOP ;-- LOOP = H'002 
+E00   //-- [005]         HALT
+00F   //-- [006][VALINI] DATA H'00F

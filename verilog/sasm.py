@@ -11,7 +11,7 @@ import sys
 class Prog(object):
     """Abstract syntax Tree for the assembled program"""
 
-    RESERVED_WORDS = ["ORG", "HALT", "LD", "ST", "WAIT", "BR", "BZ", "ADD", "CLR"]
+    RESERVED_WORDS = ["ORG", "HALT", "LD", "ST", "WAIT", "BR", "BZ", "ADD", "CLR", "DEC"]
 
     def __init__(self):
         self._addr = 0   # -- Current address
@@ -120,7 +120,7 @@ class Instruction(object):
 
     # -- Instruction opcodes
     opcodes = {"ST": 0, "LD": 1, "ADD": 2, "WAIT": 0xF, "HALT": 7, "BR": 0x3, "BZ": 0x4,
-               "DATA": 0xFF, "CLR": 0x5}
+               "DEC": 0x06, "DATA": 0xFF, "CLR": 0x5}
 
     def __init__(self, nemonic, dat=0, addr=0, label="", nline=0):
         """Create the instruction from the co and dat fields"""
@@ -506,6 +506,7 @@ def parse_instruction_br(prog, words, nline):
     else:
         return False
 
+
 def parse_instruction_bz(prog, words, nline):
     """Parse the BZ instruction
         INPUTS:
@@ -634,7 +635,7 @@ def parse_instruction_arg0(prog, words, nline):
           -False: Not the LEDS instruction
           -An exception is raised in case of a syntax error
     """
-    if words[0] in ["HALT", "WAIT", "CLR"]:
+    if words[0] in ["HALT", "WAIT", "CLR", "DEC"]:
 
         # -- Create the instruction from the nemonic
         inst = Instruction(words[0])
