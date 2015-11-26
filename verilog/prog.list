@@ -1,7 +1,9 @@
 000   //-- [000][NOP]    DATA H'000
-206   //-- [001]         LD /VALINI ;-- VALINI = H'006 
-F00   //-- [002][LOOP]   WAIT
-C00   //-- [003]         DEC
-602   //-- [004]         BR /LOOP ;-- LOOP = H'002 
-E00   //-- [005]         HALT
-00F   //-- [006][VALINI] DATA H'00F
+
+@010  //--               ORG 0x010
+215   //-- [010]         LD /VALINI ;-- VALINI = H'015 
+F00   //-- [011][LOOP]   WAIT
+C00   //-- [012]         DEC
+611   //-- [013]         BR /LOOP ;-- LOOP = H'011 
+E00   //-- [014]         HALT
+00F   //-- [015][VALINI] DATA H'00F

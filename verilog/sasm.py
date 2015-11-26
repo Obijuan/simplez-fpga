@@ -6,6 +6,7 @@
 # -- Released under the GPL v3 License
 # ----------------------------------------------------------------------------------
 import sys
+import re
 
 
 class Lexer(object):
@@ -16,6 +17,14 @@ class Lexer(object):
     # COMMENT_SYMBOL = "//"  # - C / Verilog style
     # COMMENT_SYMBOL = "#"  # - Python style
     COMMENT_SYMBOL = ";"
+
+    # Symbols for representing hexadecimal numbers
+    # SYM_HEX = "0x"  # - Notation in C / python style
+    SYM_HEX = "H'"  # - Notation in Simlez
+
+    # Regular expresions for Parsing Hexadecimal numbers
+    # - In Simplez, hexadecimal numbers are written as: H'8A, H'960A, etc
+    REGEX_HEX = r"^{}[0-9a-fA-F]+$".format(SYM_HEX.upper())
 
     def is_comment(word):
         """Return True if the word is a comment"""
@@ -54,6 +63,14 @@ class Lexer(object):
         else:
             return False
 
+    def is_hexdigit(word):
+        """Returns True if words is an ASCII hexadecimal number"""
+
+        if re.search(Lexer.REGEX_HEX, word):
+            return True
+        else:
+            return False
+
 
 class Prog(object):
     """Abstract syntax Tree (AST) for the assembled program"""
@@ -88,7 +105,7 @@ class Prog(object):
         # - a number
 
         # - It is a number (decirmal or hexadecila. It is NOT a label)
-        if word.isdigit() or is_hexdigit(word):
+        if word.isdigit() or Lexer.is_hexdigit(word):
             return False
 
         # - It is a reserved word: not a label!
@@ -146,7 +163,7 @@ class Prog(object):
                 # -- there is a gap in the addresses
                 str += "\n"
                 str += " " * (maxlen + 8)
-                str += "ORG 0x{:03X}\n".format(inst.addr)
+                str += "ORG {0}{1:03X}\n".format(Lexer.SYM_HEX, inst.addr)
                 addr = inst.addr
 
             str += "{}\n".format(inst.get_asmstr(symtable=self.symtable))
@@ -223,10 +240,12 @@ class Instruction(object):
         # -- Check if the argument has a label associated
         if self._dat in symtable.values():
             index = list(symtable.values()).index(self._dat)
-            sarg = "/{0} {1}-- {0} = H'{2:03X} ".format(list(symtable.keys())[index],
-                                                        Lexer.COMMENT_SYMBOL, self._dat)
+            sarg = "/{0} {1}-- {0} = {2}{3:03X} ".format(list(symtable.keys())[index],
+                                                         Lexer.COMMENT_SYMBOL,
+                                                         Lexer.SYM_HEX,
+                                                         self._dat)
         else:
-            sarg = "/H'{:03X}".format(self._dat)
+            sarg = "/{0}{1:03X}".format(Lexer.REGEX_HEX, self._dat)
 
         # - Check if the current address has a label associated to it
         if self.addr in symtable.values():
@@ -241,7 +260,7 @@ class Instruction(object):
         if self.nemonic in ["LD", "BR", "BZ", "ST", "ADD"]:
             return "{} {} {}".format(saddr, self.nemonic, sarg)
         elif self.nemonic == "DATA":
-            return "{} DATA H'{:03X}".format(saddr, self._dat)
+            return "{0} DATA {1}{2:03X}".format(saddr, Lexer.SYM_HEX, self._dat)
         else:
             return "{} {}".format(saddr, self.nemonic)
 
@@ -253,28 +272,12 @@ class SyntaxError(Exception):
         self.nline = nline    # - Number of line were the sintax error is located
 
 
-def is_hexdigit(dat):
-    """Returns True if dat is a ASCII hexadecimal number"""
-
-    # -- Hex number have at least 3 characteres (2 for 0x and another for the hex digit)
-    # -- If not, it is not an hexadecimal number
-    if len(dat) < 3:
-        return False
-
-    prefix = dat[0:2]
-
-    if prefix == "H'":
-        return True
-    else:
-        return False
-
-
 def is_number(word):
     """Determine if the word is a number (in decimal) or in hexadecimal
        It returns:
        -True: is a number
        -False: is not a number"""
-    return word.isdigit() or is_hexdigit(word)
+    return word.isdigit() or Lexer.is_hexdigit(word)
 
 
 def parse_dat(dat, nline):
@@ -287,7 +290,7 @@ def parse_dat(dat, nline):
     if dat.isdigit():
         return True, int(dat)
 
-    if is_hexdigit(dat):
+    if Lexer.is_hexdigit(dat):
 
         # -- Convert the string into number
         try:
