@@ -8,6 +8,41 @@
 import sys
 
 
+class Lexer(object):
+    """General functions for parsing"""
+
+    # - Symbol used for defining comments in the assembler
+    # - It is a parameter. It can be changed
+    # COMMENT_SYMBOL = "//"  # - C / Verilog style
+    # COMMENT_SYMBOL = "#"  # - Python style
+    COMMENT_SYMBOL = ";"
+
+    def is_comment(word):
+        """Return True if the word is a comment"""
+
+        # - Split the word usign the COMMENT_SYMBOL
+        words = word.split(Lexer.COMMENT_SYMBOL)
+
+        # - It does not contains the comment symbol
+        if (len(words) == 1):
+            return False
+
+        # - The first word should be null (no charcters before the comment symbol)
+        if (len(words[0]) == 0):
+            return True
+        else:
+            return False
+
+    def is_comment_line(line):
+        """Returns true if the whole line is a comment"""
+
+        # -- Divide the line into a list of words
+        words = line.split()
+
+        # - It is a commnet line if the first words is a comment
+        return Lexer.is_comment(words[0])
+
+
 class Prog(object):
     """Abstract syntax Tree (AST) for the assembled program"""
 
@@ -176,7 +211,8 @@ class Instruction(object):
         # -- Check if the argument has a label associated
         if self._dat in symtable.values():
             index = list(symtable.values()).index(self._dat)
-            sarg = "/{0} ;-- {0} = H'{1:03X} ".format(list(symtable.keys())[index], self._dat)
+            sarg = "/{0} {1}-- {0} = H'{2:03X} ".format(list(symtable.keys())[index],
+                                                        Lexer.COMMENT_SYMBOL, self._dat)
         else:
             sarg = "/H'{:03X}".format(self._dat)
 
@@ -205,21 +241,6 @@ class SyntaxError(Exception):
         self.nline = nline    # - Number of line were the sintax error is located
 
 
-def is_comment(word):
-    """Return True if the word is a commnet"""
-
-    # -- At least there should be a character for being a comments
-    if len(word) == 0:
-        return False
-
-    # -- Read the first character
-    comment = word[0]
-    if (comment == ";"):
-        return True
-    else:
-        return False
-
-
 def is_blank_line(line):
     """Returns true if the line is blank"""
 
@@ -231,16 +252,6 @@ def is_blank_line(line):
         return True
     else:
         return False
-
-
-def is_comment_line(line):
-    """Returns true if the line is a commenet"""
-    # -- Divide the line into a list of words
-
-    words = line.split()
-
-    # - It is a commnet line if the first words is a comment
-    return is_comment(words[0])
 
 
 def is_hexdigit(dat):
@@ -353,7 +364,7 @@ def parse_org(prog, words, nline):
 
     # -- If there are comments, return true. If they are not comments, there
     # -- is a sintax error
-    if is_comment(words[0]):
+    if Lexer.is_comment(words[0]):
         return True
     else:
         msg = "Syntax error in line {}: Unknow command {}".format(nline, words[0])
@@ -457,11 +468,6 @@ def parse_instruction_arg1(prog, words, nline):
         # -- Insert in the AST tree
         prog.add_instruction(inst)
 
-        return True
-
-    else:
-        return False
-
     # -- Parse the comments, if any
     words = words[2:]
 
@@ -470,7 +476,7 @@ def parse_instruction_arg1(prog, words, nline):
         return True
 
     # -- There can only be comments. If not, it is a syntax error
-    if is_comment(words[0]):
+    if Lexer.is_comment(words[0]):
         return True
     else:
         msg = "Syntax error in line {}: Unknow command".format(nline)
@@ -506,7 +512,7 @@ def parse_instruction_arg0(prog, words, nline):
         if len(words) == 0:
             return True
 
-        if is_comment(words[0]):
+        if Lexer.is_comment(words[0]):
             return True
         else:
             msg = "Syntax error in line {}: Unknow command".format(nline)
@@ -566,7 +572,7 @@ def parse_line(prog, line,  nline):
             return
 
         # -- Comentarios
-        if is_comment(words[0]):
+        if Lexer.is_comment(words[0]):
             return
 
     # -- Parse instructions
@@ -596,7 +602,7 @@ def syntax_analisis(prog, asmfile):
     for nline, line in enumerate(asmfile):
 
         # - Remove blank lines
-        if is_blank_line(line) or is_comment_line(line):
+        if is_blank_line(line) or Lexer.is_comment_line(line):
             continue
 
         print("[{}] {}".format(nline+1, line))
@@ -606,7 +612,7 @@ def syntax_analisis(prog, asmfile):
     for nline, line in enumerate(asmfile):
 
         # - Remove blank lines
-        if is_blank_line(line) or is_comment_line(line):
+        if is_blank_line(line) or Lexer.is_comment_line(line):
             continue
 
         # -- Parse line
