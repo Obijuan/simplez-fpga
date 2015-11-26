@@ -42,6 +42,18 @@ class Lexer(object):
         # - It is a commnet line if the first words is a comment
         return Lexer.is_comment(words[0])
 
+    def is_blank_line(line):
+        """Returns true if the line is blank"""
+
+        # -- Divide the line into a list of words
+        words = line.split()
+
+        # -- If it is a blank line, ignore it
+        if len(words) == 0:
+            return True
+        else:
+            return False
+
 
 class Prog(object):
     """Abstract syntax Tree (AST) for the assembled program"""
@@ -239,19 +251,6 @@ class SyntaxError(Exception):
     def __init__(self, msg, nline):
         self.msg = msg        # - Sintax error message
         self.nline = nline    # - Number of line were the sintax error is located
-
-
-def is_blank_line(line):
-    """Returns true if the line is blank"""
-
-    # -- Divide the line into a list of words
-    words = line.split()
-
-    # -- If it is a blank line, ignore it
-    if len(words) == 0:
-        return True
-    else:
-        return False
 
 
 def is_hexdigit(dat):
@@ -602,7 +601,7 @@ def syntax_analisis(prog, asmfile):
     for nline, line in enumerate(asmfile):
 
         # - Remove blank lines
-        if is_blank_line(line) or Lexer.is_comment_line(line):
+        if Lexer.is_blank_line(line) or Lexer.is_comment_line(line):
             continue
 
         print("[{}] {}".format(nline+1, line))
@@ -612,7 +611,7 @@ def syntax_analisis(prog, asmfile):
     for nline, line in enumerate(asmfile):
 
         # - Remove blank lines
-        if is_blank_line(line) or Lexer.is_comment_line(line):
+        if Lexer.is_blank_line(line) or Lexer.is_comment_line(line):
             continue
 
         # -- Parse line
