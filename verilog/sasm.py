@@ -9,9 +9,10 @@ import sys
 
 
 class Prog(object):
-    """Abstract syntax Tree for the assembled program"""
+    """Abstract syntax Tree (AST) for the assembled program"""
 
-    RESERVED_WORDS = ["ORG", "HALT", "LD", "ST", "WAIT", "BR", "BZ", "ADD", "CLR", "DEC"]
+    RESERVED_WORDS = ["ST", "LD", "ADD", "BR", "BZ", "CLR", "DEC", "HALT",  "WAIT",
+                      "ORG", "DATA"]
 
     def __init__(self):
         self._addr = 0   # -- Current address
@@ -32,6 +33,23 @@ class Prog(object):
 
         # -- Increment the current address
         self._addr += 1
+
+    def is_label(self, word):
+        """Return True if the word is a label"""
+
+        # - it is a label if it is NOT a reserved word or
+        # - a number
+
+        # - It is a number (decirmal or hexadecila. It is NOT a label)
+        if word.isdigit() or is_hexdigit(word):
+            return False
+
+        # - It is a reserved word: not a label!
+        if word in self.RESERVED_WORDS:
+            return False
+
+        # - It should be a label
+        return True
 
     def set_label(self, label, nline):
         """Assign the label to the current address"""
@@ -119,8 +137,9 @@ class Instruction(object):
     """Microbio instruction class"""
 
     # -- Instruction opcodes
-    opcodes = {"ST": 0, "LD": 1, "ADD": 2, "WAIT": 0xF, "HALT": 7, "BR": 0x3, "BZ": 0x4,
-               "DEC": 0x06, "DATA": 0xFF, "CLR": 0x5}
+    opcodes = {"ST": 0, "LD": 1, "ADD": 2, "BR": 3, "BZ": 4,
+               "CLR": 5, "DEC": 6, "HALT": 7, "WAIT": 0xF,
+               "DATA": 0xFF, }
 
     def __init__(self, nemonic, dat=0, addr=0, label="", nline=0):
         """Create the instruction from the co and dat fields"""
@@ -273,24 +292,6 @@ def parse_dat(dat, nline):
     return False, 0
 
 
-def is_label(word):
-    """Return True if the word is a label"""
-
-    # - it is a label if it is NOT a reserved word or
-    # - a number
-
-    # - It is a number (decirmal or hexadecila. It is NOT a label)
-    if word.isdigit() or is_hexdigit(word):
-        return False
-
-    # - It is a reserved word: not a label!
-    if word in Prog.RESERVED_WORDS:
-        return False
-
-    # - It should be a label
-    return True
-
-
 def parse_label(prog, label, nline):
     """Parse the label and added it to the symbol table
         INPUTS:
@@ -301,7 +302,7 @@ def parse_label(prog, label, nline):
         -TRUE: If it is a label
         -False: Not a label
     """
-    if is_label(label):
+    if prog.is_label(label):
         # -- Inset the label in the symbol table
         prog.set_label(label, nline)
         return True
@@ -381,160 +382,10 @@ def parse_dir(prog, word, nline):
         return dat, ""
 
     # -- Or a label
-    if is_label(word):
+    if prog.is_label(word):
 
         # -- It returns the address 0 and the label
         return 0, word
-
-
-def parse_instruction_ld(prog, words, nline):
-    """Parse the LD instruction
-        INPUTS:
-          -prog: AST tree where to insert the parsed instruction
-          -words: List of words to parse
-          -nline: Number of the line that is beign parsed
-
-        RETURNS:
-          -True: Success. Instruction parsed and added into the AST
-          -False: Not the LEDS instruction
-          -An exception is raised in case of a syntax error
-    """
-    # -- Parse the LEDS instruction
-    if words[0] == "LD":
-
-        # -- Read the address argument
-        dat, label = parse_dir(prog, words[1], nline)
-
-        # -- Create the instruction
-        inst = Instruction("LD", dat=dat, label=label, nline=nline)
-
-        # -- Insert in the AST tree
-        prog.add_instruction(inst)
-
-        return True
-
-    else:
-        return False
-
-
-def parse_instruction_add(prog, words, nline):
-    """Parse the ADD instruction
-        INPUTS:
-          -prog: AST tree where to insert the parsed instruction
-          -words: List of words to parse
-          -nline: Number of the line that is beign parsed
-
-        RETURNS:
-          -True: Success. Instruction parsed and added into the AST
-          -False: Not the LEDS instruction
-          -An exception is raised in case of a syntax error
-    """
-    # -- Parse the LEDS instruction
-    if words[0] == "ADD":
-
-        # -- Read the address argument
-        dat, label = parse_dir(prog, words[1], nline)
-
-        # -- Create the instruction
-        inst = Instruction("ADD", dat=dat, label=label, nline=nline)
-
-        # -- Insert in the AST tree
-        prog.add_instruction(inst)
-
-        return True
-
-    else:
-        return False
-
-
-def parse_instruction_st(prog, words, nline):
-    """Parse the ST instruction
-        INPUTS:
-          -prog: AST tree where to insert the parsed instruction
-          -words: List of words to parse
-          -nline: Number of the line that is beign parsed
-
-        RETURNS:
-          -True: Success. Instruction parsed and added into the AST
-          -False: Not the LEDS instruction
-          -An exception is raised in case of a syntax error
-    """
-    # -- Parse the LEDS instruction
-    if words[0] == "ST":
-
-        # -- Read the address argument
-        dat, label = parse_dir(prog, words[1], nline)
-
-        # -- Create the instruction
-        inst = Instruction("ST", dat=dat, label=label, nline=nline)
-
-        # -- Insert in the AST tree
-        prog.add_instruction(inst)
-
-        return True
-
-    else:
-        return False
-
-
-def parse_instruction_br(prog, words, nline):
-    """Parse the BR instruction
-        INPUTS:
-          -prog: AST tree where to insert the parsed instruction
-          -words: List of words to parse
-          -nline: Number of the line that is beign parsed
-
-        RETURNS:
-          -True: Success. Instruction parsed and added into the AST
-          -False: Not the LEDS instruction
-          -An exception is raised in case of a syntax error
-    """
-    # -- Parse the LEDS instruction
-    if words[0] == "BR":
-
-        # -- Read the address argument
-        dat, label = parse_dir(prog, words[1], nline)
-
-        # -- Create the instruction
-        inst = Instruction("BR", dat=dat, label=label, nline=nline)
-
-        # -- Insert in the AST tree
-        prog.add_instruction(inst)
-
-        return True
-
-    else:
-        return False
-
-
-def parse_instruction_bz(prog, words, nline):
-    """Parse the BZ instruction
-        INPUTS:
-          -prog: AST tree where to insert the parsed instruction
-          -words: List of words to parse
-          -nline: Number of the line that is beign parsed
-
-        RETURNS:
-          -True: Success. Instruction parsed and added into the AST
-          -False: Not the LEDS instruction
-          -An exception is raised in case of a syntax error
-    """
-    # -- Parse the LEDS instruction
-    if words[0] == "BZ":
-
-        # -- Read the address argument
-        dat, label = parse_dir(prog, words[1], nline)
-
-        # -- Create the instruction
-        inst = Instruction("BZ", dat=dat, label=label, nline=nline)
-
-        # -- Insert in the AST tree
-        prog.add_instruction(inst)
-
-        return True
-
-    else:
-        return False
 
 
 def parse_instruction_data(prog, words, nline):
@@ -591,20 +442,25 @@ def parse_instruction_arg1(prog, words, nline):
         msg = "ERROR: No data for the instruction {} in line {}".format(words[0], nline)
         raise SyntaxError(msg, nline)
 
-    # -- Parse the ld instruction
-    parse_instruction_ld(prog, words, nline)
-
-    # -- Parse the br instruction
-    parse_instruction_br(prog, words, nline)
-
-    parse_instruction_bz(prog, words, nline)
-
-    # -- Check if a data assembler directive
+    # -- Check if there is a data assembler directive
     parse_instruction_data(prog, words, nline)
 
-    parse_instruction_st(prog, words, nline)
+    # -- Check if it is a instruction with 1 argument
+    if words[0] in ["ST", "LD", "ADD", "BR", "BZ"]:
 
-    parse_instruction_add(prog, words, nline)
+        # -- Read the address argument
+        dat, label = parse_dir(prog, words[1], nline)
+
+        # -- Create the instruction
+        inst = Instruction(words[0], dat=dat, label=label, nline=nline)
+
+        # -- Insert in the AST tree
+        prog.add_instruction(inst)
+
+        return True
+
+    else:
+        return False
 
     # -- Parse the comments, if any
     words = words[2:]
@@ -804,7 +660,7 @@ if __name__ == "__main__":
     # -- default output file with the machine code for MICROBIO
     OUTPUT_FILE = "prog.list"
 
-# -- Process the arguments. Return the source file and the verbose flags
+    # -- Process the arguments. Return the source file and the verbose flags
     asmfile, verbose = parse_arguments()
 
     # -- Create a blank AST for storing the processed program

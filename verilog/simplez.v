@@ -21,7 +21,7 @@ localparam ADD  = 3'o2;  //-- OK
 localparam BR   = 3'o3;  //-- OK
 localparam BZ   = 3'o4;  //-- OK
 localparam CLR  = 3'o5;  //-- OK
-localparam DEC  = 3'o6;
+localparam DEC  = 3'o6;  //-- OK
 localparam HALT = 3'o7;  //-- OK
 
 //-- Codigos de operacion extendidos
