@@ -5,6 +5,9 @@ class Test_progs(object):
     """Program example 1: adding two numbes"""
     SIMPLEZ1 = [0x0, 0x205, 0x406, 0x007, 0xE00, 0x007, 0x008, 0x00]
 
+    """Programa ejemplo 2: Pueba de BR"""
+    SIMPLEZ2 = [0X0, 0x205, 0x406, 0x007, 0x601, 0x007, 0x008, 0x00]
+
 
 class simplez(object):
     """Simplez simulator"""
@@ -164,6 +167,6 @@ if __name__ == "__main__":
     s = simplez()
 
     # - Load a simple program
-    s.load(Test_progs.SIMPLEZ1)
+    s.load(Test_progs.SIMPLEZ2)
 
     # - s.step()
