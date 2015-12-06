@@ -1,7 +1,6 @@
-205   //-- [000][INI]  LD /VAL1 ;-- VAL1 = H'005 
-F00   //-- [001]       WAIT
-206   //-- [002]       LD /VAL2 ;-- VAL2 = H'006 
-F00   //-- [003]       WAIT
-600   //-- [004]       BR /INI ;-- INI = H'000 
-009   //-- [005][VAL1] DATA H'009
-006   //-- [006][VAL2] DATA H'006
+205   //-- [000]         LD /VALINI ;-- VALINI = H'005 
+F00   //-- [001][LOOP]   WAIT
+C00   //-- [002]         DEC
+601   //-- [003]         BR /LOOP ;-- LOOP = H'001 
+E00   //-- [004]         HALT
+00F   //-- [005][VALINI] DATA H'00F
