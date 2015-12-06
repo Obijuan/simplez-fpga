@@ -172,12 +172,15 @@ class Prog(object):
         return str
 
     def machine_code(self):
-        """Generate the program in microbio machine code"""
+        """Generate the program in simplez machine code"""
 
         # -- Calculate the length of the longest label
         labels = list(self.symtable.keys())
-        lenlabels = list(map(len, labels))
-        maxlen = max(lenlabels)
+        if len(labels) == 0:
+            maxlen = 0
+        else:
+            lenlabels = list(map(len, labels))
+            maxlen = max(lenlabels)
 
         addr = 0
         code = ""
@@ -231,8 +234,11 @@ class Instruction(object):
 
         # -- Calculate the length of the longest label
         labels = list(symtable.keys())
-        lenlabels = list(map(len, labels))
-        maxlen = max(lenlabels)
+        if len(labels) == 0:
+            maxlen = 0
+        else:
+            lenlabels = list(map(len, labels))
+            maxlen = max(lenlabels)
 
         # -- String for the address
         saddr = "[{:03X}]".format(self.addr)
@@ -245,7 +251,7 @@ class Instruction(object):
                                                          Lexer.SYM_HEX,
                                                          self._dat)
         else:
-            sarg = "/{0}{1:03X}".format(Lexer.REGEX_HEX, self._dat)
+            sarg = "/{0}{1:03X}".format(Lexer.SYM_HEX, self._dat)
 
         # - Check if the current address has a label associated to it
         if self.addr in symtable.values():
