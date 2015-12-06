@@ -1,26 +1,37 @@
 ; Programa de ejemplo para Simplez
-; EJEMPLO 2:
-; Version CON ETIQUETAS
+; EJEMPLO 2: Suma de los diez primeros terminos de la sucesion de Fibonacci
 
-;---------------------------------------------------------------------------------
-; NOTA: En yosys/icestorm hay un bug que hace que el contenido de la
-; posicion 0 de la RAM se ponga a 0 esporádicamente al arrancar
-; Por ello la primera instruccion se debe ignorar. El programa debe empezar
-; en la direccion 1
-;
-; $ yosys -V
-; Yosys 0.5+397 (git sha1 c86fbae, clang 3.6.2-1 -fPIC -Os)
-;---------------------------------------------------------------------------------
-NOP  DATA 0    ;-- Ignorar esta intruccion
 
-;-- El programa comienza aqui
+        CLR       ; 0
+        ST /47    ; a PEN
+        LD /51    ; 1
+        ST /48    ; a ULT
+        ST /50    ; a SUM
+        LD /52    ; 8
+        ST /46    ; a CONT
+        LD /47    ; PEN
+        ADD /48   ; PEN+ULT
+        ST /49    ; a SIG
+        ADD /50   ; SIG+NUM
+        ST /50    ; a SUM
+        LD /48    ; ULT
+        ST /47    ; a PEN
+        LD /49    ; SIG
+        ST /48    ; a ULT
+        LD /46    ; CONT
+        DEC       ; Lo decrementa
+        BZ  /21   ; si es cero, sale del bucle
+        ST /46    ; si no, lo lleva a CONT
+        BR /7     ; y vuelve al bucle
+        HALT
 
-loop
-        ld /num1
-        add /num2
-        st /suma
-        BR /loop
 
-num1    DATA H'7
-num2    DATA H'8
-suma    DATA 0
+        ;-- Variables
+        ORG 46
+        DATA 0    ; CONT
+        DATA 0    ; PEN
+        DATA 0    ; ULT
+        DATA 0    ; SIG
+        DATA 0    ; SUM
+        DATA 1
+        DATA 8

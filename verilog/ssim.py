@@ -6,7 +6,13 @@ class Test_progs(object):
     SIMPLEZ1 = [0x0, 0x205, 0x406, 0x007, 0xE00, 0x007, 0x008, 0x00]
 
     """Programa ejemplo 2: Pueba de BR"""
-    SIMPLEZ2 = [0X0, 0x205, 0x406, 0x007, 0x601, 0x007, 0x008, 0x00]
+    SIMPLEZ2 = [0xA00, 0x02F, 0x233, 0x030, 0x032, 0x234, 0x02E, 0x22F, 0x430, 0x031,
+                0x432, 0x032, 0x230, 0x02F, 0x231, 0x030, 0x22E, 0xC00, 0x815, 0x02E,
+                0x607, 0xE00,     0,     0,     0,     0,     0,     0,     0,     0,
+                0,     0,     0,     0,     0,     0,     0,     0, 0, 0,
+                0,     0,     0,     0,     0,     0,     0,     0, 0, 0,
+                0,     0,     0,     0,     0,     0,     0,     0, 0, 0,
+                ]
 
 
 class simplez(object):
@@ -166,7 +172,12 @@ if __name__ == "__main__":
 
     s = simplez()
 
+    Test_progs.SIMPLEZ2[51] = 1
+    Test_progs.SIMPLEZ2[52] = 8
+
     # - Load a simple program
     s.load(Test_progs.SIMPLEZ2)
+
+
 
     # - s.step()
