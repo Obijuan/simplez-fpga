@@ -26,6 +26,7 @@ class Lexer(object):
     # - In Simplez, hexadecimal numbers are written as: H'8A, H'960A, etc
     REGEX_HEX = r"^{}[0-9a-fA-F]+$".format(SYM_HEX.upper())
 
+    @staticmethod
     def is_comment(word):
         """Return True if the word is a comment"""
 
@@ -42,6 +43,7 @@ class Lexer(object):
         else:
             return False
 
+    @staticmethod
     def is_comment_line(line):
         """Returns true if the whole line is a comment"""
 
@@ -51,6 +53,7 @@ class Lexer(object):
         # - It is a commnet line if the first words is a comment
         return Lexer.is_comment(words[0])
 
+    @staticmethod
     def is_blank_line(line):
         """Returns true if the line is blank"""
 
@@ -63,6 +66,7 @@ class Lexer(object):
         else:
             return False
 
+    @staticmethod
     def is_hexdigit(word):
         """Returns True if words is an ASCII hexadecimal number"""
 
