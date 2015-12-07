@@ -1,25 +1,38 @@
-603   //-- [000]        BR /INI ;-- INI = H'003 
-064   //-- [001][CIEN]  DATA H'064
-000   //-- [002][CONT]  DATA H'000
-201   //-- [003][INI]   LD /CIEN ;-- CIEN = H'001 
-002   //-- [004]        ST /CONT ;-- CONT = H'002 
-A00   //-- [005]        CLR
-495   //-- [006][INST]  ADD /DATO0 ;-- DATO0 = H'095 
-096   //-- [007]        ST /SUMA ;-- SUMA = H'096 
-202   //-- [008]        LD /CONT ;-- CONT = H'002 
-C00   //-- [009]        DEC
-811   //-- [00A]        BZ /FIN ;-- FIN = H'011 
-002   //-- [00B]        ST /CONT ;-- CONT = H'002 
-206   //-- [00C]        LD /INST ;-- INST = H'006 
-C00   //-- [00D]        DEC
-006   //-- [00E]        ST /INST ;-- INST = H'006 
-296   //-- [00F]        LD /SUMA ;-- SUMA = H'096 
-606   //-- [010]        BR /INST ;-- INST = H'006 
-296   //-- [011][FIN]   LD /SUMA ;-- SUMA = H'096 
-E00   //-- [012]        HALT
+605   //-- [000]        BR /INI ;-- INI = H'005 
+032   //-- [001][K50]   DATA H'032
+001   //-- [002][K1]    DATA H'001
+000   //-- [003][CONT]  DATA H'000
+000   //-- [004][TMP]   DATA H'000
+201   //-- [005][INI]   LD /K50 ;-- K50 = H'001 
+003   //-- [006]        ST /CONT ;-- CONT = H'003 
+2C8   //-- [007][INST1] LD /ZONA2 ;-- ZONA2 = H'0C8 
+004   //-- [008]        ST /TMP ;-- TMP = H'004 
+264   //-- [009][INST2] LD /ZONA1 ;-- ZONA1 = H'064 
+0C8   //-- [00A][INST3] ST /ZONA2 ;-- ZONA2 = H'0C8 
+204   //-- [00B]        LD /TMP ;-- TMP = H'004 
+064   //-- [00C][INST4] ST /ZONA1 ;-- ZONA1 = H'064 
+203   //-- [00D]        LD /CONT ;-- CONT = H'003 
+C00   //-- [00E]        DEC
+81E   //-- [00F]        BZ /FIN ;-- FIN = H'01E 
+003   //-- [010]        ST /CONT ;-- CONT = H'003 
+207   //-- [011]        LD /INST1 ;-- INST1 = H'007 
+402   //-- [012]        ADD /K1 ;-- K1 = H'002 
+007   //-- [013]        ST /INST1 ;-- INST1 = H'007 
+209   //-- [014]        LD /INST2 ;-- INST2 = H'009 
+402   //-- [015]        ADD /K1 ;-- K1 = H'002 
+009   //-- [016]        ST /INST2 ;-- INST2 = H'009 
+20A   //-- [017]        LD /INST3 ;-- INST3 = H'00A 
+402   //-- [018]        ADD /K1 ;-- K1 = H'002 
+00A   //-- [019]        ST /INST3 ;-- INST3 = H'00A 
+20C   //-- [01A]        LD /INST4 ;-- INST4 = H'00C 
+402   //-- [01B]        ADD /K1 ;-- K1 = H'002 
+00C   //-- [01C]        ST /INST4 ;-- INST4 = H'00C 
+607   //-- [01D]        BR /INST1 ;-- INST1 = H'007 
+264   //-- [01E][FIN]   LD /ZONA1 ;-- ZONA1 = H'064 
+E00   //-- [01F]        HALT
 
 @064  //--              ORG 0x064
-000   //-- [064]        DATA H'000
+000   //-- [064][ZONA1] DATA H'000
 001   //-- [065]        DATA H'001
 002   //-- [066]        DATA H'002
 003   //-- [067]        DATA H'003
@@ -68,5 +81,7 @@ E00   //-- [012]        HALT
 02E   //-- [092]        DATA H'02E
 02F   //-- [093]        DATA H'02F
 030   //-- [094]        DATA H'030
-031   //-- [095][DATO0] DATA H'031
-000   //-- [096][SUMA]  DATA H'000
+031   //-- [095]        DATA H'031
+
+@0C8  //--              ORG 0x0C8
+00F   //-- [0C8][ZONA2] DATA H'00F
