@@ -213,7 +213,7 @@ class Prog(object):
 
 
 class Instruction(object):
-    """Microbio instruction class"""
+    """Simplez instruction class"""
 
     # -- Instruction opcodes
     opcodes = {"ST": 0, "LD": 1, "ADD": 2, "BR": 3, "BZ": 4,
@@ -498,7 +498,7 @@ def parse_instruction_arg1(prog, words, nline):
 
 
 def parse_instruction_arg0(prog, words, nline):
-    """Parse the instructions with no arguments: HALT and WAIT
+    """Parse the instructions with no arguments
         INPUTS:
           -prog: AST tree where to insert the parsed instruction
           -words: List of words to parse
@@ -603,11 +603,6 @@ def syntax_analisis(prog, asmfile):
 
     # -- Split the ASCII file into isolates lines
     asmfile = asmfile.splitlines()
-
-    # -- DEBUG: show all the program lines
-    # print("Complete program:")
-    # for nline, line in enumerate(asmfile):
-    #    print("[{}] {}".format(nline+1, line))
 
     # -- Syntax analisis: line by line
     for nline, line in enumerate(asmfile):
