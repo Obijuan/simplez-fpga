@@ -44,7 +44,7 @@ class simplez(object):
         self._mem = [0 for i in range(512)]  # - Simplez memory
         self.state = self.INIT
 
-    def decode(self, inst):
+    def _decode(self, inst):
         """Return the opcode and argument of a given instruction in machine code"""
         return (inst >> 9, inst & 0x1FF)
 
@@ -133,7 +133,7 @@ class simplez(object):
         self._PC += 1
 
         # - Decode the instruction
-        opcode, addr = self.decode(ir)
+        opcode, addr = self._decode(ir)
 
         # - Decode de extended instructions
         xopcode = ir >> 8
@@ -152,7 +152,7 @@ class simplez(object):
     def _code2asm(self, inst):
         """Return a string with the given machine code instruction in assembly language"""
 
-        opcode, addr = self.decode(inst)
+        opcode, addr = self._decode(inst)
         nemonic = self.NEMONIC[opcode]
         asm = "{}".format(nemonic)
 
