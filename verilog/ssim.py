@@ -8,7 +8,7 @@ class Test_progs(object):
     """Program example 2: Sum of the 10 term of the fibonacci serie"""
     SIMPLEZ2 = [0xA00, 0x02F, 0x233, 0x030, 0x032, 0x234, 0x02E, 0x22F, 0x430, 0x031,
                 0x432, 0x032, 0x230, 0x02F, 0x231, 0x030, 0x22E, 0xC00, 0x815, 0x02E,
-                0x607, 0xE00,     0,     0,     0,     0,     0,     0,     0,     0,
+                0x607, 0x232, 0xE00,     0,     0,     0,     0,     0,     0,     0,
                 0,         0,     0,     0,     0,     0,     0,     0,     0,     0,
                 0,         0,     0,     0,     0,     0,     0,     0,     0,     0,
                 0,         1,     8,     0,     0,     0,     0,     0,     0,     0,
@@ -140,19 +140,8 @@ class simplez(object):
             if xopcode == self.XOP_HALT:
                 self.state = self.STOPED
 
-    def step(self):
-        """Simulate the next instruction"""
-
-        if self.state == self.STOPED:
-            print("Micro stopped! Halt executed")
-            return
-
-        elif self.state == self.INIT:
-            print("Initial state:")
-            self.show()
-            print()
-            self.state = self.RUNNING
-
+    def _single_step(self):
+        """Simulate only the next instruction"""
         # - Fetch the current instruction
         ir = self._mem[self._PC]
 
@@ -177,7 +166,22 @@ class simplez(object):
         else:
             self._Z = 0
 
-        self.show()
+    def step(self, nsteps=1):
+        """Simulate the given steps"""
+
+        if self.state == self.INIT:
+            print("Initial state:")
+            self.show()
+            print()
+            self.state = self.RUNNING
+
+        # -- Simulate nsteps
+        for i in range(nsteps):
+            if self.state == self.STOPED:
+                print("Micro stopped! Halt executed")
+                return
+            self._single_step()
+            self.show()
 
     def _code2asm(self, inst):
         """Return a string with the given machine code instruction in assembly language"""
