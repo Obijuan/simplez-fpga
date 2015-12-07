@@ -1,87 +1,54 @@
-605   //-- [000]        BR /INI ;-- INI = H'005 
-032   //-- [001][K50]   DATA H'032
-001   //-- [002][K1]    DATA H'001
-000   //-- [003][CONT]  DATA H'000
-000   //-- [004][TMP]   DATA H'000
-201   //-- [005][INI]   LD /K50 ;-- K50 = H'001 
-003   //-- [006]        ST /CONT ;-- CONT = H'003 
-2C8   //-- [007][INST1] LD /ZONA2 ;-- ZONA2 = H'0C8 
-004   //-- [008]        ST /TMP ;-- TMP = H'004 
-264   //-- [009][INST2] LD /ZONA1 ;-- ZONA1 = H'064 
-0C8   //-- [00A][INST3] ST /ZONA2 ;-- ZONA2 = H'0C8 
-204   //-- [00B]        LD /TMP ;-- TMP = H'004 
-064   //-- [00C][INST4] ST /ZONA1 ;-- ZONA1 = H'064 
-203   //-- [00D]        LD /CONT ;-- CONT = H'003 
-C00   //-- [00E]        DEC
-81E   //-- [00F]        BZ /FIN ;-- FIN = H'01E 
-003   //-- [010]        ST /CONT ;-- CONT = H'003 
-207   //-- [011]        LD /INST1 ;-- INST1 = H'007 
-402   //-- [012]        ADD /K1 ;-- K1 = H'002 
-007   //-- [013]        ST /INST1 ;-- INST1 = H'007 
-209   //-- [014]        LD /INST2 ;-- INST2 = H'009 
-402   //-- [015]        ADD /K1 ;-- K1 = H'002 
-009   //-- [016]        ST /INST2 ;-- INST2 = H'009 
-20A   //-- [017]        LD /INST3 ;-- INST3 = H'00A 
-402   //-- [018]        ADD /K1 ;-- K1 = H'002 
-00A   //-- [019]        ST /INST3 ;-- INST3 = H'00A 
-20C   //-- [01A]        LD /INST4 ;-- INST4 = H'00C 
-402   //-- [01B]        ADD /K1 ;-- K1 = H'002 
-00C   //-- [01C]        ST /INST4 ;-- INST4 = H'00C 
-607   //-- [01D]        BR /INST1 ;-- INST1 = H'007 
-264   //-- [01E][FIN]   LD /ZONA1 ;-- ZONA1 = H'064 
-E00   //-- [01F]        HALT
+60A   //-- [000]          BR /INICIO ;-- INICIO = H'00A 
+000   //-- [001]          DATA H'000
+000   //-- [002]          DATA H'000
+000   //-- [003]          DATA H'000
+600   //-- [004][IBR]     BR /H'000
+011   //-- [005][RET1]    DATA H'011
+01B   //-- [006][RET2]    DATA H'01B
 
-@064  //--              ORG 0x064
-000   //-- [064][ZONA1] DATA H'000
-001   //-- [065]        DATA H'001
-002   //-- [066]        DATA H'002
-003   //-- [067]        DATA H'003
-004   //-- [068]        DATA H'004
-005   //-- [069]        DATA H'005
-006   //-- [06A]        DATA H'006
-007   //-- [06B]        DATA H'007
-008   //-- [06C]        DATA H'008
-009   //-- [06D]        DATA H'009
-00A   //-- [06E]        DATA H'00A
-00B   //-- [06F]        DATA H'00B
-00C   //-- [070]        DATA H'00C
-00D   //-- [071]        DATA H'00D
-00E   //-- [072]        DATA H'00E
-00F   //-- [073]        DATA H'00F
-010   //-- [074]        DATA H'010
-011   //-- [075]        DATA H'011
-012   //-- [076]        DATA H'012
-013   //-- [077]        DATA H'013
-014   //-- [078]        DATA H'014
-015   //-- [079]        DATA H'015
-016   //-- [07A]        DATA H'016
-017   //-- [07B]        DATA H'017
-018   //-- [07C]        DATA H'018
-019   //-- [07D]        DATA H'019
-01A   //-- [07E]        DATA H'01A
-01B   //-- [07F]        DATA H'01B
-01C   //-- [080]        DATA H'01C
-01D   //-- [081]        DATA H'01D
-01E   //-- [082]        DATA H'01E
-01F   //-- [083]        DATA H'01F
-020   //-- [084]        DATA H'020
-021   //-- [085]        DATA H'021
-022   //-- [086]        DATA H'022
-023   //-- [087]        DATA H'023
-024   //-- [088]        DATA H'024
-025   //-- [089]        DATA H'025
-026   //-- [08A]        DATA H'026
-027   //-- [08B]        DATA H'027
-028   //-- [08C]        DATA H'028
-029   //-- [08D]        DATA H'029
-02A   //-- [08E]        DATA H'02A
-02B   //-- [08F]        DATA H'02B
-02C   //-- [090]        DATA H'02C
-02D   //-- [091]        DATA H'02D
-02E   //-- [092]        DATA H'02E
-02F   //-- [093]        DATA H'02F
-030   //-- [094]        DATA H'030
-031   //-- [095]        DATA H'031
+@00A  //--                ORG 0x00A
+233   //-- [00A][INICIO]  LD /RES1 ;-- RES1 = H'033 
+0CA   //-- [00B]          ST /ARG ;-- ARG = H'0CA 
+204   //-- [00C]          LD /IBR ;-- IBR = H'004 
+405   //-- [00D]          ADD /RET1 ;-- RET1 = H'005 
+0D4   //-- [00E]          ST /RETURN ;-- RETURN = H'0D4 
+232   //-- [00F]          LD /DATO ;-- DATO = H'032 
+6C8   //-- [010]          BR /RESTAR ;-- RESTAR = H'0C8 
+034   //-- [011]          ST /RESULT1 ;-- RESULT1 = H'034 
+614   //-- [012]          BR /OP2 ;-- OP2 = H'014 
 
-@0C8  //--              ORG 0x0C8
-00F   //-- [0C8][ZONA2] DATA H'00F
+@014  //--                ORG 0x014
+265   //-- [014][OP2]     LD /RES2 ;-- RES2 = H'065 
+0CA   //-- [015]          ST /ARG ;-- ARG = H'0CA 
+204   //-- [016]          LD /IBR ;-- IBR = H'004 
+406   //-- [017]          ADD /RET2 ;-- RET2 = H'006 
+0D4   //-- [018]          ST /RETURN ;-- RETURN = H'0D4 
+234   //-- [019]          LD /RESULT1 ;-- RESULT1 = H'034 
+6C8   //-- [01A]          BR /RESTAR ;-- RESTAR = H'0C8 
+066   //-- [01B]          ST /RESULT2 ;-- RESULT2 = H'066 
+E00   //-- [01C]          HALT
+
+@032  //--                ORG 0x032
+00F   //-- [032][DATO]    DATA H'00F
+002   //-- [033][RES1]    DATA H'002
+000   //-- [034][RESULT1] DATA H'000
+
+@064  //--                ORG 0x064
+000   //-- [064]          DATA H'000
+001   //-- [065][RES2]    DATA H'001
+000   //-- [066][RESULT2] DATA H'000
+
+@0C8  //--                ORG 0x0C8
+6CB   //-- [0C8][RESTAR]  BR /RINI ;-- RINI = H'0CB 
+000   //-- [0C9][PARC]    DATA H'000
+000   //-- [0CA][ARG]     DATA H'000
+C00   //-- [0CB][RINI]    DEC
+0C9   //-- [0CC]          ST /PARC ;-- PARC = H'0C9 
+2CA   //-- [0CD]          LD /ARG ;-- ARG = H'0CA 
+C00   //-- [0CE]          DEC
+8D3   //-- [0CF]          BZ /FIN ;-- FIN = H'0D3 
+0CA   //-- [0D0]          ST /ARG ;-- ARG = H'0CA 
+2C9   //-- [0D1]          LD /PARC ;-- PARC = H'0C9 
+6CB   //-- [0D2]          BR /RINI ;-- RINI = H'0CB 
+2C9   //-- [0D3][FIN]     LD /PARC ;-- PARC = H'0C9 
+000   //-- [0D4][RETURN]  DATA H'000
