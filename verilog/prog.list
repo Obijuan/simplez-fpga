@@ -1,32 +1,72 @@
-A00   //-- [000]       CLR
-02F   //-- [001]       ST /PEN ;-- PEN = H'02F 
-233   //-- [002]       LD /UNO ;-- UNO = H'033 
-030   //-- [003]       ST /ULT ;-- ULT = H'030 
-032   //-- [004]       ST /SUM ;-- SUM = H'032 
-234   //-- [005]       LD /OCHO ;-- OCHO = H'034 
-02E   //-- [006]       ST /CONT ;-- CONT = H'02E 
-22F   //-- [007][LOOP] LD /PEN ;-- PEN = H'02F 
-430   //-- [008]       ADD /ULT ;-- ULT = H'030 
-031   //-- [009]       ST /SIG ;-- SIG = H'031 
-432   //-- [00A]       ADD /SUM ;-- SUM = H'032 
-032   //-- [00B]       ST /SUM ;-- SUM = H'032 
-230   //-- [00C]       LD /ULT ;-- ULT = H'030 
-02F   //-- [00D]       ST /PEN ;-- PEN = H'02F 
-231   //-- [00E]       LD /SIG ;-- SIG = H'031 
-030   //-- [00F]       ST /ULT ;-- ULT = H'030 
-22E   //-- [010]       LD /CONT ;-- CONT = H'02E 
-C00   //-- [011]       DEC
-815   //-- [012]       BZ /FIN ;-- FIN = H'015 
-02E   //-- [013]       ST /CONT ;-- CONT = H'02E 
-607   //-- [014]       BR /LOOP ;-- LOOP = H'007 
-232   //-- [015][FIN]  LD /SUM ;-- SUM = H'032 
-E00   //-- [016]       HALT
+603   //-- [000]        BR /INI ;-- INI = H'003 
+064   //-- [001][CIEN]  DATA H'064
+000   //-- [002][CONT]  DATA H'000
+201   //-- [003][INI]   LD /CIEN ;-- CIEN = H'001 
+002   //-- [004]        ST /CONT ;-- CONT = H'002 
+A00   //-- [005]        CLR
+495   //-- [006][INST]  ADD /DATO0 ;-- DATO0 = H'095 
+096   //-- [007]        ST /SUMA ;-- SUMA = H'096 
+202   //-- [008]        LD /CONT ;-- CONT = H'002 
+C00   //-- [009]        DEC
+811   //-- [00A]        BZ /FIN ;-- FIN = H'011 
+002   //-- [00B]        ST /CONT ;-- CONT = H'002 
+206   //-- [00C]        LD /INST ;-- INST = H'006 
+C00   //-- [00D]        DEC
+006   //-- [00E]        ST /INST ;-- INST = H'006 
+296   //-- [00F]        LD /SUMA ;-- SUMA = H'096 
+606   //-- [010]        BR /INST ;-- INST = H'006 
+296   //-- [011][FIN]   LD /SUMA ;-- SUMA = H'096 
+E00   //-- [012]        HALT
 
-@02E  //--             ORG 0x02E
-000   //-- [02E][CONT] DATA H'000
-000   //-- [02F][PEN]  DATA H'000
-000   //-- [030][ULT]  DATA H'000
-000   //-- [031][SIG]  DATA H'000
-000   //-- [032][SUM]  DATA H'000
-001   //-- [033][UNO]  DATA H'001
-008   //-- [034][OCHO] DATA H'008
+@064  //--              ORG 0x064
+000   //-- [064]        DATA H'000
+001   //-- [065]        DATA H'001
+002   //-- [066]        DATA H'002
+003   //-- [067]        DATA H'003
+004   //-- [068]        DATA H'004
+005   //-- [069]        DATA H'005
+006   //-- [06A]        DATA H'006
+007   //-- [06B]        DATA H'007
+008   //-- [06C]        DATA H'008
+009   //-- [06D]        DATA H'009
+00A   //-- [06E]        DATA H'00A
+00B   //-- [06F]        DATA H'00B
+00C   //-- [070]        DATA H'00C
+00D   //-- [071]        DATA H'00D
+00E   //-- [072]        DATA H'00E
+00F   //-- [073]        DATA H'00F
+010   //-- [074]        DATA H'010
+011   //-- [075]        DATA H'011
+012   //-- [076]        DATA H'012
+013   //-- [077]        DATA H'013
+014   //-- [078]        DATA H'014
+015   //-- [079]        DATA H'015
+016   //-- [07A]        DATA H'016
+017   //-- [07B]        DATA H'017
+018   //-- [07C]        DATA H'018
+019   //-- [07D]        DATA H'019
+01A   //-- [07E]        DATA H'01A
+01B   //-- [07F]        DATA H'01B
+01C   //-- [080]        DATA H'01C
+01D   //-- [081]        DATA H'01D
+01E   //-- [082]        DATA H'01E
+01F   //-- [083]        DATA H'01F
+020   //-- [084]        DATA H'020
+021   //-- [085]        DATA H'021
+022   //-- [086]        DATA H'022
+023   //-- [087]        DATA H'023
+024   //-- [088]        DATA H'024
+025   //-- [089]        DATA H'025
+026   //-- [08A]        DATA H'026
+027   //-- [08B]        DATA H'027
+028   //-- [08C]        DATA H'028
+029   //-- [08D]        DATA H'029
+02A   //-- [08E]        DATA H'02A
+02B   //-- [08F]        DATA H'02B
+02C   //-- [090]        DATA H'02C
+02D   //-- [091]        DATA H'02D
+02E   //-- [092]        DATA H'02E
+02F   //-- [093]        DATA H'02F
+030   //-- [094]        DATA H'030
+031   //-- [095][DATO0] DATA H'031
+000   //-- [096][SUMA]  DATA H'000

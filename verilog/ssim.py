@@ -331,6 +331,10 @@ def example_simplez2(s):
     s.add_var("sig", 49)
     s.add_var("SUM", 50)
 
+
+def example_simplez3(s):
+    s.add_var("SUM", 150)
+
 if __name__ == "__main__":
     """Main program"""
 
@@ -341,4 +345,4 @@ if __name__ == "__main__":
     s.parse_mcode_file("prog.list")
 
     # -- Simulate the SIMPLEZ2 example
-    # example_simplez2(s)
+    example_simplez3(s)
