@@ -1,4 +1,6 @@
-# import sasm
+from sasm import Lexer, SyntaxError
+import sys
+import re
 
 
 class Test_progs(object):
@@ -44,6 +46,7 @@ class simplez(object):
         self._mem = [0 for i in range(512)]  # - Simplez memory
         self.state = self.INIT  # - Processor state
         self._vars = {}  # - Dictionary of selected variables to show
+        self._load_addr = 0  # - Address for loading the machine code
 
     def _decode(self, inst):
         """Return the opcode and argument of a given instruction in machine code"""
@@ -200,6 +203,103 @@ class simplez(object):
             self._single_step()
             self.show()
 
+    def _is_mcode_line(self, line):
+        """Return true if it is sintactically correct machine code line"""
+
+        words = line.split()
+
+        # -- First word should be a hexadecimal digit
+        if re.search("^[0-9a-fA-F]+", words[0]):
+
+            # - The next word (if any) should be a comment
+            if (len(words) > 1):
+                if Lexer.is_comment(words[1]):
+                    return True
+                else:
+                    # -- Not a comment. Is not a correct mcode line
+                    return False
+
+            return True
+        else:
+            return False
+
+    def _is_addr_line(self, line):
+        words = line.split()
+
+        # -- First word should be a @ + hexadecimal digit
+        if re.search("^@[0-9a-fA-F]+", words[0]):
+
+            # - The next word (if any) should be a comment
+            if (len(words) > 1):
+                if Lexer.is_comment(words[1]):
+                    return True
+                else:
+                    # -- Not a comment. Is not a correct mcode line
+                    return False
+
+            return True
+        else:
+            return False
+
+    def _parse_mcode(self, line):
+        words = line.split()
+
+        # - If is a correct machine code (only sintax)
+        if self._is_mcode_line(line):
+
+            # - Get the machine code word
+            mcode = int(words[0], 16)
+
+            # - Write the machine code in the memory, in the current addr
+            self._mem[self._load_addr] = mcode
+            self._load_addr += 1
+
+            # print("{:03X}".format(mcode))
+
+        # - Check if is an address code (@xxx)
+        elif self._is_addr_line(line):
+            addr = int(words[0][1:], 16)
+            self._load_addr = addr
+            # print("@{:03X}".format(addr))
+
+        else:
+            msg = "\nSINTAX ERROR. Unkwown line:\n{}".format(line)
+            raise SyntaxError(msg, 0)
+
+    def parse_mcode_file(self, filename):
+        """Open a file with the machine code. Parse it. Returns the a list with
+           all the machine codes"""
+
+        Lexer.COMMENT_SYMBOL = "//"
+
+        # - Start loading from the addr 0
+        self._load_addr = 0
+
+        # -- Read the file
+        try:
+            with open(filename, mode='r') as f:
+                raw = f.read()
+        except:
+            print("Error: file not found: {}".format(filename))
+            sys.exit()
+
+        # REGEX_MCODE = r"[0-9a-fA-F]+"
+
+        # -- Split the ASCII file into isolates lines
+        raw = raw.splitlines()
+        for line in raw:
+            # - Remove blank lines
+            if Lexer.is_blank_line(line) or Lexer.is_comment_line(line):
+                continue
+
+            try:
+                self._parse_mcode(line)
+            except SyntaxError as e:
+                print(e.msg)
+                sys.exit()
+
+        print("\nprog.list loaded into memory!")
+
     def _code2asm(self, inst):
         """Return a string with the given machine code instruction in assembly language"""
 
@@ -222,7 +322,7 @@ def example_simplez2(s):
     """Example of simulation of the program SIMPLEZ2"""
 
     # - Load the machine code
-    s.load(Test_progs.SIMPLEZ2)
+    # s.load(Test_progs.SIMPLEZ2)
 
     # - Add the variables to watch (label - address)
     s.add_var("cont", 46)
@@ -237,5 +337,8 @@ if __name__ == "__main__":
     # - Create the virtual simplez processor
     s = simplez()
 
+    # -- Load the machine code to simulate
+    s.parse_mcode_file("prog.list")
+
     # -- Simulate the SIMPLEZ2 example
-    example_simplez2(s)
+    # example_simplez2(s)
