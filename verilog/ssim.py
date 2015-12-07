@@ -59,7 +59,7 @@ class simplez(object):
             ir = self._mem[self._PC]
 
             # - Print the current instruction
-            print("Next: [{:03X}] {}".format(self._PC, self.code2asm(ir)))
+            print("Next: [{:03X}] {}".format(self._PC, self._code2asm(ir)))
 
     def load(self, prog):
         """Load a program into the memory. The program consist of a list of consecutive
@@ -127,7 +127,7 @@ class simplez(object):
         ir = self._mem[self._PC]
 
         # - Print the current instruction
-        print("Executing: [{:03X}] {}".format(self._PC, self.code2asm(ir)))
+        print("Executing: [{:03X}] {}".format(self._PC, self._code2asm(ir)))
 
         # - Point to the next instruction
         self._PC += 1
@@ -149,7 +149,7 @@ class simplez(object):
 
         self.show()
 
-    def code2asm(self, inst):
+    def _code2asm(self, inst):
         """Return a string with the given machine code instruction in assembly language"""
 
         opcode, addr = self.decode(inst)
@@ -166,7 +166,6 @@ class simplez(object):
 
         return asm
 
-
 if __name__ == "__main__":
     """Main program"""
 
@@ -177,7 +176,5 @@ if __name__ == "__main__":
 
     # - Load a simple program
     s.load(Test_progs.SIMPLEZ2)
-
-
 
     # - s.step()
