@@ -75,6 +75,14 @@ class Lexer(object):
         else:
             return False
 
+    @staticmethod
+    def is_number(word):
+        """Determine if the word is a number (in decimal) or in hexadecimal
+           It returns:
+           -True: is a number
+           -False: is not a number"""
+        return word.isdigit() or Lexer.is_hexdigit(word)
+
 
 class Prog(object):
     """Abstract syntax Tree (AST) for the assembled program"""
@@ -282,14 +290,6 @@ class SyntaxError(Exception):
         self.nline = nline    # - Number of line were the sintax error is located
 
 
-def is_number(word):
-    """Determine if the word is a number (in decimal) or in hexadecimal
-       It returns:
-       -True: is a number
-       -False: is not a number"""
-    return word.isdigit() or Lexer.is_hexdigit(word)
-
-
 def parse_dat(dat, nline):
     """Parse a numerical data
        * Returns (ok, dat)
@@ -397,7 +397,7 @@ def parse_dir(prog, word, nline):
     word = word[1:]
 
     # -- The next string could be a number ...
-    if is_number(word):
+    if Lexer.is_number(word):
         # -- Read the data
         okdat, dat = parse_dat(word, nline)
 
@@ -605,22 +605,11 @@ def syntax_analisis(prog, asmfile):
     asmfile = asmfile.splitlines()
 
     # -- DEBUG: show all the program lines
-    print("Complete program:")
-    for nline, line in enumerate(asmfile):
-        print("[{}] {}".format(nline+1, line))
-
-    # -- DEBUG: Show only the line with code
-    print("\nPass 1:")
-    for nline, line in enumerate(asmfile):
-
-        # - Remove blank lines
-        if Lexer.is_blank_line(line) or Lexer.is_comment_line(line):
-            continue
-
-        print("[{}] {}".format(nline+1, line))
+    # print("Complete program:")
+    # for nline, line in enumerate(asmfile):
+    #    print("[{}] {}".format(nline+1, line))
 
     # -- Syntax analisis: line by line
-    print("\nPass 2:")
     for nline, line in enumerate(asmfile):
 
         # - Remove blank lines
@@ -675,7 +664,7 @@ def parse_arguments():
 if __name__ == "__main__":
     """Main program"""
 
-    # -- default output file with the machine code for MICROBIO
+    # -- default output file with the machine code for SIMPLEZ
     OUTPUT_FILE = "prog.list"
 
     # -- Process the arguments. Return the source file and the verbose flags
@@ -704,6 +693,8 @@ if __name__ == "__main__":
     # -- Write the machine code in the output file file
     with open(OUTPUT_FILE, mode='w') as f:
         f.write(prog.machine_code())
+
+    print("OK! Machine code for SIMPLEZ generated: {}".format(OUTPUT_FILE))
 
     # -- Only in verbose mode
     if verbose:
