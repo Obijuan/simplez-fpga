@@ -224,7 +224,7 @@ def example_simplez2(s):
     # - Load the machine code
     s.load(Test_progs.SIMPLEZ2)
 
-    # - Add the variables to watch
+    # - Add the variables to watch (label - address)
     s.add_var("cont", 46)
     s.add_var("pen", 47)
     s.add_var("ult", 48)

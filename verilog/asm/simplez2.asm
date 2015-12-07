@@ -23,6 +23,9 @@
         BZ  /21   ; si es cero, sale del bucle
         ST /46    ; si no, lo lleva a CONT
         BR /7     ; y vuelve al bucle
+
+        ;-- Fin. Cargar la suma en registro A para mostrarlo por los leds
+        LD /50
         HALT
 
 
