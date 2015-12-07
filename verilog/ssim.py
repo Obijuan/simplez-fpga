@@ -9,9 +9,9 @@ class Test_progs(object):
     SIMPLEZ2 = [0xA00, 0x02F, 0x233, 0x030, 0x032, 0x234, 0x02E, 0x22F, 0x430, 0x031,
                 0x432, 0x032, 0x230, 0x02F, 0x231, 0x030, 0x22E, 0xC00, 0x815, 0x02E,
                 0x607, 0xE00,     0,     0,     0,     0,     0,     0,     0,     0,
-                0,     0,     0,     0,     0,     0,     0,     0, 0, 0,
-                0,     0,     0,     0,     0,     0,     0,     0, 0, 0,
-                0,     0,     0,     0,     0,     0,     0,     0, 0, 0,
+                0,         0,     0,     0,     0,     0,     0,     0,     0,     0,
+                0,         0,     0,     0,     0,     0,     0,     0,     0,     0,
+                0,         1,     8,     0,     0,     0,     0,     0,     0,     0,
                 ]
 
 
@@ -42,7 +42,8 @@ class simplez(object):
         self._PC = 0  # - Program counter
         self._Z = 0   # - Z flag
         self._mem = [0 for i in range(512)]  # - Simplez memory
-        self.state = self.INIT
+        self.state = self.INIT  # - Processor state
+        self._vars = {}  # - Dictionary of selected variables to show
 
     def _decode(self, inst):
         """Return the opcode and argument of a given instruction in machine code"""
@@ -52,6 +53,7 @@ class simplez(object):
         print("PC = {:03X}".format(self._PC))
         print("A = {:03X}".format(self._A))
         print("Z = {}".format(self._Z))
+        self.vars()
         if self.state == self.STOPED:
             print("Micro stopped! Halt executed")
         else:
@@ -78,6 +80,24 @@ class simplez(object):
                 linecode += "{:03X} ".format(pos)
 
             print("[{:03X}] {}".format(block*16, linecode))
+
+    def vars(self):
+        """Show the current vars"""
+        for addr, label in self._vars.items():
+            # - Read the variable value from memory
+            value = self._mem[addr]
+
+            # - Show the variable
+            print("[{:03X}] {} = {}".format(addr, label, value))
+
+    def add_var(self, varname, varaddr):
+        """Add the pair varname (string) and address
+           varname: String with the given name to the variable
+           varaddr: The address were the variable is stored
+        """
+        # -- Add the var to the dictionary
+        # -- TODO: check for duplicates!
+        self._vars[varaddr] = varname.upper()
 
     def list(self, ninst=10, addr_ini=0):
         """List the memory as assembly code
@@ -176,15 +196,25 @@ class simplez(object):
 
         return asm
 
+
+def example_simplez2(s):
+    """Example of simulation of the program SIMPLEZ2"""
+
+    # - Load the machine code
+    s.load(Test_progs.SIMPLEZ2)
+
+    # - Add the variables to watch
+    s.add_var("cont", 46)
+    s.add_var("pen", 47)
+    s.add_var("ult", 48)
+    s.add_var("sig", 49)
+    s.add_var("SUM", 50)
+
 if __name__ == "__main__":
     """Main program"""
 
+    # - Create the virtual simplez processor
     s = simplez()
 
-    Test_progs.SIMPLEZ2[51] = 1
-    Test_progs.SIMPLEZ2[52] = 8
-
-    # - Load a simple program
-    s.load(Test_progs.SIMPLEZ2)
-
-    # - s.step()
+    # -- Simulate the SIMPLEZ2 example
+    example_simplez2(s)
