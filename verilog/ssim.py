@@ -266,7 +266,7 @@ class simplez(object):
             msg = "\nSINTAX ERROR. Unkwown line:\n{}".format(line)
             raise SyntaxError(msg, 0)
 
-    def parse_mcode_file(self, filename):
+    def load_mcode_file(self, filename):
         """Open a file with the machine code. Parse it. Returns the a list with
            all the machine codes"""
 
@@ -356,7 +356,7 @@ if __name__ == "__main__":
     s = simplez()
 
     # -- Load the machine code to simulate
-    s.parse_mcode_file("prog.list")
+    s.load_mcode_file("prog.list")
 
     # -- Simulate the SIMPLEZ2 example
     example_simplez5(s)
