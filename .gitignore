@@ -1,6 +1,1 @@
-*~
-*.out
-*.vcd
-*.blif
-
-
+__pycache__/
