@@ -79,6 +79,16 @@ class simplez(object):
 
             print("[{:03X}] {}".format(block*16, linecode))
 
+    def list(self, ninst=10, addr_ini=0):
+        """List the memory as assembly code
+           ninst: Number of instructions to show
+           addr_ini: Initial address
+        """
+        for addr in range(addr_ini, addr_ini + ninst):
+            # - Fetch the instruction from memory
+            inst = self._mem[addr]
+            print("[{:03X}] {}".format(addr, self._code2asm(inst)))
+
     def _execute(self, opcode, addr, xopcode):
         """Execute the give instruction"""
 
