@@ -50,8 +50,8 @@ class simplez(object):
         return (inst >> 9, inst & 0x1FF)
 
     def show(self):
-        print("PC = {:03X}".format(self._PC))
-        print("A = {:03X}".format(self._A))
+        print("PC = H'{:03X}".format(self._PC))
+        print("A = H'{:03X}".format(self._A))
         print("Z = {}".format(self._Z))
         self.vars()
         if self.state == self.STOPED:
@@ -88,7 +88,7 @@ class simplez(object):
             value = self._mem[addr]
 
             # - Show the variable
-            print("[{:03X}] {} = {}".format(addr, label, value))
+            print("[{0:03X}] {1} = H'{2:03X} ({2})".format(addr, label, value))
 
     def add_var(self, varname, varaddr):
         """Add the pair varname (string) and address
@@ -165,6 +165,23 @@ class simplez(object):
             self._Z = 1
         else:
             self._Z = 0
+
+    def run(self):
+        """Simulate the program until the end """
+
+        # -- Show info of the initial state
+        if self.state == self.INIT:
+            print("Initial state:")
+            self.show()
+            print()
+            self.state = self.RUNNING
+
+        # - Simulate the whole program
+        while self.state != self.STOPED:
+            self._single_step()
+
+        # - Show the final resultas
+        self.show()
 
     def step(self, nsteps=1):
         """Simulate the given steps"""
