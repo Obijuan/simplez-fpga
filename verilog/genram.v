@@ -18,6 +18,7 @@ module genram #(             //-- Parametros
 
        (        //-- Puertos
          input clk,                      //-- Señal de reloj global
+         input cs,                       //-- Chip select
          input wire [AW-1: 0] addr,      //-- Direcciones
          input wire rw,                  //-- Modo lectura (1) o escritura (0)
          input wire [DW-1: 0] data_in,   //-- Dato de entrada
@@ -33,14 +34,16 @@ localparam NPOS = 2 ** AW;
   reg [DW-1: 0] ram [0: NPOS-1];
 
   //-- Lectura de la memoria
+  //-- Solo si el chip select esta activado!
   always @(posedge clk) begin
-    if (rw == 1)
+    if (cs & rw == 1)
         data_out <= ram[addr];
   end
 
   //-- Escritura en la memoria
+  //-- Solo si el chip select esta activado
   always @(posedge clk) begin
-    if (rw == 0)
+    if (cs & rw == 0)
         ram[addr] <= data_in;
   end
 
