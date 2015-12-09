@@ -2,7 +2,7 @@
 #-- Establecer nombre del componente
 #----------------------------------------
 NAME = simplez
-DEPS = genram.v dividerp1.v
+DEPS = genram.v dividerp1.v uart_tx.v baudgen_tx.v
 
 NAME2 = vacio1
 DEPS2 =
@@ -14,6 +14,9 @@ DEPS3 =
 #-- Objetivo por defecto: hacer simulacion y sintesis
 #-------------------------------------------------------
 all: sim sint
+
+prog: sint
+	iceprog $(NAME).bin
 
 #----------------------------------------------
 #-- make sim
@@ -149,4 +152,4 @@ $(NAME3).bin: $(NAME3).pcf $(NAME3).v $(DEPS3)
 clean:
 	rm -f *.bin *.txt *.blif *.out *.vcd *~
 
-.PHONY: all clean
+.PHONY: all clean prog

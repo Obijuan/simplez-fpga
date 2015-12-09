@@ -1,18 +1,27 @@
 `default_nettype none
 `include "divider.vh"
+`include "baudgen.vh"
 
 
 //-- Procesador Simplez
 module simplez  (input wire clk,          //-- Reloj del sistema
                  input wire rstn_ini,     //-- Reset
                  output wire [3:0] leds,  //-- leds
-                 output wire stop);       //-- Indicador de stop
+                 output wire stop,        //-- Indicador de stop
+                 output wire tx           //-- Salida serie para la pantalla
+                 );
 
 //-- Parametro: fichero con el programa a cargar en la rom
 parameter ROMFILE = "prog.list";
 
 //-- Parametro: Tiempo de espera para la instruccion WAIT
 parameter WAIT_DELAY = `T_200ms;
+
+//-- Velocidad de comunicacion con la pantalla
+parameter BAUD = `B115200;
+
+//-- Direcciones para los perifericos
+localparam PANTALLA_DATA_ADR = 9'd509;
 
 //-- Codigos de operacion de las instrucciones de simplez
 localparam ST   = 3'o0;  //-- OK
@@ -35,18 +44,27 @@ localparam DW = 12;     //-- Anchura del bus de datos
 //-- Instanciar la memoria RAM
 wire [DW-1: 0] mem_dout;
 wire [AW-1: 0] addr;
+wire ram_cs ;  //-- Chip select para la ram
 
-genram
-  #( .ROMFILE(ROMFILE),
-     .AW(AW),
-     .DW(DW))
+
+
+genram #(
+        .ROMFILE(ROMFILE),
+        .AW(AW),
+        .DW(DW))
   ROM (
         .clk(clk),
+        .cs(ram_cs),
         .rw(rw),
         .addr(addr),
         .data_out(mem_dout),
         .data_in(reg_a)
       );
+
+//-- Logica de activacion del chip select de la memoria
+//-- Direcciones desde 0 - 1F7  son de RAM
+//-- Desde 1F8 a 1FF son para perifericos
+assign ram_cs = (addr < 9'h1F8) ? 1 : 0;
 
 //-- Registrar la señal de reset
 reg rstn = 0;
@@ -178,6 +196,22 @@ dividerp1 #(WAIT_DELAY)
     .clk_out(clk_tic)
   );
 
+//-- Chip select para la pantalla de simplez
+wire pant_data_cs;
+wire tx_ready;
+
+assign pant_data_cs = (addr == PANTALLA_DATA_ADR) ? 1 : 0;
+
+//-- Instanciar la Unidad de transmision
+uart_tx #(.BAUDRATE(BAUD))
+  TX0 (
+    .clk(clk),
+    .rstn(rstn),
+    .data(reg_a),
+    .start(pant_data_cs),
+    .ready(tx_ready),
+    .tx(tx)
+  );
 
 //-------------------- UNIDAD DE CONTROL
 localparam INIT = 0;

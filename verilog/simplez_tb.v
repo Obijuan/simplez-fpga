@@ -20,6 +20,7 @@ reg clk = 0;
 wire [3:0] leds;
 wire stop;
 reg rstn = 0;
+wire tx;
 
 //-- Instanciar el componente
 simplez #(.ROMFILE(ROMFILE), .WAIT_DELAY(WAIT_DELAY))
@@ -27,7 +28,8 @@ simplez #(.ROMFILE(ROMFILE), .WAIT_DELAY(WAIT_DELAY))
     .clk(clk),
     .rstn_ini(rstn),
     .leds(leds),
-    .stop(stop)
+    .stop(stop),
+    .tx(tx)
   );
 
 //-- Generador de reloj. Periodo 2 unidades

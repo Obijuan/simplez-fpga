@@ -1,54 +1,11 @@
-60A   //-- [000]          BR /INICIO ;-- INICIO = H'00A 
-000   //-- [001]          DATA H'000
-000   //-- [002]          DATA H'000
-000   //-- [003]          DATA H'000
-600   //-- [004][IBR]     BR /H'000
-011   //-- [005][RET1]    DATA H'011
-01B   //-- [006][RET2]    DATA H'01B
+206   //-- [000]         LD /CAR1 ;-- CAR1 = H'006 
+1FD   //-- [001]         ST /TXDATA ;-- TXDATA = H'1FD 
+F00   //-- [002]         WAIT
+207   //-- [003]         LD /CAR2 ;-- CAR2 = H'007 
+1FD   //-- [004]         ST /TXDATA ;-- TXDATA = H'1FD 
+E00   //-- [005]         HALT
+048   //-- [006][CAR1]   DATA H'048
+04F   //-- [007][CAR2]   DATA H'04F
 
-@00A  //--                ORG 0x00A
-233   //-- [00A][INICIO]  LD /RES1 ;-- RES1 = H'033 
-0CA   //-- [00B]          ST /ARG ;-- ARG = H'0CA 
-204   //-- [00C]          LD /IBR ;-- IBR = H'004 
-405   //-- [00D]          ADD /RET1 ;-- RET1 = H'005 
-0D4   //-- [00E]          ST /RETURN ;-- RETURN = H'0D4 
-232   //-- [00F]          LD /DATO ;-- DATO = H'032 
-6C8   //-- [010]          BR /RESTAR ;-- RESTAR = H'0C8 
-034   //-- [011]          ST /RESULT1 ;-- RESULT1 = H'034 
-614   //-- [012]          BR /OP2 ;-- OP2 = H'014 
-
-@014  //--                ORG 0x014
-265   //-- [014][OP2]     LD /RES2 ;-- RES2 = H'065 
-0CA   //-- [015]          ST /ARG ;-- ARG = H'0CA 
-204   //-- [016]          LD /IBR ;-- IBR = H'004 
-406   //-- [017]          ADD /RET2 ;-- RET2 = H'006 
-0D4   //-- [018]          ST /RETURN ;-- RETURN = H'0D4 
-234   //-- [019]          LD /RESULT1 ;-- RESULT1 = H'034 
-6C8   //-- [01A]          BR /RESTAR ;-- RESTAR = H'0C8 
-066   //-- [01B]          ST /RESULT2 ;-- RESULT2 = H'066 
-E00   //-- [01C]          HALT
-
-@032  //--                ORG 0x032
-00F   //-- [032][DATO]    DATA H'00F
-002   //-- [033][RES1]    DATA H'002
-000   //-- [034][RESULT1] DATA H'000
-
-@064  //--                ORG 0x064
-000   //-- [064]          DATA H'000
-001   //-- [065][RES2]    DATA H'001
-000   //-- [066][RESULT2] DATA H'000
-
-@0C8  //--                ORG 0x0C8
-6CB   //-- [0C8][RESTAR]  BR /RINI ;-- RINI = H'0CB 
-000   //-- [0C9][PARC]    DATA H'000
-000   //-- [0CA][ARG]     DATA H'000
-C00   //-- [0CB][RINI]    DEC
-0C9   //-- [0CC]          ST /PARC ;-- PARC = H'0C9 
-2CA   //-- [0CD]          LD /ARG ;-- ARG = H'0CA 
-C00   //-- [0CE]          DEC
-8D3   //-- [0CF]          BZ /FIN ;-- FIN = H'0D3 
-0CA   //-- [0D0]          ST /ARG ;-- ARG = H'0CA 
-2C9   //-- [0D1]          LD /PARC ;-- PARC = H'0C9 
-6CB   //-- [0D2]          BR /RINI ;-- RINI = H'0CB 
-2C9   //-- [0D3][FIN]     LD /PARC ;-- PARC = H'0C9 
-000   //-- [0D4][RETURN]  DATA H'000
+@1FD  //--               ORG 0x1FD
+000   //-- [1FD][TXDATA] DATA H'000
