@@ -1,5 +1,5 @@
 ;-- Programas de prueba para Simplez
-;-- t12.asm: Prueba 2 de DEC
+;-- t13.asm: Prueba 2 de DEC
 
 
        ld /valini     ; Valor inicial cuenta atras

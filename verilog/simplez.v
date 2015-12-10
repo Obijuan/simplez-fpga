@@ -21,7 +21,9 @@ parameter WAIT_DELAY = `T_200ms;
 parameter BAUD = `B115200;
 
 //-- Direcciones para los perifericos
+localparam PANTALLA_STATUS_ADR = 9'd508;
 localparam PANTALLA_DATA_ADR = 9'd509;
+
 
 //-- Codigos de operacion de las instrucciones de simplez
 localparam ST   = 3'o0;  //-- OK
@@ -45,8 +47,12 @@ localparam DW = 12;     //-- Anchura del bus de datos
 wire [DW-1: 0] mem_dout;
 wire [AW-1: 0] addr;
 wire ram_cs ;  //-- Chip select para la ram
+wire ram_inst_cs;
+wire ram_data_cs;
 
-
+//-- Chip select para el acceso a instrucciones
+assign ram_inst_cs = (state == INIT) ? 1 : 0;
+assign ram_cs = ram_inst_cs | ram_data_cs;
 
 genram #(
         .ROMFILE(ROMFILE),
@@ -60,11 +66,6 @@ genram #(
         .data_out(mem_dout),
         .data_in(reg_a)
       );
-
-//-- Logica de activacion del chip select de la memoria
-//-- Direcciones desde 0 - 1F7  son de RAM
-//-- Desde 1F8 a 1FF son para perifericos
-assign ram_cs = (addr < 9'h1F8) ? 1 : 0;
 
 //-- Registrar la señal de reset
 reg rstn = 0;
@@ -151,11 +152,12 @@ assign stop = reg_stop;
 reg [DW-1: 0] alu_out;
 reg flag_z;
 
+
 always @(*) begin
 
   //-- Operacion: transferencia del operando 2 a la salida
   if (alu_op2)
-    alu_out = mem_dout;
+    alu_out = data_out_bus;
 
   //-- Sacar el valor 0
   else if (alu_clr)
@@ -163,7 +165,7 @@ always @(*) begin
 
   //-- Suma de operador 1 + operador 2
   else if (alu_add)
-    alu_out = reg_a + mem_dout;
+    alu_out = reg_a + data_out_bus;
 
   else if (alu_dec)
     alu_out = reg_a - 1;
@@ -184,7 +186,11 @@ end
       else
         flag_z <= 0;
 
+//-- Multiplexor de acceso al bus de datos DATA_OUT
+//-- Donde tanto la memoria como los perifericos depositan sus datos
+wire [DW-1: 0] data_out_bus;
 
+assign data_out_bus = (ram_cs == 1) ? mem_dout : {1'b0, pant_status};
 
 //----------- PERIFERICOS --------
 //-- Divisor para marcar la duracion de cada estado del automata
@@ -198,16 +204,30 @@ dividerp1 #(WAIT_DELAY)
 
 //-- Chip select para la pantalla de simplez
 wire pant_data_cs;
+wire pant_status_cs;
 wire tx_ready;
+reg [7:0] pant_status;
 
-assign pant_data_cs = (addr == PANTALLA_DATA_ADR) ? 1 : 0;
+
+//-- Logica de activacion del chip select de la memoria
+//-- Direcciones desde 0 - 1F7  son de RAM
+//-- Desde 1F8 a 1FF son para perifericos
+assign ram_data_cs = (CD < 9'h1F8) ? 1 : 0;
+assign pant_data_cs = (CD == PANTALLA_DATA_ADR) ? 1 : 0;
+assign pant_status_cs = (CD == PANTALLA_STATUS_ADR) ? 1 : 0;
+
+always @(posedge clk)
+  if (!rstn)
+    pant_status <= 8'b0;
+  else if (pant_status_cs)
+    pant_status <= {7'b0, tx_ready};
 
 //-- Instanciar la Unidad de transmision
 uart_tx #(.BAUDRATE(BAUD))
   TX0 (
     .clk(clk),
     .rstn(rstn),
-    .data(reg_a),
+    .data(reg_a[7:0]),
     .start(pant_data_cs),
     .ready(tx_ready),
     .tx(tx)
