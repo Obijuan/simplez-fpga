@@ -28,7 +28,7 @@ module uart_tx #(
          input wire [7:0] data, //-- Byte to transmit
          output reg tx,         //-- Serial data output
          output reg ready      //-- Transmitter ready (1) / busy (0)
-       );
+);
 
 
 //-- Transmission clock
@@ -79,7 +79,10 @@ always @(posedge clk)
 //-- When load (=1) the counter is reset
 //-- When load = 0, the sent bits are counted (with the raising edge of clk_baud)
 always @(posedge clk)
-  if (load == 1)
+  if (!rstn)
+    bitc <= 0;
+
+  else if (load == 1)
     bitc <= 0;
   else if (load == 0 && clk_baud == 1)
     bitc <= bitc + 1;
@@ -93,6 +96,7 @@ always @(posedge clk)
 //-- Baud generator
 baudgen_tx #( .BAUDRATE(BAUDRATE))
 BAUD0 (
+    .rstn(rstn),
     .clk(clk),
     .clk_ena(baud_en),
     .clk_out(clk_baud)
@@ -125,7 +129,6 @@ always @(*) begin
   next_state = state;      //-- Stay in the same state by default
   load = 0;
   baud_en = 0;
-  ready = 0;
 
   case (state)
 
@@ -142,15 +145,20 @@ always @(*) begin
     START: begin
       load = 1;
       baud_en = 1;
+      ready = 0;
       next_state = TRANS;
     end
 
     //-- Stay here until all the bits have been sent
     TRANS: begin
       baud_en = 1;
+      ready = 0;
       if (bitc == 11)
-        next_state <= IDLE;
+        next_state = IDLE;
     end
+
+    default:
+      ready = 0;
 
   endcase
 end
