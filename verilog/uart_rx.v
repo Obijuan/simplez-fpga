@@ -1,11 +1,11 @@
 //----------------------------------------------------------------------------
-//-- Unidad de recepcion serie asincrona
+//-- Asynchronous serial receiver Unit
 //------------------------------------------
-//-- (C) BQ. October 2015. Written by Juan Gonzalez (Obijuan)
+//-- (C) BQ. December 2015. Written by Juan Gonzalez (Obijuan)
 //-- GPL license
 //----------------------------------------------------------------------------
-//-- Comprobado su funcionamiento a todas las velocidades estandares:
-//-- 300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200
+//-- Tested at all the standard baudrates:
+//--
 //----------------------------------------------------------------------------
 //-- Although this transmitter has been written from the scratch, it has been
 //-- inspired by the one developed in the swapforth proyect by James Bowman
@@ -13,51 +13,51 @@
 //-- https://github.com/jamesbowman/swapforth
 //--
 //----------------------------------------------------------------------------
-
 `default_nettype none
 
 `include "baudgen.vh"
 
-module uart_rx (input wire clk,         //-- Reloj del sistema
-                input wire rstn,        //-- Reset
-                input wire rx,          //-- Linea de recepcion serie
-                output reg rcv,         //-- Indicar Dato disponible
-                output reg [7:0] data); //-- Dato recibo
+//-- Serial receiver unit module
+module uart_rx #(
+         parameter BAUDRATE = `B115200   //-- Default baudrate
+)(
+         input wire clk,         //-- System clock (12MHz in the ICEstick)
+         input wire rstn,        //-- Reset (Active low)
+         input wire rx,          //-- Serial data input
+         output reg rcv,         //-- Data is available (1)
+         output reg [7:0] data   //-- Data received
+);
 
-//-- Parametro: velocidad de recepcion
-parameter BAUD = `B115200;
-
-//-- Reloj para la recepcion
+//-- Transmission clock
 wire clk_baud;
 
-//-- Linea de recepcion registrada
-//-- Para cumplir reglas de diseño sincrono
+//-- Control signals
+reg bauden;  //-- Enable the baud generator
+reg clear;   //-- Clear the bit counter
+reg load;    //-- Load the received character into the data register
+
+
+//-------------------------------------------------------------------
+//--     DATAPATH
+//-------------------------------------------------------------------
+
+//-- The serial input is registered in order to follow the
+//-- synchronous design rules
 reg rx_r;
 
-//-- Microordenes
-reg bauden;  //-- Activar señal de reloj de datos
-reg clear;   //-- Poner a cero contador de bits
-reg load;    //-- Cargar dato recibido
-
-
-//-------------------------------------------------------------------
-//--     RUTA DE DATOS
-//-------------------------------------------------------------------
-
-//-- Registrar la señal de recepcion de datos
-//-- Para cumplir con las normas de diseño sincrono
 always @(posedge clk)
   rx_r <= rx;
 
-//-- Divisor para la generacion del reloj de llegada de datos 
-baudgen_rx #(BAUD)
-  baudgen0 ( 
+//-- Baud generator
+baudgen_rx #(BAUDRATE)
+  baudgen0 (
+    .rstn(rstn),
     .clk(clk),
-    .clk_ena(bauden), 
+    .clk_ena(bauden),
     .clk_out(clk_baud)
   );
 
-//-- Contador de bits
+//-- Bit counter
 reg [3:0] bitc;
 
 always @(posedge clk)
@@ -67,7 +67,7 @@ always @(posedge clk)
     bitc <= bitc + 1;
 
 
-//-- Registro de desplazamiento para almacenar los bits recibidos
+//-- Shift register for storing the received bits
 reg [9:0] raw_data;
 
 always @(posedge clk)
@@ -75,70 +75,81 @@ always @(posedge clk)
     raw_data = {rx_r, raw_data[9:1]};
   end
 
-//-- Registro de datos. Almacenar el dato recibido
+//-- Data register. Store the character received
 always @(posedge clk)
   if (rstn == 0)
     data <= 0;
   else if (load)
     data <= raw_data[8:1];
 
-//-------------------------------------
-//-- CONTROLADOR
-//-------------------------------------
-localparam IDLE = 2'd0;  //-- Estado de reposo
-localparam RECV = 2'd1;  //-- Recibiendo datos
-localparam LOAD = 2'd2;  //-- Almacenamiento del dato recibido
-localparam DAV = 2'd3;   //-- Señalizar dato disponible 
+//-------------------------------------------
+//-- CONTROLLER  (Finite state machine)
+//-------------------------------------------
 
+//-- Receiver states
+localparam IDLE = 2'd0;  //-- IDLEde reposo
+localparam RECV = 2'd1;  //-- Receiving data
+localparam LOAD = 2'd2;  //-- Storing the character received
+localparam DAV = 2'd3;   //-- Data is available
+
+//-- fsm states
 reg [1:0] state;
+reg [1:0] next_state;
 
-//-- Transiciones entre estados
+//-- Transition between states
 always @(posedge clk)
-
-  if (rstn == 0)
+  if (!rstn)
     state <= IDLE;
-
   else
-    case (state)
+    state <= next_state;
 
-      //-- Resposo
-      IDLE : 
-        //-- Al llegar el bit de start se pasa al estado siguiente
-        if (rx_r == 0)  
-          state <= RECV;
-        else
-          state <= IDLE;
+//-- Control signal generation and next states
+always @(*) begin
 
-      //--- Recibiendo datos      
-      RECV:
-        //-- Vamos por el ultimo bit: pasar al siguiente estado
-        if (bitc == 4'd10)
-          state <= LOAD;
-        else
-          state <= RECV;
+  //-- Default values
+  next_state = state;      //-- Stay in the same state by default
+  bauden = 0;
+  clear = 0;
+  load = 0;
 
-      //-- Almacenamiento del dato
-      LOAD:
-        state <= DAV;
+  case(state)
 
-      //-- Señalizar dato disponible
-      DAV:
-        state <= IDLE;
+    //-- Idle state
+    //-- Remain in this state until a start bit is received in rx_r
+    IDLE: begin
+      clear = 1;
+      rcv = 0;
+      if (rx_r == 0)
+        next_state = RECV;
+    end
+
+    //-- Receiving state
+    //-- Turn on the baud generator and wait for the serial package to be received
+    RECV: begin
+      bauden = 1;
+      rcv = 0;
+      if (bitc == 4'd10)
+        next_state = LOAD;
+    end
+
+    //-- Store the received character in the data register (1 cycle)
+    LOAD: begin
+      load = 1;
+      rcv = 0;
+      next_state = DAV;
+    end
+
+    //-- Data Available (1 cycle)
+    DAV: begin
+      rcv = 1;
+      next_state = IDLE;
+    end
 
     default:
-      state <= IDLE;
-    endcase
+      rcv = 0;
 
+  endcase
 
-//-- Salidas de microordenes
-always @* begin
-  bauden <= (state == RECV) ? 1 : 0;
-  clear <= (state == IDLE) ? 1 : 0;
-  load <= (state == LOAD) ? 1 : 0;
-  rcv <= (state == DAV) ? 1 : 0;
 end
 
-
 endmodule
-
-
