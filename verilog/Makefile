@@ -1,8 +1,12 @@
 #----------------------------------------
 #-- Establecer nombre del componente
 #----------------------------------------
+#-- Folder to store the peripherals
+PERIPH = peripherals
+
 NAME = simplez
-DEPS = genram.v dividerp1.v uart_tx.v baudgen_tx.v uart_rx.v baudgen_rx.v
+DEPS = genram.v $(PERIPH)/dividerp1.v $(PERIPH)/uart_tx.v $(PERIPH)/baudgen_tx.v \
+                $(PERIPH)/uart_rx.v $(PERIPH)/baudgen_rx.v
 
 NAME2 = vacio1
 DEPS2 =
