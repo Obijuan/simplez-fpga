@@ -1,11 +1,18 @@
-206   //-- [000]           LD /VAL1 ;-- VAL1 = H'006 
+20D   //-- [000]           LD /VAL1 ;-- VAL1 = H'00D 
 F00   //-- [001]           WAIT
 3FE   //-- [002][LOOP]     LD /RXSTATUS ;-- RXSTATUS = H'1FE 
 802   //-- [003]           BZ /LOOP ;-- LOOP = H'002 
 3FF   //-- [004]           LD /RXDATA ;-- RXDATA = H'1FF 
-E00   //-- [005]           HALT
-0FF   //-- [006][VAL1]     DATA H'0FF
-055   //-- [007][VAL2]     DATA H'055
+F00   //-- [005]           WAIT
+F00   //-- [006]           WAIT
+F00   //-- [007]           WAIT
+F00   //-- [008]           WAIT
+3FE   //-- [009][LOOP2]    LD /RXSTATUS ;-- RXSTATUS = H'1FE 
+809   //-- [00A]           BZ /LOOP2 ;-- LOOP2 = H'009 
+3FF   //-- [00B]           LD /RXDATA ;-- RXDATA = H'1FF 
+E00   //-- [00C]           HALT
+0FF   //-- [00D][VAL1]     DATA H'0FF
+055   //-- [00E][VAL2]     DATA H'055
 
 @1FE  //--                 ORG 0x1FE
 000   //-- [1FE][RXSTATUS] DATA H'000
