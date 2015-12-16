@@ -1,5 +1,8 @@
 ;-- Programas de prueba para Simplez
-;-- t16.asm: Prueba de lectura del registro de datos del teclado
+;-- t16.asm: Prueba de lectura del registro de estado del teclado
+;-- Los leds estan apagados (salvo un destello inicial). Cuando se recibe un caracter por
+;-- el terminal, se enciende el led 1 (indicando que el registro de estado del teclado
+;-- esta a 1)
 
 
        ld /val1
