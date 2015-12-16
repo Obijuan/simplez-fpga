@@ -1,6 +1,6 @@
 `default_nettype none
-`include "divider.vh"
-`include "baudgen.vh"
+`include "peripherals/divider.vh"
+`include "peripherals/baudgen.vh"
 
 
 //-- Procesador Simplez

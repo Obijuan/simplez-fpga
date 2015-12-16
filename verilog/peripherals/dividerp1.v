@@ -7,7 +7,7 @@
 //-----------------------------------------------------------------------------
 //-- GPL license
 //-----------------------------------------------------------------------------
-`include "divider.vh"
+`include "peripherals/divider.vh"
 
 //-- ENTRADAS:
 //--     -clk: Senal de reloj del sistema (12 MHZ en la iceStick)
@@ -36,7 +36,3 @@ assign clk_out = (divcounter == 0) ? 1 : 0;
 
 
 endmodule
-
-
-
-
