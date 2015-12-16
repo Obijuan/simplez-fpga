@@ -1,33 +1,10 @@
-217   //-- [000]           LD /VAL1 ;-- VAL1 = H'017 
+205   //-- [000]           LD /VAL1 ;-- VAL1 = H'005 
 F00   //-- [001]           WAIT
-3FC   //-- [002][WAIT1]    LD /TXSTATUS ;-- TXSTATUS = H'1FC 
-802   //-- [003]           BZ /WAIT1 ;-- WAIT1 = H'002 
-218   //-- [004]           LD /CAR_H ;-- CAR_H = H'018 
-1FD   //-- [005]           ST /TXDATA ;-- TXDATA = H'1FD 
-3FC   //-- [006][WAIT2]    LD /TXSTATUS ;-- TXSTATUS = H'1FC 
-806   //-- [007]           BZ /WAIT2 ;-- WAIT2 = H'006 
-219   //-- [008]           LD /CAR_O ;-- CAR_O = H'019 
-1FD   //-- [009]           ST /TXDATA ;-- TXDATA = H'1FD 
-3FC   //-- [00A][WAIT3]    LD /TXSTATUS ;-- TXSTATUS = H'1FC 
-80A   //-- [00B]           BZ /WAIT3 ;-- WAIT3 = H'00A 
-21A   //-- [00C]           LD /CAR_L ;-- CAR_L = H'01A 
-1FD   //-- [00D]           ST /TXDATA ;-- TXDATA = H'1FD 
-3FC   //-- [00E][WAIT4]    LD /TXSTATUS ;-- TXSTATUS = H'1FC 
-80E   //-- [00F]           BZ /WAIT4 ;-- WAIT4 = H'00E 
-21B   //-- [010]           LD /CAR_A ;-- CAR_A = H'01B 
-1FD   //-- [011]           ST /TXDATA ;-- TXDATA = H'1FD 
-3FC   //-- [012][WAIT5]    LD /TXSTATUS ;-- TXSTATUS = H'1FC 
-812   //-- [013]           BZ /WAIT5 ;-- WAIT5 = H'012 
-21C   //-- [014]           LD /CAR_SP ;-- CAR_SP = H'01C 
-1FD   //-- [015]           ST /TXDATA ;-- TXDATA = H'1FD 
-E00   //-- [016]           HALT
-00F   //-- [017][VAL1]     DATA H'00F
-048   //-- [018][CAR_H]    DATA H'048
-04F   //-- [019][CAR_O]    DATA H'04F
-04C   //-- [01A][CAR_L]    DATA H'04C
-041   //-- [01B][CAR_A]    DATA H'041
-020   //-- [01C][CAR_SP]   DATA H'020
+3FE   //-- [002][LOOP]     LD /RXSTATUS ;-- RXSTATUS = H'1FE 
+602   //-- [003]           BR /LOOP ;-- LOOP = H'002 
+E00   //-- [004]           HALT
+0FF   //-- [005][VAL1]     DATA H'0FF
 
-@1FC  //--                 ORG 0x1FC
-000   //-- [1FC][TXSTATUS] DATA H'000
-000   //-- [1FD][TXDATA]   DATA H'000
+@1FE  //--                 ORG 0x1FE
+000   //-- [1FE][RXSTATUS] DATA H'000
+000   //-- [1FF][RXDATA]   DATA H'000

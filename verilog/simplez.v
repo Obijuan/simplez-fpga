@@ -8,7 +8,8 @@ module simplez  (input wire clk,          //-- Reloj del sistema
                  input wire rstn_ini,     //-- Reset
                  output wire [3:0] leds,  //-- leds
                  output wire stop,        //-- Indicador de stop
-                 output wire tx           //-- Salida serie para la pantalla
+                 output wire tx,          //-- Salida serie para la pantalla
+                 input wire rx            //-- Entrada serie del teclado
                  );
 
 //-- Parametro: fichero con el programa a cargar en la rom
@@ -23,6 +24,8 @@ parameter BAUD = `B115200;
 //-- Direcciones para los perifericos
 localparam PANTALLA_STATUS_ADR = 9'd508;
 localparam PANTALLA_DATA_ADR = 9'd509;
+localparam TECLADO_STATUS_ADR = 9'd510;
+localparam TECLADO_DATA_ADR = 9'd511;
 
 
 //-- Codigos de operacion de las instrucciones de simplez
@@ -190,7 +193,10 @@ end
 //-- Donde tanto la memoria como los perifericos depositan sus datos
 wire [DW-1: 0] data_out_bus;
 
-assign data_out_bus = (ram_cs == 1) ? mem_dout : {1'b0, pant_status};
+assign data_out_bus = (ram_cs == 1)           ? mem_dout :
+                      (pant_status_cs == 1)   ? {1'b0, pant_status} :
+                      (tecl_data_cs == 1)     ? {1'b0, tecl_data}   :
+                      (tecl_status_cs == 1)   ? {1'b0, tecl_status} : 9'b0;
 
 //----------- PERIFERICOS --------
 //-- Divisor para marcar la duracion de cada estado del automata
@@ -208,6 +214,15 @@ wire pant_status_cs;
 wire tx_ready;
 reg [7:0] pant_status;
 
+//-- Chip select para el teclado de simplez
+wire tecl_data_cs;
+reg [7:0] tecl_data;
+wire tecl_status_cs;
+reg [7:0] tecl_status;
+wire [7:0] rxdata;
+wire rxrcv;
+reg rcv_flag;
+
 
 //-- Logica de activacion del chip select de la memoria
 //-- Direcciones desde 0 - 1F7  son de RAM
@@ -215,12 +230,39 @@ reg [7:0] pant_status;
 assign ram_data_cs = (CD < 9'h1F8) ? 1 : 0;
 assign pant_data_cs = (CD == PANTALLA_DATA_ADR) ? 1 : 0;
 assign pant_status_cs = (CD == PANTALLA_STATUS_ADR) ? 1 : 0;
+assign tecl_data_cs = (CD == TECLADO_DATA_ADR) ? 1 : 0;
+assign tecl_status_cs = (CD == TECLADO_STATUS_ADR) ? 1: 0;
 
+//-- Registro de status de la pantalla
 always @(posedge clk)
   if (!rstn)
     pant_status <= 8'b0;
   else if (pant_status_cs)
     pant_status <= {7'b0, tx_ready};
+
+//-- Registro de datos del teclado
+always @(posedge clk)
+  if (!rstn)
+    tecl_data <= 8'b0;
+  else if (tecl_data_cs)
+    tecl_data <= rxdata;
+
+//-- Registro de estado del teclado
+always @(posedge clk)
+  if (!rstn)
+    tecl_status <= 8'b0;
+  else if (tecl_status_cs)
+    tecl_status <= {7'b0, rcv_flag};
+
+//-- Capturar el flag de dato recibido
+always @(posedge clk)
+  if (!rstn)
+    rcv_flag <= 0;
+  else if (rxrcv)
+    rcv_flag <= 1;         //-- Al recibir un dato se pone a 1 el flag
+  else if (tecl_data_cs)   //-- Al leer reg datos el flag se pone a 0
+    rcv_flag <= 0;
+
 
 //-- Instanciar la Unidad de transmision
 uart_tx #(.BAUDRATE(BAUD))
@@ -232,6 +274,15 @@ uart_tx #(.BAUDRATE(BAUD))
     .ready(tx_ready),
     .tx(tx)
   );
+
+//-- Instanciar la Unidad de recepcion
+uart_rx #(BAUD)
+  RX0 (.clk(clk),      //-- Reloj del sistema
+       .rstn(rstn),    //-- Señal de reset
+       .rx(rx),        //-- Linea de recepción de datos serie
+       .rcv(rxrcv),      //-- Señal de dato recibido
+       .data(rxdata)     //-- Datos recibidos
+      );
 
 //-------------------- UNIDAD DE CONTROL
 localparam INIT = 0;

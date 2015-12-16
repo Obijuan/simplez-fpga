@@ -2,7 +2,7 @@
 #-- Establecer nombre del componente
 #----------------------------------------
 NAME = simplez
-DEPS = genram.v dividerp1.v uart_tx.v baudgen_tx.v
+DEPS = genram.v dividerp1.v uart_tx.v baudgen_tx.v uart_rx.v baudgen_rx.v
 
 NAME2 = vacio1
 DEPS2 =
