@@ -160,7 +160,7 @@ always @(*) begin
 
   //-- Operacion: transferencia del operando 2 a la salida
   if (alu_op2)
-    alu_out = data_out_bus;
+    alu_out = alu_in;
 
   //-- Sacar el valor 0
   else if (alu_clr)
@@ -168,7 +168,7 @@ always @(*) begin
 
   //-- Suma de operador 1 + operador 2
   else if (alu_add)
-    alu_out = reg_a + data_out_bus;
+    alu_out = reg_a + alu_in;
 
   else if (alu_dec)
     alu_out = reg_a - 1;
@@ -191,12 +191,12 @@ end
 
 //-- Multiplexor de acceso al bus de datos DATA_OUT
 //-- Donde tanto la memoria como los perifericos depositan sus datos
-wire [DW-1: 0] data_out_bus;
+wire [DW-1: 0] alu_in;
 
-assign data_out_bus = (ram_cs == 1)           ? mem_dout :
-                      (pant_status_cs == 1)   ? {1'b0, pant_status} :
-                      (tecl_data_cs == 1)     ? {1'b0, tecl_data}   :
-                      (tecl_status_cs == 1)   ? {1'b0, tecl_status} : 9'b0;
+assign alu_in = (ram_cs == 1)           ? mem_dout :
+                (pant_status_cs == 1)   ? {1'b0, pant_status} :
+                (tecl_data_cs == 1)     ? {1'b0, tecl_data}   :
+                (tecl_status_cs == 1)   ? {1'b0, tecl_status} : 9'b0;
 
 //----------- PERIFERICOS --------
 //-- Divisor para marcar la duracion de cada estado del automata
