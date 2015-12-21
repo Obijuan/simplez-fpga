@@ -194,9 +194,9 @@ end
 wire [DW-1: 0] alu_in;
 
 assign alu_in = (ram_cs == 1)           ? mem_dout :
-                (pant_status_cs == 1)   ? {1'b0, pant_status} :
-                (tecl_data_cs == 1)     ? {1'b0, tecl_data}   :
-                (tecl_status_cs == 1)   ? {1'b0, tecl_status} : 9'b0;
+                (pant_status_cs == 1)   ? {4'b0, pant_status} :
+                (tecl_data_cs == 1)     ? {4'b0, tecl_data}   :
+                (tecl_status_cs == 1)   ? {4'b0, tecl_status} : 12'b0;
 
 //----------- PERIFERICOS --------
 //-- Divisor para marcar la duracion de cada estado del automata
