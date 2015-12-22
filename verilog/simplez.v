@@ -1,30 +1,32 @@
+//--------------------------------------------------------------------------------------------
+//-- Procesador SIMPLEZ F:   Implementación del procesador SIMPLEZ de Gregorio Fernández en
+//--  FPGA, mediante lenguaje Verilog
+//--------------------------------------------------------------------------------------------
+//-- (C) BQ. December 2015. Written by Juan Gonzaelz-Gomez (Obijuan)
+//--------------------------------------------------------------------------------------------
 `default_nettype none
 `include "peripherals/divider.vh"
 `include "peripherals/baudgen.vh"
 
-
 //-- Procesador Simplez
-module simplez  (input wire clk,          //-- Reloj del sistema
-                 input wire rstn_ini,     //-- Reset
-                 output wire [3:0] leds,  //-- leds
-                 output wire stop,        //-- Indicador de stop
-                 output wire tx,          //-- Salida serie para la pantalla
-                 input wire rx            //-- Entrada serie del teclado
-                 );
+module simplez  #(
+           parameter BAUD = `B115200,        //-- Velocidad de comunicacion de la pantalla / Teclado
+           parameter WAIT_DELAY = `T_200ms,  //-- Tiempo de espera para la instruccion WAIT (Debug)
+           parameter ROMFILE = "prog.list"   //-- Fichero con el contenido de la RAM a cargar
+)(
+           input wire clk,          //-- Reloj del sistema
+           input wire rstn_ini,     //-- Reset
+           output wire [3:0] leds,  //-- leds
+           output wire stop,        //-- Indicador de stop
+           output wire tx,          //-- Salida serie para la pantalla
+           input wire rx            //-- Entrada serie del teclado
+);
 
-//-- Parametro: fichero con el programa a cargar en la rom
-parameter ROMFILE = "prog.list";
-
-//-- Parametro: Tiempo de espera para la instruccion WAIT
-parameter WAIT_DELAY = `T_200ms;
-
-//-- Velocidad de comunicacion con la pantalla
-parameter BAUD = `B115200;
 
 //-- Direcciones para los perifericos
-localparam PANTALLA_STATUS_ADR = 9'd508;
+localparam PANTALLA_STATUS_ADR = 9'd508;  //-- Pantalla: Unidad de transmisión serie
 localparam PANTALLA_DATA_ADR = 9'd509;
-localparam TECLADO_STATUS_ADR = 9'd510;
+localparam TECLADO_STATUS_ADR = 9'd510;   //-- Teclado: Unidad de recepcion serie
 localparam TECLADO_DATA_ADR = 9'd511;
 
 
@@ -42,19 +44,21 @@ localparam HALT = 3'o7;  //-- OK
 localparam HALTE = 4'hE; //-- Halt extended
 localparam WAIT = 4'hF;  //-- Wait
 
-//-- Tamaño de la memoria ROM a instanciar
+//-- Tamaño de la memoria RAM a instanciar
 localparam AW = 9;     //-- Anchura del bus de direcciones
 localparam DW = 12;     //-- Anchura del bus de datos
 
 //-- Instanciar la memoria RAM
 wire [DW-1: 0] mem_dout;
 wire [AW-1: 0] addr;
-wire ram_cs ;  //-- Chip select para la ram
-wire ram_inst_cs;
-wire ram_data_cs;
+wire ram_cs ;             //-- Chip select global para la ram
+wire ram_inst_cs;         //-- Chip select para lectura de instrucciones en RAM
+wire ram_data_cs;         //-- Chip select para el acceso a datos en RAM
 
 //-- Chip select para el acceso a instrucciones
 assign ram_inst_cs = (state == INIT) ? 1 : 0;
+
+//-- Chip select global de la RAM
 assign ram_cs = ram_inst_cs | ram_data_cs;
 
 genram #(
@@ -83,7 +87,7 @@ always @(posedge clk)
   reg ri_load = 0;  //-- Cargar el registro de instruccion
   reg halt = 0;     //-- Instruccion halt ejecutada
   reg a_load = 0;   //-- Cargar el acumulador
-  reg rw = 1;
+  reg rw = 1;       //-- Lectura / escritura en RAM
   reg timer_ena;   //-- Habilitacion del temporizador
 
   //-- Microordenes para la ALU
@@ -91,8 +95,6 @@ always @(posedge clk)
   reg alu_clr;  //-- Sacar un 0 por la salida
   reg alu_add;  //-- Sumar al acumulador el operando 2
   reg alu_dec;  //-- Decrementar operando 1 en una unidad
-
-
 
   //-- Contador de programa
   reg [AW-1: 0] cp;
@@ -147,10 +149,10 @@ always @(posedge clk)
 
 
 
-//-- Debug
+//-- Debug: 4 bits menos significativos del registro A conectados a los leds rojos
 assign leds = reg_a[3:0];
 
-//-- Debug
+//-- Debug: Sacar señal de stop por el led verde de la icestick
 assign stop = reg_stop;
 
 
@@ -215,6 +217,8 @@ dividerp1 #(WAIT_DELAY)
 //-- Chip select para la pantalla de simplez
 wire pant_data_cs;
 wire pant_status_cs;
+
+//-- Otros cables para la pantalla
 wire tx_ready;
 reg [7:0] pant_status;
 
