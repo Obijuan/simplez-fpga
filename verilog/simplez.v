@@ -84,12 +84,15 @@ always @(posedge clk)
   reg halt = 0;     //-- Instruccion halt ejecutada
   reg a_load = 0;   //-- Cargar el acumulador
   reg rw = 1;
+  reg timer_ini;   //-- Inicializar timer
 
   //-- Microordenes para la ALU
   reg alu_op2;  //-- Sacar el operando 2 por la salida (sin modificar)
   reg alu_clr;  //-- Sacar un 0 por la salida
   reg alu_add;  //-- Sumar al acumulador el operando 2
   reg alu_dec;  //-- Decrementar operando 1 en una unidad
+
+
 
   //-- Contador de programa
   reg [AW-1: 0] cp;
@@ -205,7 +208,8 @@ wire clk_tic;
 dividerp1 #(WAIT_DELAY)
   TIMER0 (
     .clk(clk),
-    .clk_out(clk_tic)
+    .clk_out(clk_tic),
+    .timer_ini(timer_ini)
   );
 
 //-- Chip select para la pantalla de simplez
@@ -320,6 +324,7 @@ always @(*) begin
   alu_add = 0;
   alu_clr = 0;
   alu_dec = 0;
+  timer_ini = 0;
 
   case(state)
     //-- Estado inicial
@@ -391,10 +396,9 @@ always @(*) begin
 
             //-- Instruccion WAIT de microbio
             WAIT: begin
-                //-- Mientras no se active clk_tic, se sigue en el mismo
-                //-- estado de ejecucion
-                if (clk_tic) next_state = END;
-                else next_state = EXEC1;
+                //-- Reiniciar temporizador
+                timer_ini = 1;
+                next_state = EXEC2;
             end
 
           endcase
@@ -417,6 +421,26 @@ always @(*) begin
           alu_add = 1;
           next_state = END;
         end
+
+        //-- Procesar codigos de operacion extendidos
+        HALT: begin
+
+          //-- Instrucciones extendidas
+          case (COE)
+
+            //-- Instruccion WAIT de microbio
+            WAIT: begin
+                //-- Mientras no se active clk_tic, se sigue en el mismo
+                //-- estado de ejecucion
+                timer_ini = 1;
+                if (clk_tic) next_state = END;
+                else next_state = EXEC2;
+            end
+
+          endcase
+
+        end
+
 
       endcase
     end

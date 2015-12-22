@@ -16,6 +16,7 @@
 //--     - clk_out. Señal de salida para lograr la velocidad en baudios indicada
 //--                Anchura de 1 periodo de clk. SALIDA NO REGISTRADA
 module dividerp1(input wire clk,
+                 input wire timer_ini,
                  output wire clk_out);
 
 //-- Valor por defecto de la velocidad en baudios
@@ -29,10 +30,13 @@ reg [N-1:0] divcounter = 0;
 
 //-- Contador módulo M
 always @(posedge clk)
-    divcounter <= (divcounter == M - 1) ? 0 : divcounter + 1;
+    if (timer_ini)
+      divcounter <= (divcounter == M - 1) ? 0 : divcounter + 1;
+    else
+      divcounter <= 0;
 
 //-- Sacar un pulso de anchura 1 ciclo de reloj si el generador
-assign clk_out = (divcounter == 0) ? 1 : 0;
+assign clk_out = (divcounter == M - 1) ? 1 : 0;
 
 
 endmodule

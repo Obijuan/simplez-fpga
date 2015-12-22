@@ -11,7 +11,7 @@ module simplez_tb();
 parameter ROMFILE = "prog.list";
 
 //-- Para la simulacion se usa un WAIT_DELAY de 3 ciclos de reloj
-parameter WAIT_DELAY = 10;
+parameter WAIT_DELAY = 20;
 
 //-- Registro para generar la señal de reloj
 reg clk = 0;
