@@ -84,7 +84,7 @@ always @(posedge clk)
   reg halt = 0;     //-- Instruccion halt ejecutada
   reg a_load = 0;   //-- Cargar el acumulador
   reg rw = 1;
-  reg timer_ini;   //-- Inicializar timer
+  reg timer_ena;   //-- Habilitacion del temporizador
 
   //-- Microordenes para la ALU
   reg alu_op2;  //-- Sacar el operando 2 por la salida (sin modificar)
@@ -209,7 +209,7 @@ dividerp1 #(WAIT_DELAY)
   TIMER0 (
     .clk(clk),
     .clk_out(clk_tic),
-    .timer_ini(timer_ini)
+    .timer_ena(timer_ena)
   );
 
 //-- Chip select para la pantalla de simplez
@@ -324,7 +324,7 @@ always @(*) begin
   alu_add = 0;
   alu_clr = 0;
   alu_dec = 0;
-  timer_ini = 0;
+  timer_ena = 0;
 
   case(state)
     //-- Estado inicial
@@ -397,7 +397,7 @@ always @(*) begin
             //-- Instruccion WAIT de microbio
             WAIT: begin
                 //-- Reiniciar temporizador
-                timer_ini = 1;
+                timer_ena = 1;
                 next_state = EXEC2;
             end
 
@@ -432,7 +432,7 @@ always @(*) begin
             WAIT: begin
                 //-- Mientras no se active clk_tic, se sigue en el mismo
                 //-- estado de ejecucion
-                timer_ini = 1;
+                timer_ena = 1;
                 if (clk_tic) next_state = END;
                 else next_state = EXEC2;
             end

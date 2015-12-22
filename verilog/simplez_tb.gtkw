@@ -1,12 +1,12 @@
 [*]
 [*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
-[*] Tue Dec 22 08:56:32 2015
+[*] Tue Dec 22 09:08:14 2015
 [*]
 [dumpfile] "/home/obijuan/development/simplez-fpga/verilog/simplez_tb.vcd"
-[dumpfile_mtime] "Tue Dec 22 08:56:10 2015"
-[dumpfile_size] 8073
+[dumpfile_mtime] "Tue Dec 22 09:07:49 2015"
+[dumpfile_size] 9162
 [savefile] "/home/obijuan/development/simplez-fpga/verilog/simplez_tb.gtkw"
-[timestart] 105
+[timestart] 0
 [size] 1301 744
 [pos] -1 -1
 *-2.624078 19 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
@@ -44,8 +44,9 @@ simplez_tb.leds[3:0]
 @28
 simplez_tb.stop
 simplez_tb.dut.clk_tic
-simplez_tb.dut.timer_ini
-@25
+@29
+simplez_tb.dut.timer_ena
+@24
 simplez_tb.dut.TIMER0.divcounter[4:0]
 @28
 simplez_tb.dut.flag_z
