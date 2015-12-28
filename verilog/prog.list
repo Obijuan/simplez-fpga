@@ -1,19 +1,23 @@
-20C   //-- [000]           LD /VAL1 ;-- VAL1 = H'00C 
-F00   //-- [001]           WAIT
-3FE   //-- [002][LOOP]     LD /RXSTATUS ;-- RXSTATUS = H'1FE 
-802   //-- [003]           BZ /LOOP ;-- LOOP = H'002 
-3FF   //-- [004]           LD /RXDATA ;-- RXDATA = H'1FF 
-00D   //-- [005]           ST /CAR ;-- CAR = H'00D 
-3FC   //-- [006][WAIT1]    LD /TXSTATUS ;-- TXSTATUS = H'1FC 
-806   //-- [007]           BZ /WAIT1 ;-- WAIT1 = H'006 
-20D   //-- [008]           LD /CAR ;-- CAR = H'00D 
-1FD   //-- [009]           ST /TXDATA ;-- TXDATA = H'1FD 
-602   //-- [00A]           BR /LOOP ;-- LOOP = H'002 
-E00   //-- [00B]           HALT
-0FF   //-- [00C][VAL1]     DATA H'0FF
-000   //-- [00D][CAR]      DATA H'000
+20F   //-- [000]           LD /CVAL1 ;-- CVAL1 = H'00F 
+1FB   //-- [001]           ST /LEDS ;-- LEDS = H'1FB 
+F00   //-- [002]           WAIT
+A00   //-- [003]           CLR
+1FB   //-- [004]           ST /LEDS ;-- LEDS = H'1FB 
+3FE   //-- [005][MAIN]     LD /RXSTATUS ;-- RXSTATUS = H'1FE 
+805   //-- [006]           BZ /MAIN ;-- MAIN = H'005 
+3FF   //-- [007]           LD /RXDATA ;-- RXDATA = H'1FF 
+1FB   //-- [008]           ST /LEDS ;-- LEDS = H'1FB 
+010   //-- [009]           ST /CAR ;-- CAR = H'010 
+3FC   //-- [00A][TXLOOP]   LD /TXSTATUS ;-- TXSTATUS = H'1FC 
+80A   //-- [00B]           BZ /TXLOOP ;-- TXLOOP = H'00A 
+210   //-- [00C]           LD /CAR ;-- CAR = H'010 
+1FD   //-- [00D]           ST /TXDATA ;-- TXDATA = H'1FD 
+605   //-- [00E]           BR /MAIN ;-- MAIN = H'005 
+00F   //-- [00F][CVAL1]    DATA H'00F
+000   //-- [010][CAR]      DATA H'000
 
-@1FC  //--                 ORG 0x1FC
+@1FB  //--                 ORG 0x1FB
+000   //-- [1FB][LEDS]     DATA H'000
 000   //-- [1FC][TXSTATUS] DATA H'000
 000   //-- [1FD][TXDATA]   DATA H'000
 000   //-- [1FE][RXSTATUS] DATA H'000

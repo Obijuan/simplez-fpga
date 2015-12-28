@@ -12,7 +12,8 @@
 module simplez  #(
            parameter BAUD = `B115200,        //-- Velocidad de comunicacion de la pantalla / Teclado
            parameter WAIT_DELAY = `T_200ms,  //-- Tiempo de espera para la instruccion WAIT (Debug)
-           parameter ROMFILE = "prog.list"   //-- Fichero con el contenido de la RAM a cargar
+           parameter ROMFILE = "prog.list",  //-- Fichero con el contenido de la RAM a cargar
+           parameter DEBUG_LEDS = 0          //-- Uso de los leds para depuracion
 )(
            input wire clk,          //-- Reloj del sistema
            input wire rstn_ini,     //-- Reset
@@ -24,6 +25,7 @@ module simplez  #(
 
 
 //-- Direcciones para los perifericos
+localparam LEDS_ADR = 9'd507;
 localparam PANTALLA_STATUS_ADR = 9'd508;  //-- Pantalla: Unidad de transmisión serie
 localparam PANTALLA_DATA_ADR = 9'd509;
 localparam TECLADO_STATUS_ADR = 9'd510;   //-- Teclado: Unidad de recepcion serie
@@ -148,9 +150,14 @@ always @(posedge clk)
     reg_a <= alu_out;
 
 
+//-- Debug: Acceso a los leds
+//-- Si DEBUG_LEDS, se saca directamente los 4 bits menos sig. del registro A
+//-- En caso contrario los leds estan mapeados y se accede a ellos como a cualquier
+//-- otro periferico
+assign leds = (DEBUG_LEDS == 1) ? reg_a[3:0] : leds_data;
 
 //-- Debug: 4 bits menos significativos del registro A conectados a los leds rojos
-assign leds = reg_a[3:0];
+//assign leds = reg_a[3:0];
 
 //-- Debug: Sacar señal de stop por el led verde de la icestick
 assign stop = reg_stop;
@@ -231,6 +238,9 @@ wire [7:0] rxdata;
 wire rxrcv;
 reg rcv_flag;
 
+//-- Chip select para el registro de LEDs
+wire leds_cs = (CD == LEDS_ADR) ? 1 : 0;
+
 
 //-- Logica de activacion del chip select de la memoria
 //-- Direcciones desde 0 - 1F7  son de RAM
@@ -291,6 +301,15 @@ uart_rx #(BAUD)
        .rcv(rxrcv),      //-- Señal de dato recibido
        .data(rxdata)     //-- Datos recibidos
       );
+
+//-- Puerto de leds
+reg [3:0] leds_data;
+
+always @(posedge clk)
+  if (!rstn)
+    leds_data <= 0;
+  else if (leds_cs)
+    leds_data <= reg_a[3:0];
 
 //-------------------- UNIDAD DE CONTROL
 localparam INIT = 0;
