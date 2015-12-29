@@ -10,7 +10,7 @@
 
 Toda la documentación se está escribiendo en la wiki de github de este repo:
 
-[Acceso a la wiki del proyecto](https://github.com/Obijuan/simplez-fpga/wiki)
+[Acceso a la wiki del proyecto](https://github.com/Obijuan/simplez-fpga/wiki/Procesador-SIMPLEZ-F)
 
 # Author
 [Juan González Gómez](http://obijuan.github.io/) (Obijuan)
@@ -21,7 +21,7 @@ Toda la documentación se está escribiendo en la wiki de github de este repo:
 * Creadores de las herramientas libres usadas para sintetizar a Simplez F:
   * [Proyecto icestorm](http://www.clifford.at/icestorm/), por Clifford Wolf and Mathias Lasser
   * [Arachne-pnr](https://github.com/cseed/arachne-pnr), por Cotton Seed
-  
+
 * Herramientas para la simulación de SIMPLEZ F:
   * **Simulador de Verilog**: [ícarus Verilog](http://iverilog.icarus.com/)
   * **Visualizador de señales**: [Gtkwave](http://gtkwave.sourceforge.net/)
