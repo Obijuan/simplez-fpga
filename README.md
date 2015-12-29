@@ -6,6 +6,9 @@
 
   Las simulaciones están muy bien pero... es más divertido: **¡Trabajar con un simplez real!** :-)
 
+![](https://github.com/Obijuan/simplez-fpga/raw/master/doc/images/icestick-simplez-2.png)
+
+
 # Documentación
 
 Toda la documentación se está escribiendo en la wiki de github de este repo:
