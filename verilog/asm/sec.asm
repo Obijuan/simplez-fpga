@@ -1,5 +1,5 @@
 ;-- Programas de ejemplo para Simplez
-;-- leds_on.asm: Encender todos los leds
+;-- sec.asm: Sacar una secuencia de 2 estados por los leds
 
 loop
     LD /val1   ;-- Sacar valor 1 por los leds
