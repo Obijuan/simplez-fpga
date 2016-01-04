@@ -359,4 +359,4 @@ if __name__ == "__main__":
     s.load_mcode_file("prog.list")
 
     # -- Simulate the SIMPLEZ2 example
-    example_simplez5(s)
+    # example_simplez5(s)
