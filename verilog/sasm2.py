@@ -1,7 +1,8 @@
 import re
 
 # --- Token types
-INTEGER, PLUS, MINUS, EOF, UNKNOWN = 'INTEGER', 'PLUS', 'MINUS', 'EOF', 'UNKNOWN'
+INTEGER, PLUS, MINUS, MULT, DIV, EOF, UNKNOWN = ('INTEGER', 'PLUS', 'MINUS', 'MULT', 'DIV',
+                                                 'EOF', 'UNKNOWN')
 
 # -------- Regular expresions
 # -- White spaces
@@ -9,6 +10,9 @@ REGEX_WSPACE = r"[\s]+"
 
 # -- Decimal number
 REGEX_DEC = r"[0-9]+"
+
+# -- Hexadecimal number
+REGEX_HEX = r"0x[0-9a-fA-F]+"
 
 
 class Token(object):
@@ -40,6 +44,13 @@ class Interpreter(object):
         if scan:
             self.pos += len(scan.group())
 
+        # -- Check if it is an hexadecimal number
+        scan = re.match(REGEX_HEX, self.text[self.pos:])
+        if scan:
+            self.pos += len(scan.group())
+            token = Token(INTEGER, int(scan.group(), 16))
+            return token
+
         # -- Check if it is a decimal number
         scan = re.match(REGEX_DEC, self.text[self.pos:])
         if scan:
@@ -60,6 +71,16 @@ class Interpreter(object):
 
         if current_char == '-':
             token = Token(MINUS, current_char)
+            self.pos += 1
+            return token
+
+        if current_char == '*':
+            token = Token(MULT, current_char)
+            self.pos += 1
+            return token
+
+        if current_char == '/':
+            token = Token(DIV, current_char)
             self.pos += 1
             return token
 
@@ -85,7 +106,11 @@ class Interpreter(object):
     def expr(self):
         """Evaluate the text given"""
 
-        # ---- Expresion to parser: INTEGER PLUS INTEGER
+        # ---- Expresions to parser:
+        #   INTEGER PLUS INTEGER
+        #   INTEGER MINUS INTEGER
+        #   INTEGER MULT INTEGER
+        #   INTEGER DIV INTEGER
 
         # Get the current token
         self.current_token = self.get_next_token()
@@ -94,17 +119,36 @@ class Interpreter(object):
         left = self.current_token
         self.assert_type(INTEGER)
 
-        # -- Operator +
-        self.assert_type(PLUS)
+        # - Parcial result
+        result = left.value
 
-        # -- Right operand
-        right = self.current_token
-        self.assert_type(INTEGER)
+        while self.current_token.type != EOF:
 
-        # -- No more tokens
-        self.assert_type(EOF)
+            # -- Operator +
+            op = self.current_token
+            if op.type == PLUS:
+                self.assert_type(PLUS)
+            elif op.type == MINUS:
+                self.assert_type(MINUS)
+            elif op.type == MULT:
+                self.assert_type(MULT)
+            else:
+                self.assert_type(DIV)
 
-        return "{} + {} = {}".format(left.value, right.value, left.value + right.value)
+            # -- Right operand
+            right = self.current_token
+            self.assert_type(INTEGER)
+
+            if op.type == PLUS:
+                result += right.value
+            elif op.type == MINUS:
+                result -= right.value
+            elif op.type == MULT:
+                result *= right.value
+            else:
+                result /= right.value
+
+        return int(result)
 
 
 if __name__ == '__main__':
@@ -116,6 +160,6 @@ if __name__ == '__main__':
         if not text:
             continue
         interp = Interpreter(text)
-        # result = interp.expr()
-        result = interp.test()
+        result = interp.expr()
+        # result = interp.test()
         print(result)
