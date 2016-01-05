@@ -109,9 +109,37 @@ class Lexer(object):
                 return
 
 
-class Interpreter(object):
-    """Main interpreter"""
+class AST(object):
+    pass
 
+
+class BinOp(AST):
+    def __init__(self, left, op, right):
+        self.left = left
+        self.token = self.op = op
+        self.right = right
+
+    def eval(self):
+        if self.op.type == MUL:
+            return self.left.eval() * self.right.eval()
+        elif self.op.type == DIV:
+            return int(self.left.eval() / self.right.eval())
+        elif self.op.type == PLUS:
+            return self.left.eval() + self.right.eval()
+        elif self.op.type == MINUS:
+            return self.left.eval() - self.right.eval()
+
+
+class Num(AST):
+    def __init__(self, token):
+        self.token = token
+        self.value = token.value
+
+    def eval(self):
+        return self.value
+
+
+class Parser(object):
     def __init__(self, lexer):
         self.lexer = lexer
         self.current_token = self.lexer.get_token()
@@ -127,52 +155,81 @@ class Interpreter(object):
         else:
             self.error()
 
-    def factor(self):
-        """factor : INTEGER | LPAR expr RPAR """
-        if self.current_token.type == INTEGER:
-            value = self.current_token.value
-            self.assert_type(INTEGER)
-            return value
-        else:
-            self.assert_type(LPAR)
-            result = self.expr()
-            self.assert_type(RPAR)
-            return result
-
     def term(self):
         """term : factor ((MUL | DIV) factor)*"""
 
-        result = self.factor()
+        node = self.factor()
         while self.current_token.type in (MUL, DIV):
 
-            if self.current_token.type == MUL:
-                self.assert_type(MUL)
-                result = result * self.factor()
+            token = self.current_token
+            self.assert_type(token.type)
+            node = BinOp(left=node, op=token, right=self.factor())
 
-            elif self.current_token.type == DIV:
-                self.assert_type(DIV)
-                result = int(result / self.factor())
+        return node
 
-        return result
+    def factor(self):
+        """factor : INTEGER | LPAR expr RPAR """
+        if self.current_token.type == INTEGER:
+            token = self.current_token
+            self.assert_type(INTEGER)
+            return Num(token)
+        else:
+            self.assert_type(LPAR)
+            node = self.expr()
+            self.assert_type(RPAR)
+            return node
 
     def expr(self):
         """expr : term ((PLUS | MINUS) term)*
-           term : factor ()(MUL | DIV) factor)*
-           factor: INTEGER
+        #  term : factor ()(MUL | DIV) factor)*
+        #  factor: INTEGER
         """
-        result = self.term()
+        node = self.term()
 
         while self.current_token.type in (PLUS, MINUS):
+            token = self.current_token
+            self.assert_type(token.type)
+            node = BinOp(left=node, op=token, right=self.term())
 
-            if self.current_token.type == PLUS:
-                self.assert_type(PLUS)
-                result = result + self.term()
+        return node
 
-            elif self.current_token.type == MINUS:
-                self.assert_type(MINUS)
-                result = result - self.term()
+    def parse(self):
+        return self.expr()
 
-        return result
+
+class NodeVisitor(object):
+    def visit(self, node):
+        method_name = 'visit_' + type(node).__name__
+        visitor = getattr(self, method_name, self.generic_visit)
+        return visitor(node)
+
+    def generic_visit(self, node):
+        raise Exception('No visit_{} method'.format(type(node).__name__))
+
+
+class Interpreter(NodeVisitor):
+    def __init__(self, parser):
+        self.parser = parser
+
+    def visit_BinOp(self, node):
+        if node.op.type == PLUS:
+            return self.visit(node.left) + self.visit(node.right)
+        elif node.op.type == MINUS:
+            return self.visit(node.left) - self.visit(node.right)
+        elif node.op.type == MUL:
+            return self.visit(node.left) * self.visit(node.right)
+        elif node.op.type == DIV:
+            return int(self.visit(node.left) / self.visit(node.right))
+
+    def visit_Num(self, node):
+        return node.value
+
+    def interpret(self):
+        # - Create the AST
+        ast = self.parser.parse()
+
+        # - Evaluate the ast
+        return self.visit(ast)
 
 
 if __name__ == '__main__':
@@ -188,8 +245,16 @@ if __name__ == '__main__':
         lexer = Lexer(text)
 
         # - Test
-        lexer.test()
-        lexer.reset()
+        # lexer.test()
+        # lexer.reset()
 
-        interp = Interpreter(lexer)
-        print (interp.expr())
+        # - Parser
+        parser = Parser(lexer)
+
+        # - Test
+        # ast = parser.parse()
+        # print(ast.eval())
+
+        # - Interpreter
+        interp = Interpreter(parser)
+        print (interp.interpret())
