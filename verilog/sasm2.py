@@ -103,6 +103,12 @@ class Interpreter(object):
 
         return ""
 
+    def term(self):
+        """Return a INTEGER value"""
+        value = self.current_token.value
+        self.assert_type(INTEGER)
+        return value
+
     def expr(self):
         """Evaluate the text given"""
 
@@ -115,38 +121,20 @@ class Interpreter(object):
         # Get the current token
         self.current_token = self.get_next_token()
 
-        # - Left operand
-        left = self.current_token
-        self.assert_type(INTEGER)
+        # - Parse and read the left operand
+        result = self.term()
 
-        # - Parcial result
-        result = left.value
+        while self.current_token.type in (PLUS, MINUS):
 
-        while self.current_token.type != EOF:
-
-            # -- Operator +
+            # -- Read operator
             op = self.current_token
+
             if op.type == PLUS:
                 self.assert_type(PLUS)
+                result = result + self.term()
             elif op.type == MINUS:
                 self.assert_type(MINUS)
-            elif op.type == MULT:
-                self.assert_type(MULT)
-            else:
-                self.assert_type(DIV)
-
-            # -- Right operand
-            right = self.current_token
-            self.assert_type(INTEGER)
-
-            if op.type == PLUS:
-                result += right.value
-            elif op.type == MINUS:
-                result -= right.value
-            elif op.type == MULT:
-                result *= right.value
-            else:
-                result /= right.value
+                result = result - self.term()
 
         return int(result)
 
