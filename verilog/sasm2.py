@@ -1,8 +1,9 @@
 import re
 
 # --- Token types
-INTEGER, PLUS, MINUS, MUL, DIV, EOF, UNKNOWN = ('INTEGER', 'PLUS', 'MINUS', 'MUL', 'DIV',
-                                                'EOF', 'UNKNOWN')
+INTEGER, PLUS, MINUS, MUL, DIV, LPAR, RPAR, EOF, UNKNOWN = (
+    'INTEGER', 'PLUS', 'MINUS', 'MUL', 'DIV', 'LPAR', 'RPAR', 'EOF', 'UNKNOWN'
+)
 
 # -------- Regular expresions
 # -- White spaces
@@ -26,19 +27,18 @@ class Token(object):
         return "TOKEN({}, {})".format(self.type, self.value)
 
 
-class Interpreter(object):
-    """Main interpreter"""
+class Lexer(object):
+    """Lexical analyzer"""
 
     def __init__(self, text):
         self.text = text
         self.pos = 0
-        # Get the current token
-        self.current_token = self.get_next_token()
 
-    def error(self):
-        raise Exception('Error parsing input')
+    def reset(self):
+        self.pos = 0
 
-    def get_next_token(self):
+    def get_token(self):
+        """Get the next token from tex"""
 
         # - Remove the white spaces, if any
         scan = re.match(REGEX_WSPACE, self.text[self.pos:])
@@ -85,43 +85,62 @@ class Interpreter(object):
             self.pos += 1
             return token
 
+        if current_char == '(':
+            token = Token(LPAR, current_char)
+            self.pos += 1
+            return token
+
+        if current_char == ')':
+            token = Token(RPAR, current_char)
+            self.pos += 1
+            return token
+
         # - Token desconocido
         token = Token(UNKNOWN, None)
         self.pos += 1
         return token
 
+    def test(self):
+        """Test the lexer"""
+        while True:
+            token = self.get_token()
+            print(token)
+            if token.type == EOF:
+                return
+
+
+class Interpreter(object):
+    """Main interpreter"""
+
+    def __init__(self, lexer):
+        self.lexer = lexer
+        self.current_token = self.lexer.get_token()
+
+    def error(self):
+        raise Exception('Error parsing input')
+
     def assert_type(self, type):
         """Make sure the current token is of the given type"""
 
         if self.current_token.type == type:
-            self.current_token = self.get_next_token()
+            self.current_token = self.lexer.get_token()
         else:
             self.error()
 
-    def test(self):
-        print(self.current_token)
-        for i in range(10):
-            print(self.get_next_token())
-
-        return ""
+    def factor(self):
+        """factor : INTEGER | pexpr """
+        if self.current_token.type == INTEGER:
+            value = self.current_token.value
+            self.assert_type(INTEGER)
+            return value
+        else:
+            return self.pexpr()
 
     def term(self):
-        """Return a INTEGER value"""
-        value = self.current_token.value
-        self.assert_type(INTEGER)
-        return value
-
-    def factor(self):
-        """Return an INTEGER value"""
-        value = self.current_token.value
-        self.assert_type(INTEGER)
-        return value
-
-    def expr(self):
+        """term : factor ((MUL | DIV) factor)*"""
 
         result = self.factor()
-
-        while self.current_token.type in (MUL, DIV, PLUS, MINUS):
+        while self.current_token.type in (MUL, DIV):
 
             if self.current_token.type == MUL:
                 self.assert_type(MUL)
@@ -131,13 +150,31 @@ class Interpreter(object):
                 self.assert_type(DIV)
                 result = int(result / self.factor())
 
-            elif self.current_token.type == PLUS:
+        return result
+
+    def pexpr(self):
+        """pexpr: LPAR expr RPAR"""
+        self.assert_type(LPAR)
+        result = self.expr()
+        self.assert_type(RPAR)
+        return result
+
+    def expr(self):
+        """expr : term ((PLUS | MINUS) term)*
+           term : factor ()(MUL | DIV) factor)*
+           factor: INTEGER
+        """
+        result = self.term()
+
+        while self.current_token.type in (PLUS, MINUS):
+
+            if self.current_token.type == PLUS:
                 self.assert_type(PLUS)
-                result = result + self.factor()
+                result = result + self.term()
 
             elif self.current_token.type == MINUS:
                 self.assert_type(MINUS)
-                result = result - self.factor()
+                result = result - self.term()
 
         return result
 
@@ -150,7 +187,13 @@ if __name__ == '__main__':
             break
         if not text:
             continue
-        interp = Interpreter(text)
-        result = interp.expr()
-        # result = interp.test()
-        print(result)
+
+        # - Lexical analyzer
+        lexer = Lexer(text)
+
+        # - Test
+        lexer.test()
+        lexer.reset()
+
+        interp = Interpreter(lexer)
+        print (interp.expr())
