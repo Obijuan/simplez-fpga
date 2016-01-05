@@ -1,8 +1,8 @@
 import re
 
 # --- Token types
-INTEGER, PLUS, MINUS, MULT, DIV, EOF, UNKNOWN = ('INTEGER', 'PLUS', 'MINUS', 'MULT', 'DIV',
-                                                 'EOF', 'UNKNOWN')
+INTEGER, PLUS, MINUS, MUL, DIV, EOF, UNKNOWN = ('INTEGER', 'PLUS', 'MINUS', 'MUL', 'DIV',
+                                                'EOF', 'UNKNOWN')
 
 # -------- Regular expresions
 # -- White spaces
@@ -32,7 +32,8 @@ class Interpreter(object):
     def __init__(self, text):
         self.text = text
         self.pos = 0
-        self.current_token = None
+        # Get the current token
+        self.current_token = self.get_next_token()
 
     def error(self):
         raise Exception('Error parsing input')
@@ -75,7 +76,7 @@ class Interpreter(object):
             return token
 
         if current_char == '*':
-            token = Token(MULT, current_char)
+            token = Token(MUL, current_char)
             self.pos += 1
             return token
 
@@ -98,6 +99,7 @@ class Interpreter(object):
             self.error()
 
     def test(self):
+        print(self.current_token)
         for i in range(10):
             print(self.get_next_token())
 
@@ -109,34 +111,35 @@ class Interpreter(object):
         self.assert_type(INTEGER)
         return value
 
+    def factor(self):
+        """Return an INTEGER value"""
+        value = self.current_token.value
+        self.assert_type(INTEGER)
+        return value
+
     def expr(self):
-        """Evaluate the text given"""
 
-        # ---- Expresions to parser:
-        #   INTEGER PLUS INTEGER
-        #   INTEGER MINUS INTEGER
-        #   INTEGER MULT INTEGER
-        #   INTEGER DIV INTEGER
+        result = self.factor()
 
-        # Get the current token
-        self.current_token = self.get_next_token()
+        while self.current_token.type in (MUL, DIV, PLUS, MINUS):
 
-        # - Parse and read the left operand
-        result = self.term()
+            if self.current_token.type == MUL:
+                self.assert_type(MUL)
+                result = result * self.factor()
 
-        while self.current_token.type in (PLUS, MINUS):
+            elif self.current_token.type == DIV:
+                self.assert_type(DIV)
+                result = int(result / self.factor())
 
-            # -- Read operator
-            op = self.current_token
-
-            if op.type == PLUS:
+            elif self.current_token.type == PLUS:
                 self.assert_type(PLUS)
-                result = result + self.term()
-            elif op.type == MINUS:
-                self.assert_type(MINUS)
-                result = result - self.term()
+                result = result + self.factor()
 
-        return int(result)
+            elif self.current_token.type == MINUS:
+                self.assert_type(MINUS)
+                result = result - self.factor()
+
+        return result
 
 
 if __name__ == '__main__':
