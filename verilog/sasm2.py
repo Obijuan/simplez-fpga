@@ -128,13 +128,16 @@ class Interpreter(object):
             self.error()
 
     def factor(self):
-        """factor : INTEGER | pexpr """
+        """factor : INTEGER | LPAR expr RPAR """
         if self.current_token.type == INTEGER:
             value = self.current_token.value
             self.assert_type(INTEGER)
             return value
         else:
-            return self.pexpr()
+            self.assert_type(LPAR)
+            result = self.expr()
+            self.assert_type(RPAR)
+            return result
 
     def term(self):
         """term : factor ((MUL | DIV) factor)*"""
@@ -150,13 +153,6 @@ class Interpreter(object):
                 self.assert_type(DIV)
                 result = int(result / self.factor())
 
-        return result
-
-    def pexpr(self):
-        """pexpr: LPAR expr RPAR"""
-        self.assert_type(LPAR)
-        result = self.expr()
-        self.assert_type(RPAR)
         return result
 
     def expr(self):
