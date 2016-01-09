@@ -129,7 +129,7 @@ REGEX_HEX = r"H\'[0-9a-fA-F]+"
 # -- Comment
 REGEX_COMMENT = r";[^\n]*"
 
-# -- White spaces
+# -- White spaces. \n is not included
 REGEX_WSPACE = r"[ \t\r\f\v]+"
 
 # -- Label
@@ -255,7 +255,10 @@ class Parser(object):
 
     def __init__(self, lexer):
         self.lexer = lexer
+
+        # -- The last two token are read in advance
         self.current_token = self.lexer.get_token()
+        self.next_token = self.lexer.get_token()
 
     def error(self, msg=""):
         raise Exception('Error parsing input: {}. Line: {}'.format(msg, self.lexer.line))
@@ -267,7 +270,8 @@ class Parser(object):
             if debug:
                 print(self.current_token)
 
-            self.current_token = self.lexer.get_token()
+            self.current_token = self.next_token
+            self.next_token = self.lexer.get_token()
 
         else:
             self.error(error_msg)
@@ -351,7 +355,8 @@ class Parser(object):
     def dir_equ(self):
         """<dirEQU> ::= LABEL EQU NUMBER"""
 
-        pass
+        print(self.current_token)
+        print(self.next_token)
 
     def parse(self):
         self.program()
