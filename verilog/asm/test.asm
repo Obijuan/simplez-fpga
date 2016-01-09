@@ -1,6 +1,10 @@
-ini   CLR
-      DEC
-      WAIT
-fin   HALT
 
+
+
+
+
+
+
+    WAIT
+    HALT
      end

@@ -106,9 +106,10 @@ DEBUG_PARSER = True
 class Token(object):
     """Token generator"""
 
-    def __init__(self, type, value):
+    def __init__(self, type, value, line=None):
         self.type = type
         self.value = value
+        self.line = line
 
     def __str__(self):
         if self.type in [COMMENT, STRING]:
@@ -285,7 +286,7 @@ class Lexer(object):
         # -- Check if it is an instruction
         instr = self.check_instruction()
         if instr:
-            return Token(instr, None)
+            return Token(instr, None, line=self.line)
 
         # -- Check if it is a label
         label = self.check_label()
@@ -322,11 +323,61 @@ class Lexer(object):
                 return
 
 
+# ---------------------- AST
+class Prog_AST(object):
+    def __init__(self):
+        self.addr = 0   # -- Current address
+        self.linst = []  # -- List of instructions
+
+        # -- Symbol table. It is used for storing the pairs label - address
+        self.symtable = {}
+
+    def add(self, inst):
+        """Add the instruction in the current address. Increment the address counter
+        """
+
+        # -- Assign the current address
+        inst.addr = self.addr
+
+        # -- Insert the instruction
+        self.linst.append(inst)
+
+        # -- Increment the current address
+        self.addr += 1
+
+    def __str__(self):
+        string = ""
+        for instr in self.linst:
+            string += "{}\n".format(instr)
+
+        return string
+
+
+class Instruction(object):
+    """Simplez instruction class"""
+
+    def __init__(self, nemonic, line=None):
+        self.nemonic = nemonic  # -- Instruction name
+        self.line = line        # -- line number where the instruction is located in the src
+        self.addr = None        # -- Address were the instruction is stored
+
+    def __str__(self):
+        string = ""
+        if self.line:
+            string = "{} ".format(self.line)
+
+        string += "{}".format(self.nemonic)
+        return string
+
+# ----------- Syntax analyzer
+
+
 class Parser(object):
     """Sintax analysis"""
 
     def __init__(self, lexer):
         self.lexer = lexer
+        self.prog = Prog_AST()
 
         # -- The last two token are read in advance
         self.current_token = self.lexer.get_token()
@@ -550,15 +601,15 @@ class Parser(object):
             return True
         elif self.instr_DEC():
             return True
-        elif self.instr_WAIT():
+        elif self.parse_instr0(WAIT):
             return True
-        elif self.instr_HALT():
+        elif self.parse_instr0(HALT):
             return True
         else:
             False
 
     def instr_ST(self):
-        """<instLD> ::= LD ADDR"""
+        """<instST> ::= ST ADDR"""
 
         if self.current_token.type == ST:
             self.assert_type(ST)
@@ -652,22 +703,16 @@ class Parser(object):
         else:
             return False
 
-    def instr_HALT(self):
-        if self.current_token.type == HALT:
-            self.assert_type(HALT)
+    def parse_instr0(self, inst_type):
+        """Parse the instructions with 0 arguments
+           HALT, WAIT, DEC, CLR
+        """
 
-            if DEBUG_PARSER:
-                print("  HALT")
-            return True
-        else:
-            return False
-
-    def instr_WAIT(self):
-        if self.current_token.type == WAIT:
-            self.assert_type(WAIT)
-
-            if DEBUG_PARSER:
-                print("  WAIT")
+        if self.current_token.type == inst_type:
+            line = self.current_token.line
+            self.assert_type(inst_type)
+            instr = Instruction(inst_type, line=line)
+            self.prog.add(instr)
             return True
         else:
             return False
@@ -675,6 +720,7 @@ class Parser(object):
     def parse(self):
         self.program()
         print("PARSING OK!")
+        print(self.prog)
         return
 
 
