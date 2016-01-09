@@ -93,9 +93,9 @@ import re
 
 # --- Token types
 (EOL, EOF, COMMENT, LABEL, ORG, NUMBER, STRING, ADDRNUM, ADDRLABLE,
- LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT, UNKNOWN, END, EQU) = (
+ LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT, UNKNOWN, END, EQU, RES) = (
  'EOL', 'EOF', 'COMMENT', 'LABEL', 'ORG', 'NUMBER', 'STRING', 'ADDRNUM', 'ADDRLABLE',
- 'LD', 'ST', 'ADD', 'BR', 'BZ', 'CLR', 'DEC', 'HALT', 'WAIT', 'UNKNOWN', 'END', 'EQU'
+ 'LD', 'ST', 'ADD', 'BR', 'BZ', 'CLR', 'DEC', 'HALT', 'WAIT', 'UNKNOWN', 'END', 'EQU', 'RES'
 )
 
 DEBUG_PARSER = True
@@ -111,7 +111,7 @@ class Token(object):
     def __str__(self):
         if self.type == COMMENT:
             return "Token: COMMENT: \"{}\" ".format(self.value)
-        elif self.type in [EOL, EOF, END, ORG, EQU]:
+        elif self.type in [EOL, EOF, END, ORG, EQU, RES]:
             return "Token: {}".format(self.type)
         elif self.type in [NUMBER, LABEL]:
             return "Token: {} ({})".format(self.type, self.value)
@@ -178,7 +178,7 @@ class Lexer(object):
     def check_directive(self):
         """Check if it is a directive"""
 
-        for direct in [END, ORG, EQU]:
+        for direct in [END, ORG, EQU, RES]:
             scan = re.match(direct, self.text[self.pos:])
             if scan:
                 self.pos += len(scan.group())
@@ -321,6 +321,8 @@ class Parser(object):
             return True
         elif self.dir_equ():
             return True
+        elif self.dir_res():
+            return True
         else:
             return False
 
@@ -369,6 +371,35 @@ class Parser(object):
         else:
             # -- It is not an EQU directive
             return False
+
+    def dir_res(self):
+        """<dirRES> ::= LABEL RES NUMBER | RES NUMBER"""
+
+        # -- Case 1:  LABEL RES
+        if self.current_token.type == LABEL and self.next_token.type == RES:
+            label = self.current_token.value
+            self.assert_type(LABEL)
+            self.assert_type(RES)
+            value = self.current_token.value
+            self.assert_type(NUMBER)
+
+            if DEBUG_PARSER:
+                print("{} RES {}".format(label, value))
+
+            return True
+
+        # -- Case 2: RES  (no label)
+        if self.current_token.type == RES:
+            self.assert_type(RES)
+            value = self.current_token.value
+            self.assert_type(NUMBER)
+
+            if DEBUG_PARSER:
+                print("RES {}".format(value))
+
+            return True
+
+        return False
 
     def parse(self):
         self.program()

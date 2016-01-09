@@ -1,5 +1,4 @@
-hola EQU 100
-
-     org hola
-
+block RES 20
+      res 10
+      
      end
