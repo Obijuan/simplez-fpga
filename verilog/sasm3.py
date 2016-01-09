@@ -93,9 +93,9 @@ import re
 
 # --- Token types
 (EOL, EOF, COMMENT, LABEL, ORG, NUMBER, STRING, ADDRNUM, ADDRLABLE,
- LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT, UNKNOWN, END) = (
+ LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT, UNKNOWN, END, EQU) = (
  'EOL', 'EOF', 'COMMENT', 'LABEL', 'ORG', 'NUMBER', 'STRING', 'ADDRNUM', 'ADDRLABLE',
- 'LD', 'ST', 'ADD', 'BR', 'BZ', 'CLR', 'DEC', 'HALT', 'WAIT', 'UNKNOWN', 'END'
+ 'LD', 'ST', 'ADD', 'BR', 'BZ', 'CLR', 'DEC', 'HALT', 'WAIT', 'UNKNOWN', 'END', 'EQU'
 )
 
 DEBUG_PARSER = True
@@ -111,7 +111,7 @@ class Token(object):
     def __str__(self):
         if self.type == COMMENT:
             return "Token: COMMENT: \"{}\" ".format(self.value)
-        elif self.type in [EOL, EOF, END, ORG]:
+        elif self.type in [EOL, EOF, END, ORG, EQU]:
             return "Token: {}".format(self.type)
         elif self.type in [NUMBER, LABEL]:
             return "Token: {} ({})".format(self.type, self.value)
@@ -178,7 +178,7 @@ class Lexer(object):
     def check_directive(self):
         """Check if it is a directive"""
 
-        for direct in [END, ORG]:
+        for direct in [END, ORG, EQU]:
             scan = re.match(direct, self.text[self.pos:])
             if scan:
                 self.pos += len(scan.group())
@@ -355,8 +355,20 @@ class Parser(object):
     def dir_equ(self):
         """<dirEQU> ::= LABEL EQU NUMBER"""
 
-        print(self.current_token)
-        print(self.next_token)
+        if self.current_token.type == LABEL and self.next_token.type == EQU:
+            label = self.current_token.value
+            self.assert_type(LABEL)
+            self.assert_type(EQU)
+            value = self.current_token.value
+            self.assert_type(NUMBER, "Expected a number")
+
+            if DEBUG_PARSER:
+                print("{}  EQU  {}".format(label, value))
+
+            return True
+        else:
+            # -- It is not an EQU directive
+            return False
 
     def parse(self):
         self.program()
