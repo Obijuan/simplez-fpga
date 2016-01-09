@@ -93,9 +93,11 @@ import re
 
 # --- Token types
 (EOL, EOF, COMMENT, LABEL, ORG, NUMBER, STRING, ADDRNUM, ADDRLABLE,
- LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT, UNKNOWN, END, EQU, RES) = (
+ LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT, UNKNOWN, END, EQU, RES,
+ DATA, STRING, COMMA) = (
  'EOL', 'EOF', 'COMMENT', 'LABEL', 'ORG', 'NUMBER', 'STRING', 'ADDRNUM', 'ADDRLABLE',
- 'LD', 'ST', 'ADD', 'BR', 'BZ', 'CLR', 'DEC', 'HALT', 'WAIT', 'UNKNOWN', 'END', 'EQU', 'RES'
+ 'LD', 'ST', 'ADD', 'BR', 'BZ', 'CLR', 'DEC', 'HALT', 'WAIT', 'UNKNOWN', 'END', 'EQU', 'RES',
+ 'DATA', 'STRING', 'COMMA'
 )
 
 DEBUG_PARSER = True
@@ -109,9 +111,9 @@ class Token(object):
         self.value = value
 
     def __str__(self):
-        if self.type == COMMENT:
-            return "Token: COMMENT: \"{}\" ".format(self.value)
-        elif self.type in [EOL, EOF, END, ORG, EQU, RES]:
+        if self.type in [COMMENT, STRING]:
+            return "Token: {} \"{}\" ".format(self.type, self.value)
+        elif self.type in [EOL, EOF, END, ORG, EQU, RES, DATA, COMMA]:
             return "Token: {}".format(self.type)
         elif self.type in [NUMBER, LABEL]:
             return "Token: {} ({})".format(self.type, self.value)
@@ -134,6 +136,9 @@ REGEX_WSPACE = r"[ \t\r\f\v]+"
 
 # -- Label
 REGEX_LABEL = r"[a-zA-Z0-9_]+"
+
+# -- String
+REGEX_STRING = r"\"[^\"]*\""
 
 
 class Lexer(object):
@@ -178,7 +183,7 @@ class Lexer(object):
     def check_directive(self):
         """Check if it is a directive"""
 
-        for direct in [END, ORG, EQU, RES]:
+        for direct in [END, ORG, EQU, RES, DATA]:
             scan = re.match(direct, self.text[self.pos:])
             if scan:
                 self.pos += len(scan.group())
@@ -191,6 +196,13 @@ class Lexer(object):
         if scan:
             self.pos += len(scan.group())
             return scan.group()
+
+    def check_string(self):
+        """Check if it is a string"""
+        scan = re.match(REGEX_STRING, self.text[self.pos:])
+        if scan:
+            self.pos += len(scan.group())
+            return scan.group()[1:-1]
 
     def get_token(self):
         """Get the next token from tex"""
@@ -215,6 +227,11 @@ class Lexer(object):
         if number is not None:
             return Token(NUMBER, number)
 
+        # -- Is it a string?
+        string = self.check_string()
+        if string is not None:
+            return Token(STRING, string)
+
         # -- Check if it is a directive
         direct = self.check_directive()
         if direct:
@@ -236,6 +253,11 @@ class Lexer(object):
             self.pos += 1
             self.line += 1
             return Token(EOL, None)
+
+        # -- Is it a COMMA?
+        if current_char == ',':
+            self.pos += 1
+            return Token(COMMA, None)
 
         self.pos += 1
         return Token(UNKNOWN, current_char)
@@ -323,6 +345,8 @@ class Parser(object):
             return True
         elif self.dir_res():
             return True
+        elif self.dir_data():
+            return True
         else:
             return False
 
@@ -400,6 +424,51 @@ class Parser(object):
             return True
 
         return False
+
+    def dir_data(self):
+        """<dirDATA> ::= LABEL DATA <datacollection> |  DATA <datacollection>"""
+
+        # -- Case 1: LABEL DATA
+        if self.current_token.type == LABEL and self.next_token.type == DATA:
+            label = self.current_token.value
+            self.assert_type(LABEL)
+            self.assert_type(DATA)
+            self.data_collection()
+
+            if DEBUG_PARSER:
+                print("{}  DATA ".format(label))
+
+            return True
+
+        # -- Case 2: DATA (no label)
+        if self.current_token.type == DATA:
+            self.assert_type(DATA)
+            self.data_collection()
+
+            if DEBUG_PARSER:
+                print("DATA ")
+
+            return True
+
+        # -- It is not a DATA directive
+        return False
+
+    def data_collection(self):
+        """<datacollection> ::= <data> (,<data>)*"""
+
+        self.data()
+        while self.current_token.type == COMMA:
+            self.assert_type(COMMA)
+            self.data()
+
+    def data(self):
+        """<data> ::= STRING | NUMBER"""
+
+        if self.current_token.type == NUMBER:
+            self.assert_type(NUMBER)
+
+        else:
+            self.assert_type(STRING)
 
     def parse(self):
         self.program()

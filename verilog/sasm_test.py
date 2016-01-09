@@ -59,6 +59,16 @@ asmfile5 = ("""
      end
 """)
 
+asmfile6 = ("""
+val1   DATA 10
+val2   DATA h'FA
+       DATA 1, 2, 3, 4, 5, 6
+val3   DATA "a", 3, "b", "hola"
+       DATA "sentence...."
+
+     end
+""")
+
 
 class TestCase(unittest.TestCase):
 
@@ -76,6 +86,9 @@ class TestCase(unittest.TestCase):
 
     def test_5(self):
         self.assertEqual(test(asmfile5), True)
+
+    def test_6(self):
+        self.assertEqual(test(asmfile6), True)
 
 
 # -- Main program
