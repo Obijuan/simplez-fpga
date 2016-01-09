@@ -92,10 +92,10 @@ import sys
 import re
 
 # --- Token types
-(EOL, EOF, COMMENT, LABEL, ORG, NUMBER, STRING, ADDRNUM, ADDRLABLE,
+(EOL, EOF, COMMENT, LABEL, ORG, NUMBER, STRING, ADDR,
  LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT, UNKNOWN, END, EQU, RES,
  DATA, STRING, COMMA) = (
- 'EOL', 'EOF', 'COMMENT', 'LABEL', 'ORG', 'NUMBER', 'STRING', 'ADDRNUM', 'ADDRLABLE',
+ 'EOL', 'EOF', 'COMMENT', 'LABEL', 'ORG', 'NUMBER', 'STRING', 'ADDR',
  'LD', 'ST', 'ADD', 'BR', 'BZ', 'CLR', 'DEC', 'HALT', 'WAIT', 'UNKNOWN', 'END', 'EQU', 'RES',
  'DATA', 'STRING', 'COMMA'
 )
@@ -113,9 +113,9 @@ class Token(object):
     def __str__(self):
         if self.type in [COMMENT, STRING]:
             return "Token: {} \"{}\" ".format(self.type, self.value)
-        elif self.type in [EOL, EOF, END, ORG, EQU, RES, DATA, COMMA]:
+        elif self.type in [EOL, EOF, END, ORG, EQU, RES, DATA, COMMA, LD]:
             return "Token: {}".format(self.type)
-        elif self.type in [NUMBER, LABEL]:
+        elif self.type in [NUMBER, LABEL, ADDR]:
             return "Token: {} ({})".format(self.type, self.value)
         else:
             return "Token: Unknown ({})".format(self.value)
@@ -139,6 +139,15 @@ REGEX_LABEL = r"[a-zA-Z0-9_]+"
 
 # -- String
 REGEX_STRING = r"\"[^\"]*\""
+
+# -- Numeric address (in decimal)
+REGEX_ADDRNUM1 = r"/[0-9]+"
+
+# -- Numeric address (in hexadecimal)
+REGEX_ADDRNUM2 = r"/H\'[0-9a-fA-F]+"
+
+# -- Address label
+REGEX_ADDRLABEL = r"/[a-zA-Z0-9_]+"
 
 
 class Lexer(object):
@@ -180,6 +189,27 @@ class Lexer(object):
             self.pos += len(scan.group())
             return scan.group()[1:]
 
+    def check_addr(self):
+        """Check if it is an address"""
+
+        # -- Case 1: Address in decimal
+        scan = re.match(REGEX_ADDRNUM1, self.text[self.pos:])
+        if scan:
+            self.pos += len(scan.group())
+            return int(scan.group()[1:])
+
+        # -- Case 2: Address in hexadecimal
+        scan = re.match(REGEX_ADDRNUM2, self.text[self.pos:])
+        if scan:
+            self.pos += len(scan.group())
+            return int(scan.group()[3:], 16)
+
+        # -- Case 3: Address is a label
+        scan = re.match(REGEX_ADDRLABEL, self.text[self.pos:])
+        if scan:
+            self.pos += len(scan.group())
+            return scan.group()[1:]
+
     def check_directive(self):
         """Check if it is a directive"""
 
@@ -188,6 +218,15 @@ class Lexer(object):
             if scan:
                 self.pos += len(scan.group())
                 return direct
+
+    def check_instruction(self):
+        """Check if it is an instruction"""
+
+        for instr in [LD]:
+            scan = re.match(instr, self.text[self.pos:])
+            if scan:
+                self.pos += len(scan.group())
+                return instr
 
     def check_label(self):
         """Check if it is a label"""
@@ -232,10 +271,20 @@ class Lexer(object):
         if string is not None:
             return Token(STRING, string)
 
+        # -- Is it an address?
+        addr = self.check_addr()
+        if addr is not None:
+            return Token(ADDR, addr)
+
         # -- Check if it is a directive
         direct = self.check_directive()
         if direct:
             return Token(direct, None)
+
+        # -- Check if it is an instruction
+        instr = self.check_instruction()
+        if instr:
+            return Token(instr, None)
 
         # -- Check if it is a label
         label = self.check_label()
@@ -334,7 +383,11 @@ class Parser(object):
     def lineofcode(self):
         """<lineofcode> ::= <directive> | <lineinstruction>"""
 
-        self.directive()
+        if self.directive():
+            pass
+        else:
+            # -- It is not a directive, should be a instruction
+            self.lineinstruction()
 
     def directive(self):
         """<directive> ::= <dirORG> | <dirEQU> | <dirRES> | <dirDATA>"""
@@ -348,6 +401,7 @@ class Parser(object):
         elif self.dir_data():
             return True
         else:
+            # -- It is not a directive
             return False
 
     def dir_org(self):
@@ -469,6 +523,37 @@ class Parser(object):
 
         else:
             self.assert_type(STRING)
+
+    def lineinstruction(self):
+        """<lineinstruction> ::= <instruction> | LABEL <instruction>"""
+        if self.current_token.type == LABEL:
+            self.assert_type(LABEL)
+            self.instruction()
+        else:
+            self.instruction()
+
+    def instruction(self):
+        """<instruction> ::= <instLD>  | <insST>   | <instADD>  | <instBR> | <instBZ> |
+                             <instCLR> | <instDEC> | <instHALT> | <instWAIT>"""
+        if self.instr_LD():
+            return True
+        else:
+            False
+
+    def instr_LD(self):
+        """<instLD> ::= LD ADDR"""
+
+        if self.current_token.type == LD:
+            self.assert_type(LD)
+            addr = self.current_token.value
+            self.assert_type(ADDR)
+
+            if DEBUG_PARSER:
+                print("  LD /{}".format(addr))
+
+            return True
+        else:
+            return False
 
     def parse(self):
         self.program()

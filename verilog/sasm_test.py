@@ -69,6 +69,15 @@ val3   DATA "a", 3, "b", "hola"
      end
 """)
 
+asmfile7 = ("""
+ini   LD /aa
+hola  LD /20
+      LD /H'100
+      LD /val1
+
+     end
+""")
+
 
 class TestCase(unittest.TestCase):
 
@@ -89,6 +98,9 @@ class TestCase(unittest.TestCase):
 
     def test_6(self):
         self.assertEqual(test(asmfile6), True)
+
+    def test_7(self):
+        self.assertEqual(test(asmfile7), True)
 
 
 # -- Main program
