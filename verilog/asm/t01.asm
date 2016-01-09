@@ -3,4 +3,6 @@
 
 ;--- Comienzo del programa
 
-end  HALT  ;-- Terminar
+     HALT  ;-- Terminar
+     end
+     
