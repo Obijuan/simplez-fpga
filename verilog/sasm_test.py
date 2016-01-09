@@ -78,6 +78,25 @@ hola  LD /20
      end
 """)
 
+asmfile8 = ("""
+ini   ST /h'100
+      ST /aa
+hola  ST /20
+      ST /H'100
+      ST /val1
+      end
+""")
+
+asmfile9 = ("""
+ini   ADD /h'100
+      ADD /aa
+hola  ADD /20
+      ADD /H'100
+      ADD /val1
+
+     end
+""")
+
 
 class TestCase(unittest.TestCase):
 
@@ -101,6 +120,12 @@ class TestCase(unittest.TestCase):
 
     def test_7(self):
         self.assertEqual(test(asmfile7), True)
+
+    def test_8(self):
+        self.assertEqual(test(asmfile8), True)
+
+    def test_9(self):
+        self.assertEqual(test(asmfile9), True)
 
 
 # -- Main program

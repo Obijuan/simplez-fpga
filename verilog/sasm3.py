@@ -113,7 +113,8 @@ class Token(object):
     def __str__(self):
         if self.type in [COMMENT, STRING]:
             return "Token: {} \"{}\" ".format(self.type, self.value)
-        elif self.type in [EOL, EOF, END, ORG, EQU, RES, DATA, COMMA, LD]:
+        elif self.type in [EOL, EOF, END, ORG, EQU, RES, DATA,
+                           COMMA, LD, ST, ADD]:
             return "Token: {}".format(self.type)
         elif self.type in [NUMBER, LABEL, ADDR]:
             return "Token: {} ({})".format(self.type, self.value)
@@ -222,7 +223,7 @@ class Lexer(object):
     def check_instruction(self):
         """Check if it is an instruction"""
 
-        for instr in [LD]:
+        for instr in [LD, ST, ADD]:
             scan = re.match(instr, self.text[self.pos:])
             if scan:
                 self.pos += len(scan.group())
@@ -537,8 +538,27 @@ class Parser(object):
                              <instCLR> | <instDEC> | <instHALT> | <instWAIT>"""
         if self.instr_LD():
             return True
+        if self.instr_ST():
+            return True
+        if self.instr_ADD():
+            return True
         else:
             False
+
+    def instr_ST(self):
+        """<instLD> ::= LD ADDR"""
+
+        if self.current_token.type == ST:
+            self.assert_type(ST)
+            addr = self.current_token.value
+            self.assert_type(ADDR)
+
+            if DEBUG_PARSER:
+                print("  ST /{}".format(addr))
+
+            return True
+        else:
+            return False
 
     def instr_LD(self):
         """<instLD> ::= LD ADDR"""
@@ -550,6 +570,21 @@ class Parser(object):
 
             if DEBUG_PARSER:
                 print("  LD /{}".format(addr))
+
+            return True
+        else:
+            return False
+
+    def instr_ADD(self):
+        """<instLD> ::= ADD ADDR"""
+
+        if self.current_token.type == ADD:
+            self.assert_type(ADD)
+            addr = self.current_token.value
+            self.assert_type(ADDR)
+
+            if DEBUG_PARSER:
+                print("  ADD /{}".format(addr))
 
             return True
         else:

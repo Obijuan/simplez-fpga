@@ -1,6 +1,7 @@
-ini   LD /aa
-hola  LD /20
-      LD /H'100
-      LD /val1
+ini   ADD /h'100
+      ADD /aa
+hola  ADD /20
+      ADD /H'100
+      ADD /val1
 
      end
