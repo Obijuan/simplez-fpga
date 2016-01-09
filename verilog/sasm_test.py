@@ -117,6 +117,15 @@ hola  BZ /20
      end
 """)
 
+asmfile12 = ("""
+ini   CLR
+      DEC
+      WAIT
+fin   HALT
+
+     end
+""")
+
 
 class TestCase(unittest.TestCase):
 
@@ -152,6 +161,9 @@ class TestCase(unittest.TestCase):
 
     def test_11(self):
         self.assertEqual(test(asmfile11), True)
+
+    def test_12(self):
+        self.assertEqual(test(asmfile12), True)
 
 
 # -- Main program

@@ -114,7 +114,7 @@ class Token(object):
         if self.type in [COMMENT, STRING]:
             return "Token: {} \"{}\" ".format(self.type, self.value)
         elif self.type in [EOL, EOF, END, ORG, EQU, RES, DATA,
-                           COMMA, LD, ST, ADD, BR, BZ]:
+                           COMMA, LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT]:
             return "Token: {}".format(self.type)
         elif self.type in [NUMBER, LABEL, ADDR]:
             return "Token: {} ({})".format(self.type, self.value)
@@ -223,7 +223,7 @@ class Lexer(object):
     def check_instruction(self):
         """Check if it is an instruction"""
 
-        for instr in [LD, ST, ADD, BR, BZ]:
+        for instr in [LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT]:
             scan = re.match(instr, self.text[self.pos:])
             if scan:
                 self.pos += len(scan.group())
@@ -538,13 +538,21 @@ class Parser(object):
                              <instCLR> | <instDEC> | <instHALT> | <instWAIT>"""
         if self.instr_LD():
             return True
-        if self.instr_ST():
+        elif self.instr_ST():
             return True
-        if self.instr_ADD():
+        elif self.instr_ADD():
             return True
-        if self.instr_BR():
+        elif self.instr_BR():
             return True
-        if self.instr_BZ():
+        elif self.instr_BZ():
+            return True
+        elif self.instr_CLR():
+            return True
+        elif self.instr_DEC():
+            return True
+        elif self.instr_WAIT():
+            return True
+        elif self.instr_HALT():
             return True
         else:
             False
@@ -620,6 +628,46 @@ class Parser(object):
             if DEBUG_PARSER:
                 print("  BZ /{}".format(addr))
 
+            return True
+        else:
+            return False
+
+    def instr_CLR(self):
+        if self.current_token.type == CLR:
+            self.assert_type(CLR)
+
+            if DEBUG_PARSER:
+                print("  CLR")
+            return True
+        else:
+            return False
+
+    def instr_DEC(self):
+        if self.current_token.type == DEC:
+            self.assert_type(DEC)
+
+            if DEBUG_PARSER:
+                print("  DEC")
+            return True
+        else:
+            return False
+
+    def instr_HALT(self):
+        if self.current_token.type == HALT:
+            self.assert_type(HALT)
+
+            if DEBUG_PARSER:
+                print("  HALT")
+            return True
+        else:
+            return False
+
+    def instr_WAIT(self):
+        if self.current_token.type == WAIT:
+            self.assert_type(WAIT)
+
+            if DEBUG_PARSER:
+                print("  WAIT")
             return True
         else:
             return False
