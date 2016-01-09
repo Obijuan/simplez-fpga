@@ -1,7 +1,7 @@
-ini   ADD /h'100
-      ADD /aa
-hola  ADD /20
-      ADD /H'100
-      ADD /val1
+ini   BZ /h'100
+      BZ /aa
+hola  BZ /20
+      BZ /H'100
+      BZ /val1
 
      end

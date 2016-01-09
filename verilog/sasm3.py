@@ -114,7 +114,7 @@ class Token(object):
         if self.type in [COMMENT, STRING]:
             return "Token: {} \"{}\" ".format(self.type, self.value)
         elif self.type in [EOL, EOF, END, ORG, EQU, RES, DATA,
-                           COMMA, LD, ST, ADD]:
+                           COMMA, LD, ST, ADD, BR, BZ]:
             return "Token: {}".format(self.type)
         elif self.type in [NUMBER, LABEL, ADDR]:
             return "Token: {} ({})".format(self.type, self.value)
@@ -223,7 +223,7 @@ class Lexer(object):
     def check_instruction(self):
         """Check if it is an instruction"""
 
-        for instr in [LD, ST, ADD]:
+        for instr in [LD, ST, ADD, BR, BZ]:
             scan = re.match(instr, self.text[self.pos:])
             if scan:
                 self.pos += len(scan.group())
@@ -542,6 +542,10 @@ class Parser(object):
             return True
         if self.instr_ADD():
             return True
+        if self.instr_BR():
+            return True
+        if self.instr_BZ():
+            return True
         else:
             False
 
@@ -585,6 +589,36 @@ class Parser(object):
 
             if DEBUG_PARSER:
                 print("  ADD /{}".format(addr))
+
+            return True
+        else:
+            return False
+
+    def instr_BR(self):
+        """<instBR> ::= BR ADDR"""
+
+        if self.current_token.type == BR:
+            self.assert_type(BR)
+            addr = self.current_token.value
+            self.assert_type(ADDR)
+
+            if DEBUG_PARSER:
+                print("  BR /{}".format(addr))
+
+            return True
+        else:
+            return False
+
+    def instr_BZ(self):
+        """<instBZ> ::= BZ ADDR"""
+
+        if self.current_token.type == BZ:
+            self.assert_type(BZ)
+            addr = self.current_token.value
+            self.assert_type(ADDR)
+
+            if DEBUG_PARSER:
+                print("  BZ /{}".format(addr))
 
             return True
         else:
