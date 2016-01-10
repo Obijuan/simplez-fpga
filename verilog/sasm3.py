@@ -100,7 +100,8 @@ import re
  'DATA', 'STRING', 'COMMA'
 )
 
-DEBUG_PARSER = True
+# -- default output file with the machine code for SIMPLEZ
+OUTPUT_FILE = "prog.list"
 
 # -- Instruction opcodes
 OPCODES = {ST: 0, LD: 1, ADD: 2, BR: 3, BZ: 4,
@@ -864,3 +865,9 @@ if __name__ == '__main__':
     print("//-- Output file format: verilog\n")
     mcode = prog.machine_code(asm=True)
     print(mcode)
+
+    # -- Write the machine code in the output file file
+    with open(OUTPUT_FILE, mode='w') as f:
+        f.write(prog.machine_code(asm=True))
+
+    print("OK! Machine code for SIMPLEZ generated: {}".format(OUTPUT_FILE))
