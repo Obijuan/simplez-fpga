@@ -2,19 +2,90 @@ import unittest
 from sasm3 import Lexer, Parser
 
 
+def test_errors(asm):
+    lexer = Lexer(asm)
+    parser = Parser(lexer)
+    try:
+        prog = parser.parse()
+    except Exception as inst:
+        msg, = inst.args
+        return msg
+
+# -- Error: No end directive
+ef1 = (
+ """
+ """)
+
+# -- Error: After the end directive there should be an EOL
+ef2 = ("""
+end 2
+""")
+
+# -- Error: Label without instruction
+ef3 = ("""
+
+   hello
+
+""")
+
+# -- Error: Label without instruction (they should be in the same line)
+ef4 = ("""
+hello
+       HALT
+
+end
+""")
+
+# -- Error: No end directive
+ef5 = ("""
+hello HALT
+
+""")
+
+# -- Error. ORG without number or label
+ef6 = ("""
+    org
+
+end
+""")
+
+# -- Error. Unknow label
+ef7 = ("""
+  org hello
+
+end
+""")
+
+# -- Error. EQU directive without label
+ef8 = ("""
+   EQU
+
+""")
+
+ef9 = ("""
+h'23 EQU 10
+""")
+
+ef10 = ("""
+hello   EQU  EQU
+""")
+
+
 def test(asmfile):
-    print(asmfile)
     lexer = Lexer(asmfile)
     parser = Parser(lexer)
-    parser.parse()
-    return True
+    prog = parser.parse()
+    prog.solve_labels()
+    mcode = prog.machine_code()
+    return mcode
 
-
+# -- Blank program. It compiles ok, but the output machine code is blank
 asmfile1 = ("""
 ;-- Test 1
 end
 """)
 
+# -- Testing EOL. Same program than before
 asmfile2 = ("""
 
 
@@ -22,6 +93,7 @@ asmfile2 = ("""
 end
 """)
 
+# -- Another ok Blank program
 asmfile3 = ("""
 ;-- Comment 1
   ;-- Comment 2
@@ -30,9 +102,37 @@ asmfile3 = ("""
   end
 """)
 
+# -- Blank program
 asmfile4 = ("""
+begin   EQU  20
+
+      org begin
+
+end
+""")
+
+# -- Blank program. EQU test
+asmfile5 = ("""
+a    equ 0
+b    equ 1
+c    equ 2
+d    equ 3
+e    equ 4
+f    equ 5
+g    equ 6
+h    equ 7
+i    equ 8
+j    equ 9
+k    equ 10
+end
+""")
+
+# -- blank program. ORG test
+asmfile6 = ("""
 ;-- Comentario 1
 ;-- Comentario 2
+
+block EQU 30
 
      org 0
 
@@ -42,27 +142,32 @@ asmfile4 = ("""
 
      org 512     ;-- Comentario 3
 
-     end
-""")
-
-asmfile5 = ("""
-hola EQU 0
-inicio Equ 1
-    org hola
-
-
-    org 0
-
-    org H'00
-
-    org H'CACA
-
-    org inicio
+     org block
 
      end
 """)
 
-asmfile6 = ("""
+# -- 1 word program
+asmfile7 = ("""
+HALT
+end
+""")
+
+# -- Same 1 word program, but more verbose
+asmfile8 = ("""
+;-- 1 word program
+;-- It does nothing: just stops
+
+ini   EQU  0
+
+      org ini  ;-- Initial memory
+
+stop  HALT     ;-- finish
+
+end
+""")
+
+asmfile6b = ("""
 val1   DATA 10
 val2   DATA h'FA
        DATA 1, 2, 3, 4, 5, 6
@@ -72,7 +177,7 @@ val3   DATA "a", 3, "b", "hola"
      end
 """)
 
-asmfile7 = ("""
+asmfile7b = ("""
 ini   LD /aa
 hola  LD /20
       LD /H'100
@@ -81,7 +186,7 @@ hola  LD /20
      end
 """)
 
-asmfile8 = ("""
+asmfile8b = ("""
 ini   ST /h'100
       ST /aa
 hola  ST /20
@@ -217,30 +322,62 @@ val1  DATA H'0f
 
 class TestCase(unittest.TestCase):
 
+    # -- Errors
+    def test_error_01(self):
+        self.assertEqual(test_errors(ef1), "Error: END expected. Line: 2")
+
+    def test_error_02(self):
+        self.assertEqual(test_errors(ef2), "Error: No EOL after END. Line: 2")
+
+    def test_error_03(self):
+        self.assertEqual(test_errors(ef3), "Error: Label without instruction. Line: 3")
+
+    def test_error_04(self):
+        self.assertEqual(test_errors(ef4), "Error: Label without instruction. Line: 2")
+
+    def test_error_05(self):
+        self.assertEqual(test_errors(ef5), "Error: END expected. Line: 4")
+
+    def test_error_06(self):
+        self.assertEqual(test_errors(ef6), "Error: ORG: Label or number expected. Line: 2")
+
+    def test_error_07(self):
+        self.assertEqual(test_errors(ef7), "Error: Unknow Label: hello. Line: 2")
+
+    def test_error_08(self):
+        self.assertEqual(test_errors(ef8), "Error: EQU without label. Line: 2")
+
+    def test_error_09(self):
+        self.assertEqual(test_errors(ef9), "Error: Unexpected element. Line: 2")
+
+    def test_error_10(self):
+        self.assertEqual(test_errors(ef10), "Error: EQU: Expected a number. Line: 2")
+
+    # ------------ Code ok
     def test_01(self):
-        self.assertEqual(test(asmfile1), True)
+        self.assertEqual(test(asmfile1), "")
 
     def test_02(self):
-        self.assertEqual(test(asmfile2), True)
+        self.assertEqual(test(asmfile2), "")
 
     def test_03(self):
-        self.assertEqual(test(asmfile3), True)
+        self.assertEqual(test(asmfile3), "")
 
     def test_04(self):
-        self.assertEqual(test(asmfile4), True)
+        self.assertEqual(test(asmfile4), "")
 
     def test_05(self):
-        self.assertEqual(test(asmfile5), True)
+        self.assertEqual(test(asmfile5), "")
 
     def test_06(self):
-        self.assertEqual(test(asmfile6), True)
+        self.assertEqual(test(asmfile6), "")
 
     def test_07(self):
-        self.assertEqual(test(asmfile7), True)
+        self.assertEqual(test(asmfile7), "E00\n")
 
     def test_08(self):
-        self.assertEqual(test(asmfile8), True)
-
+        self.assertEqual(test(asmfile8), "E00\n")
+"""
     def test_09(self):
         self.assertEqual(test(asmfile9), True)
 
@@ -270,7 +407,7 @@ class TestCase(unittest.TestCase):
 
     def test_18(self):
         self.assertEqual(test(asmfile18), True)
-
+"""
 
 # -- Main program
 if __name__ == '__main__':

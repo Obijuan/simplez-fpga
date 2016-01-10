@@ -1,12 +1,10 @@
+;-- 1 word program
+;-- It does nothing: just stops
 
-      BR /ini
+ini   EQU  0
 
+      org ini  ;-- Initial memory
 
-      org 100
+stop  HALT     ;-- finish
 
-ini   ld /val1
-      HALT
-
-val1  DATA H'0f
-
-     end
+end

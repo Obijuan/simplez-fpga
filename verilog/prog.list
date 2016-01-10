@@ -1,6 +1,6 @@
-664   //-- [000]       BR /INI ;-- INI = H'064 
+//-- Source file: asm/test.asm
+//-- Output file format: verilog
 
-@064  //--             ORG 0x064
-266   //-- [064][INI]  LD /VAL1 ;-- VAL1 = H'066 
-E00   //-- [065]       HALT
-00F   //-- [066][VAL1] DATA H'00F
+//mcode    addr nemonic
+//-----    ---- -------
+E00   //-- [000] HALT

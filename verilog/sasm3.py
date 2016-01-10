@@ -328,11 +328,13 @@ class Lexer(object):
 
     def test(self):
         """Test the lexer"""
+
+        string = ""
         while True:
             token = self.get_token()
-            print(token)
+            string += "{}\n".format(token)
             if token.type == EOF:
-                return
+                return string
 
 
 # ---------------------- AST
@@ -513,11 +515,12 @@ class Parser(object):
         self.assert_type(EOL, "No EOL after END")
 
     def lines(self):
-        """<lines> ::=  (<line> EOL+)* """
+        """<lines> ::= EOL*  (<line> EOL+)* """
 
         while self.current_token.type not in [EOF, END]:
+
             self.line()
-            self.assert_type(EOL, "No EOL after line")
+            self.assert_type(EOL, "Unexpected element")
 
             # -- Remove the extra EOL (if any)
             while (self.current_token.type == EOL):
@@ -530,18 +533,18 @@ class Parser(object):
             self.assert_type(COMMENT)
 
         else:
-            self.lineofcode()
-            if (self.current_token.type == COMMENT):
-                self.assert_type(COMMENT)
+            if self.lineofcode():
+                if (self.current_token.type == COMMENT):
+                    self.assert_type(COMMENT)
 
     def lineofcode(self):
         """<lineofcode> ::= <directive> | <lineinstruction>"""
 
         if self.directive():
-            pass
+            return True
         else:
             # -- It is not a directive, should be a instruction
-            self.lineinstruction()
+            return self.lineinstruction()
 
     def directive(self):
         """<directive> ::= <dirORG> | <dirEQU> | <dirRES> | <dirDATA>"""
@@ -576,7 +579,7 @@ class Parser(object):
             else:
                 label = self.current_token.value
                 line = self.current_token.line
-                self.assert_type(LABEL)
+                self.assert_type(LABEL, "ORG: Label or number expected")
 
                 # -- Get the address asociated to the label
                 try:
@@ -602,7 +605,7 @@ class Parser(object):
             self.assert_type(LABEL)
             self.assert_type(EQU)
             value = self.current_token.value
-            self.assert_type(NUMBER, "Expected a number")
+            self.assert_type(NUMBER, "EQU: Expected a number")
 
             # - check if the label is already in the table
             if label in self.prog.symtable:
@@ -612,6 +615,8 @@ class Parser(object):
             self.prog.symtable[label] = value
 
             return True
+        elif self.current_token.type == EQU:
+            self.error("EQU without label", line=self.current_token.line)
         else:
             # -- It is not an EQU directive
             return False
@@ -713,7 +718,8 @@ class Parser(object):
                 self.prog.add(instr)
 
     def lineinstruction(self):
-        """<lineinstruction> ::= <instruction> | LABEL <instruction>"""
+        """<lineinstruction> ::= (LABEL) <instruction>"""
+
         if self.current_token.type == LABEL:
 
             line = self.current_token.line
@@ -727,9 +733,17 @@ class Parser(object):
             self.prog.symtable[label] = self.prog.addr
 
             self.assert_type(LABEL)
-            self.instruction()
-        else:
-            self.instruction()
+
+            # -- If there is a label, there should be an instrucction in the same line
+            if self.instruction():
+                return True
+            else:
+                self.error("Label without instruction", line=line)
+                return False
+
+        # -- There should be now an instruction
+        line = self.current_token.line
+        self.instruction()
 
     def instruction(self):
         """<instruction> ::= <instLD>  | <insST>   | <instADD>  | <instBR> | <instBZ> |
@@ -817,11 +831,6 @@ def parse_arguments():
     # -- Return the file and verbose arguments
     return raw, asmfile, args.verbose
 
-# -- Note: printing with colores: termcolor
-# -- from termcolor import colored
-# -- print(colored('Hello, World!', 'green'))
-# -- https://pypi.python.org/pypi/termcolor
-
 # -- Main program
 if __name__ == '__main__':
 
@@ -829,45 +838,57 @@ if __name__ == '__main__':
     asmfile, filename, verbose = parse_arguments()
 
     # -- Lexical analysis
-    print("\n------- Lexical analysis")
     lexer = Lexer(asmfile)
-    lexer.test()
-    lexer.reset()
 
-    # - Parser
-    print("\n------- Sintax Analysis ------")
+    if verbose:
+        print("\n------- Lexical analysis")
+
+        lexer_log = lexer.test()
+        print(lexer_log)
+        lexer.reset()
+
+        print("\n------- Sintax Analysis ------")
+
+    # -- Syntax analysis
     parser = Parser(lexer)
     try:
         prog = parser.parse()
     except Exception as inst:
         print(inst)
         sys.exit(0)
-    print()
-    asmcode1 = prog.assembly()
-    print(asmcode1)
-    print("Symbols:")
-    prog.show_symbols()
 
-    # -- Semantics analysis: Resolve the labels
-    print()
-    print("-------- Semantics analysis:")
+    if verbose:
+        print()
+        asmcode1 = prog.assembly()
+        print(asmcode1)
+        print("Symbols:")
+        prog.show_symbols()
+
+        print()
+        print("-------- Semantics analysis:")
+
     try:
         prog.solve_labels()
     except Exception as inst:
         print(inst)
         sys.exit(0)
 
-    asmcode2 = prog.assembly()
-    print(asmcode2)
+    if verbose:
+        asmcode2 = prog.assembly()
+        print(asmcode2)
 
-    print("-------- Generated machine code")
-    print("//-- Source file: {}".format(filename))
-    print("//-- Output file format: verilog\n")
-    mcode = prog.machine_code(asm=True)
-    print(mcode)
+        print("-------- Generated machine code")
+
+    mcode = ""
+    mcode += "//-- Source file: {}\n".format(filename)
+    mcode += "//-- Output file format: verilog\n\n"
+    mcode += prog.machine_code(asm=True)
+
+    if verbose:
+        print(mcode)
 
     # -- Write the machine code in the output file file
     with open(OUTPUT_FILE, mode='w') as f:
-        f.write(prog.machine_code(asm=True))
+        f.write(mcode)
 
     print("OK! Machine code for SIMPLEZ generated: {}".format(OUTPUT_FILE))
