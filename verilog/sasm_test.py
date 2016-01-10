@@ -62,12 +62,21 @@ ef8 = ("""
 
 """)
 
+# -- Error. Invalid label
 ef9 = ("""
 h'23 EQU 10
 """)
 
+# -- Error. Invalida data
 ef10 = ("""
 hello   EQU  EQU
+""")
+
+# -- Error. Invalid element
+ef11 = ("""
+stop  HALT  adf   ;-- finish
+
+end
 """)
 
 
@@ -352,6 +361,9 @@ class TestCase(unittest.TestCase):
 
     def test_error_10(self):
         self.assertEqual(test_errors(ef10), "Error: EQU: Expected a number. Line: 2")
+
+    def test_error_11(self):
+        self.assertEqual(test_errors(ef11), "Error: Unexpected element. Line: 2")
 
     # ------------ Code ok
     def test_01(self):
