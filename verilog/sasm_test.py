@@ -177,6 +177,17 @@ val2 DATA "hola"
      end
 """)
 
+asmfile16 = ("""
+val1 res 5
+     res 10
+
+     org 20
+     res 1
+
+     HALT
+     end
+""")
+
 
 class TestCase(unittest.TestCase):
 
@@ -224,6 +235,9 @@ class TestCase(unittest.TestCase):
 
     def test_15(self):
         self.assertEqual(test(asmfile15), True)
+
+    def test_16(self):
+        self.assertEqual(test(asmfile16), True)
 
 
 # -- Main program

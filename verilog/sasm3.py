@@ -453,10 +453,6 @@ class Parser(object):
         """<line> ::= COMMENT | <lineofcode> (COMMENT)"""
 
         if self.current_token.type == COMMENT:
-
-            if DEBUG_PARSER:
-                print("Comment line: {}".format(self.current_token.value))
-
             self.assert_type(COMMENT)
 
         else:
@@ -547,33 +543,40 @@ class Parser(object):
             return False
 
     def dir_res(self):
-        """<dirRES> ::= LABEL RES NUMBER | RES NUMBER"""
+        """<dirRES> ::= (LABEL) RES NUMBER"""
 
         # -- Case 1:  LABEL RES
         if self.current_token.type == LABEL and self.next_token.type == RES:
             label = self.current_token.value
+            line = self.current_token.line
             self.assert_type(LABEL)
-            self.assert_type(RES)
-            value = self.current_token.value
-            self.assert_type(NUMBER)
 
-            if DEBUG_PARSER:
-                print("{} RES {}".format(label, value))
+            # - check if the label is already in the table
+            if label in self.prog.symtable:
+                self.error(msg="Duplicated label: {}".format(label), line=line)
 
-            return True
+            # - Insert the label in the symbol table
+            self.prog.symtable[label] = self.prog.addr
 
-        # -- Case 2: RES  (no label)
+        # -- Case 2: RES (without label)
         if self.current_token.type == RES:
+            line = self.current_token.line
             self.assert_type(RES)
             value = self.current_token.value
             self.assert_type(NUMBER)
 
-            if DEBUG_PARSER:
-                print("RES {}".format(value))
+            # -- Reserving 0 words does not make any sense
+            if value == 0:
+                self.error(msg="Not possible to reserve 0 words", line=line)
+
+            # - Create all the data instructions reserved by the directive res
+            for i in range(value):
+                instr = Instruction(DATA, line=line, arg=0)
+                self.prog.add(instr)
 
             return True
-
-        return False
+        else:
+            return False
 
     def dir_data(self):
         """<dirDATA> ::= LABEL DATA <datacollection> |  DATA <datacollection>"""

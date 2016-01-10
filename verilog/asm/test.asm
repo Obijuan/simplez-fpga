@@ -1,11 +1,11 @@
 
 
 ;-- Data
-val1 DATA h'0F, 1, 2, 3
-     DATA 4
+val1 res 5
+     res 10
 
-val2 DATA "hola"
-     DATA "adios", "1", "2", "3"
+     org 20
+     res 1
 
      HALT
      end
