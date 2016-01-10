@@ -356,8 +356,9 @@ class Prog_AST(object):
 class Instruction(object):
     """Simplez instruction class"""
 
-    def __init__(self, nemonic, line=None):
+    def __init__(self, nemonic, arg=None, line=None):
         self.nemonic = nemonic  # -- Instruction name
+        self.arg = arg          # -- Instruction argument
         self.line = line        # -- line number where the instruction is located in the src
         self.addr = None        # -- Address were the instruction is stored
 
@@ -367,6 +368,10 @@ class Instruction(object):
             string = "{} ".format(self.line)
 
         string += "{}".format(self.nemonic)
+
+        if self.arg:
+            string += " /{}".format(self.arg)
+
         return string
 
 # ----------- Syntax analyzer
@@ -587,26 +592,19 @@ class Parser(object):
     def instruction(self):
         """<instruction> ::= <instLD>  | <insST>   | <instADD>  | <instBR> | <instBZ> |
                              <instCLR> | <instDEC> | <instHALT> | <instWAIT>"""
-        if self.instr_LD():
-            return True
-        elif self.instr_ST():
-            return True
-        elif self.instr_ADD():
-            return True
-        elif self.instr_BR():
-            return True
-        elif self.instr_BZ():
-            return True
-        elif self.instr_CLR():
-            return True
-        elif self.instr_DEC():
-            return True
-        elif self.parse_instr0(WAIT):
-            return True
-        elif self.parse_instr0(HALT):
-            return True
-        else:
-            False
+
+        # -- Case 1: Instructions with no arguments
+        for instr in [CLR, DEC, HALT, WAIT]:
+            if self.parse_instr0(instr):
+                return True
+
+        # -- Case 2: Instructions with 1 argument (an absolute address)
+        for instr in [ST, LD, ADD, BR, BZ]:
+            if self.parse_instr1(instr):
+                return True
+
+        # -- It is not an instruction
+        return False
 
     def instr_ST(self):
         """<instST> ::= ST ADDR"""
@@ -618,21 +616,6 @@ class Parser(object):
 
             if DEBUG_PARSER:
                 print("  ST /{}".format(addr))
-
-            return True
-        else:
-            return False
-
-    def instr_LD(self):
-        """<instLD> ::= LD ADDR"""
-
-        if self.current_token.type == LD:
-            self.assert_type(LD)
-            addr = self.current_token.value
-            self.assert_type(ADDR)
-
-            if DEBUG_PARSER:
-                print("  LD /{}".format(addr))
 
             return True
         else:
@@ -683,26 +666,6 @@ class Parser(object):
         else:
             return False
 
-    def instr_CLR(self):
-        if self.current_token.type == CLR:
-            self.assert_type(CLR)
-
-            if DEBUG_PARSER:
-                print("  CLR")
-            return True
-        else:
-            return False
-
-    def instr_DEC(self):
-        if self.current_token.type == DEC:
-            self.assert_type(DEC)
-
-            if DEBUG_PARSER:
-                print("  DEC")
-            return True
-        else:
-            return False
-
     def parse_instr0(self, inst_type):
         """Parse the instructions with 0 arguments
            HALT, WAIT, DEC, CLR
@@ -712,6 +675,22 @@ class Parser(object):
             line = self.current_token.line
             self.assert_type(inst_type)
             instr = Instruction(inst_type, line=line)
+            self.prog.add(instr)
+            return True
+        else:
+            return False
+
+    def parse_instr1(self, inst_type):
+        """Parse the instructions with 1 argument
+           ST, LD, ADD, BR, BZ
+        """
+
+        if self.current_token.type == inst_type:
+            line = self.current_token.line
+            self.assert_type(inst_type)
+            arg = self.current_token.value
+            self.assert_type(ADDR)
+            instr = Instruction(inst_type, arg=arg, line=line)
             self.prog.add(instr)
             return True
         else:

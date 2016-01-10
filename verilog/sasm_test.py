@@ -11,6 +11,7 @@ def test(asmfile):
 
 
 asmfile1 = ("""
+;-- Test 1
 end
 """)
 
@@ -88,6 +89,7 @@ hola  ST /20
 """)
 
 asmfile9 = ("""
+;-- Test 9
 ini   ADD /h'100
       ADD /aa
 hola  ADD /20
@@ -126,34 +128,49 @@ fin   HALT
      end
 """)
 
+asmfile13 = ("""
+;-- Test 13
+    LD /val1
+    ST /500
+    ADD /100
+    BR /ini
+    BZ /loop
+
+    CLR
+    DEC
+    WAIT
+    HALT
+     end
+""")
+
 
 class TestCase(unittest.TestCase):
 
-    def test_1(self):
+    def test_01(self):
         self.assertEqual(test(asmfile1), True)
 
-    def test_2(self):
+    def test_02(self):
         self.assertEqual(test(asmfile2), True)
 
-    def test_3(self):
+    def test_03(self):
         self.assertEqual(test(asmfile3), True)
 
-    def test_4(self):
+    def test_04(self):
         self.assertEqual(test(asmfile4), True)
 
-    def test_5(self):
+    def test_05(self):
         self.assertEqual(test(asmfile5), True)
 
-    def test_6(self):
+    def test_06(self):
         self.assertEqual(test(asmfile6), True)
 
-    def test_7(self):
+    def test_07(self):
         self.assertEqual(test(asmfile7), True)
 
-    def test_8(self):
+    def test_08(self):
         self.assertEqual(test(asmfile8), True)
 
-    def test_9(self):
+    def test_09(self):
         self.assertEqual(test(asmfile9), True)
 
     def test_10(self):
@@ -164,6 +181,9 @@ class TestCase(unittest.TestCase):
 
     def test_12(self):
         self.assertEqual(test(asmfile12), True)
+
+    def test_13(self):
+        self.assertEqual(test(asmfile13), True)
 
 
 # -- Main program
