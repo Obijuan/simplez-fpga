@@ -46,6 +46,8 @@ asmfile4 = ("""
 """)
 
 asmfile5 = ("""
+hola EQU 0
+inicio Equ 1
     org hola
 
 

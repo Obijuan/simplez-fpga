@@ -92,10 +92,10 @@ import sys
 import re
 
 # --- Token types
-(EOL, EOF, COMMENT, LABEL, ORG, NUMBER, STRING, ADDR,
+(EOL, EOF, COMMENT, LABEL, ORG, NUMBER, ADDR,
  LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT, UNKNOWN, END, EQU, RES,
  DATA, STRING, COMMA) = (
- 'EOL', 'EOF', 'COMMENT', 'LABEL', 'ORG', 'NUMBER', 'STRING', 'ADDR',
+ 'EOL', 'EOF', 'COMMENT', 'LABEL', 'ORG', 'NUMBER',  'ADDR',
  'LD', 'ST', 'ADD', 'BR', 'BZ', 'CLR', 'DEC', 'HALT', 'WAIT', 'UNKNOWN', 'END', 'EQU', 'RES',
  'DATA', 'STRING', 'COMMA'
 )
@@ -112,16 +112,23 @@ class Token(object):
         self.line = line
 
     def __str__(self):
-        if self.type in [COMMENT, STRING]:
-            return "Token: {} \"{}\" ".format(self.type, self.value)
-        elif self.type in [EOL, EOF, END, ORG, EQU, RES, DATA,
-                           COMMA, LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT]:
-            return "Token: {}".format(self.type)
-        elif self.type in [NUMBER, LABEL, ADDR]:
-            return "Token: {} ({})".format(self.type, self.value)
-        else:
-            return "Token: Unknown ({})".format(self.value)
 
+        # -- Print the Token line number
+        string = "[{}] Token: ".format(self.line)
+
+        # -- Case 1: These token have no value
+        if self.type in [EOL, EOF, END, ORG, EQU, RES, DATA,
+                         COMMA, LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT]:
+            string += self.type
+
+        # -- Case 2: These tokens have values
+        elif self.type in [COMMENT, STRING, NUMBER, LABEL, ADDR]:
+            string += "{} ({})".format(self.type, self.value)
+
+        else:
+            string += "Unknown ({})".format(self.value)
+
+        return string
 
 # ------------- Regular expresion definitions for the Lexer --------
 # -- Decimal number
@@ -216,9 +223,9 @@ class Lexer(object):
         """Check if it is a directive"""
 
         for direct in [END, ORG, EQU, RES, DATA]:
-            scan = re.match(direct, self.text[self.pos:].upper())
+            scan = re.match(direct+"\s", self.text[self.pos:].upper())
             if scan:
-                self.pos += len(scan.group())
+                self.pos += len(scan.group()[:-1])
                 return direct
 
     def check_instruction(self):
@@ -256,32 +263,32 @@ class Lexer(object):
         # -- Is it a commnet?
         comment = self.check_comment()
         if comment:
-            return Token(COMMENT, comment)
+            return Token(COMMENT, comment, line=self.line)
 
         # -- Is it a hexadecimal number?
         hexnumber = self.check_hexnumber()
         if hexnumber is not None:
-            return Token(NUMBER, hexnumber)
+            return Token(NUMBER, hexnumber, line=self.line)
 
         # -- Is it a decimal number?
         number = self.check_decimal()
         if number is not None:
-            return Token(NUMBER, number)
+            return Token(NUMBER, number, line=self.line)
 
         # -- Is it a string?
         string = self.check_string()
         if string is not None:
-            return Token(STRING, string)
+            return Token(STRING, string, line=self.line)
 
         # -- Is it an address?
         addr = self.check_addr()
         if addr is not None:
-            return Token(ADDR, addr)
+            return Token(ADDR, addr, line=self.line)
 
         # -- Check if it is a directive
         direct = self.check_directive()
         if direct:
-            return Token(direct, None)
+            return Token(direct, None, line=self.line)
 
         # -- Check if it is an instruction
         instr = self.check_instruction()
@@ -291,34 +298,34 @@ class Lexer(object):
         # -- Check if it is a label
         label = self.check_label()
         if label:
-            return Token(LABEL, label)
+            return Token(LABEL, label, line=self.line)
 
         # --Get the current char
         try:
             current_char = self.text[self.pos]
         except IndexError:
-            return Token(EOF, None)
+            return Token(EOF, None, line=self.line)
 
         # -- Is it a EOL?
         if current_char == '\n':
             self.pos += 1
+            line = self.line
             self.line += 1
-            return Token(EOL, None)
+            return Token(EOL, None, line=line)
 
         # -- Is it a COMMA?
         if current_char == ',':
             self.pos += 1
-            return Token(COMMA, None)
+            return Token(COMMA, None, line=self.line)
 
         self.pos += 1
-        return Token(UNKNOWN, current_char)
+        return Token(UNKNOWN, current_char, line=self.line)
 
     def test(self):
         """Test the lexer"""
         while True:
-            line = self.line
             token = self.get_token()
-            print("Line: {}  {}".format(line, token))
+            print(token)
             if token.type == EOF:
                 return
 
@@ -347,10 +354,23 @@ class Prog_AST(object):
 
     def __str__(self):
         string = ""
+        addr = 0
         for instr in self.linst:
+            # -- There is a gap between in the addresses
+            if addr != instr.addr:
+                string += "\n      ORG 0x{0:03X}\n".format(instr.addr)
+                addr = instr.addr
+
             string += "{}\n".format(instr)
+            addr += 1
 
         return string
+
+    def show_symbols(self):
+        """Print the symbol table"""
+
+        for key, value in self.symtable.items():
+            print("{} = {}".format(key, value))
 
 
 class Instruction(object):
@@ -364,12 +384,16 @@ class Instruction(object):
 
     def __str__(self):
         string = ""
-        if self.line:
-            string = "{} ".format(self.line)
+
+        if self.addr is not None:
+            string += "[{:03X}] ".format(self.addr)
+
+        if self.line is not None:
+            string += "(Line: {}) ".format(self.line)
 
         string += "{}".format(self.nemonic)
 
-        if self.arg:
+        if self.arg is not None:
             string += " /{}".format(self.arg)
 
         return string
@@ -388,8 +412,8 @@ class Parser(object):
         self.current_token = self.lexer.get_token()
         self.next_token = self.lexer.get_token()
 
-    def error(self, msg=""):
-        raise Exception('Error parsing input: {}. Line: {}'.format(msg, self.lexer.line))
+    def error(self, msg=None, line=None):
+        raise Exception('Error: {}. Line: {}'.format(msg, line))
 
     def assert_type(self, type, error_msg="", debug=False):
         """Make sure the current token is of the given type"""
@@ -402,7 +426,7 @@ class Parser(object):
             self.next_token = self.lexer.get_token()
 
         else:
-            self.error(error_msg)
+            self.error(error_msg, line=self.current_token.line)
 
     def program(self):
         """<program> ::= <lines> "END" EOL"""
@@ -472,13 +496,23 @@ class Parser(object):
                 addr = self.current_token.value
                 self.assert_type(NUMBER)
 
-                if DEBUG_PARSER:
-                    print("ORG {}".format(addr))
+                # -- Change the current address
+                self.prog.addr = addr
 
             # -- If the address is not a number... it should be a label
             else:
                 label = self.current_token.value
+                line = self.current_token.line
                 self.assert_type(LABEL)
+
+                # -- Get the address asociated to the label
+                try:
+                    addr = self.prog.symtable[label]
+                except KeyError:
+                    self.error("Unknow Label: {}".format(label), line=line)
+
+                # -- Change the current address
+                self.prog.addr = addr
 
                 if DEBUG_PARSER:
                     print("ORG {}".format(label))
@@ -494,13 +528,18 @@ class Parser(object):
 
         if self.current_token.type == LABEL and self.next_token.type == EQU:
             label = self.current_token.value
+            line = self.current_token.line
             self.assert_type(LABEL)
             self.assert_type(EQU)
             value = self.current_token.value
             self.assert_type(NUMBER, "Expected a number")
 
-            if DEBUG_PARSER:
-                print("{}  EQU  {}".format(label, value))
+            # - check if the label is already in the table
+            if label in self.prog.symtable:
+                self.error(msg="Duplicated label: {}".format(label), line=line)
+
+            # - Insert the label in the symbol table
+            self.prog.symtable[label] = value
 
             return True
         else:
@@ -606,66 +645,6 @@ class Parser(object):
         # -- It is not an instruction
         return False
 
-    def instr_ST(self):
-        """<instST> ::= ST ADDR"""
-
-        if self.current_token.type == ST:
-            self.assert_type(ST)
-            addr = self.current_token.value
-            self.assert_type(ADDR)
-
-            if DEBUG_PARSER:
-                print("  ST /{}".format(addr))
-
-            return True
-        else:
-            return False
-
-    def instr_ADD(self):
-        """<instLD> ::= ADD ADDR"""
-
-        if self.current_token.type == ADD:
-            self.assert_type(ADD)
-            addr = self.current_token.value
-            self.assert_type(ADDR)
-
-            if DEBUG_PARSER:
-                print("  ADD /{}".format(addr))
-
-            return True
-        else:
-            return False
-
-    def instr_BR(self):
-        """<instBR> ::= BR ADDR"""
-
-        if self.current_token.type == BR:
-            self.assert_type(BR)
-            addr = self.current_token.value
-            self.assert_type(ADDR)
-
-            if DEBUG_PARSER:
-                print("  BR /{}".format(addr))
-
-            return True
-        else:
-            return False
-
-    def instr_BZ(self):
-        """<instBZ> ::= BZ ADDR"""
-
-        if self.current_token.type == BZ:
-            self.assert_type(BZ)
-            addr = self.current_token.value
-            self.assert_type(ADDR)
-
-            if DEBUG_PARSER:
-                print("  BZ /{}".format(addr))
-
-            return True
-        else:
-            return False
-
     def parse_instr0(self, inst_type):
         """Parse the instructions with 0 arguments
            HALT, WAIT, DEC, CLR
@@ -699,8 +678,7 @@ class Parser(object):
     def parse(self):
         self.program()
         print("PARSING OK!")
-        print(self.prog)
-        return
+        return self.prog
 
 
 def parse_arguments():
@@ -751,4 +729,12 @@ if __name__ == '__main__':
     # - Parser
     print("\n------- Sintax Analysis ------")
     parser = Parser(lexer)
-    parser.parse()
+    try:
+        prog = parser.parse()
+    except Exception as inst:
+        print(inst)
+        sys.exit(0)
+    print()
+    print(prog)
+    print("Symbols:")
+    prog.show_symbols()
