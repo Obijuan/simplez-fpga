@@ -1,18 +1,11 @@
 
-    ;-- Test 1
 
-ini         EQU 10  ;-- Comienzo del programa
-data_block  EQU 20  ;-- Dir bloque de datos
+;-- Data
+val1 DATA h'0F, 1, 2, 3
+     DATA 4
 
-     org ini
-
-     LD /100
-     ST /508
+val2 DATA "hola"
+     DATA "adios", "1", "2", "3"
 
      HALT
-
-     org data_block
-     WAIT
-     CLR
-
      end

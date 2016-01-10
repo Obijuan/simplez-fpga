@@ -394,7 +394,10 @@ class Instruction(object):
         string += "{}".format(self.nemonic)
 
         if self.arg is not None:
-            string += " /{}".format(self.arg)
+            if self.nemonic == DATA:
+                string += " {}".format(self.arg)
+            else:
+                string += " /{}".format(self.arg)
 
         return string
 
@@ -514,9 +517,6 @@ class Parser(object):
                 # -- Change the current address
                 self.prog.addr = addr
 
-                if DEBUG_PARSER:
-                    print("ORG {}".format(label))
-
             return True
 
         # -- Not an ORG directive
@@ -580,13 +580,21 @@ class Parser(object):
 
         # -- Case 1: LABEL DATA
         if self.current_token.type == LABEL and self.next_token.type == DATA:
+
+            # -- Get the label
             label = self.current_token.value
+            line = self.current_token.line
             self.assert_type(LABEL)
+
+            # - check if the label is already in the table
+            if label in self.prog.symtable:
+                self.error(msg="Duplicated label: {}".format(label), line=line)
+
+            # -- Insert the lable in the symbol table
+            self.prog.symtable[label] = self.prog.addr
+
             self.assert_type(DATA)
             self.data_collection()
-
-            if DEBUG_PARSER:
-                print("{}  DATA ".format(label))
 
             return True
 
@@ -594,9 +602,6 @@ class Parser(object):
         if self.current_token.type == DATA:
             self.assert_type(DATA)
             self.data_collection()
-
-            if DEBUG_PARSER:
-                print("DATA ")
 
             return True
 
@@ -615,10 +620,20 @@ class Parser(object):
         """<data> ::= STRING | NUMBER"""
 
         if self.current_token.type == NUMBER:
+            line = self.current_token.line
+            value = self.current_token.value
             self.assert_type(NUMBER)
-
+            instr = Instruction(DATA, line=line, arg=value)
+            self.prog.add(instr)
         else:
+            line = self.current_token.line
+            value = self.current_token.value
             self.assert_type(STRING)
+
+            # -- Insert one data instruction per character in the string
+            for char in value:
+                instr = Instruction(DATA, line=line, arg=ord(char))
+                self.prog.add(instr)
 
     def lineinstruction(self):
         """<lineinstruction> ::= <instruction> | LABEL <instruction>"""

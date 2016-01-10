@@ -145,6 +145,38 @@ asmfile13 = ("""
      end
 """)
 
+asmfile14 = ("""
+;-- Test 14
+
+ini         EQU 10  ;-- Comienzo del programa
+data_block  EQU 20  ;-- Dir bloque de datos
+
+     org ini
+
+     LD /val1
+     ST /508
+
+     HALT
+
+     org data_block
+     WAIT
+     CLR
+
+     end
+""")
+
+asmfile15 = ("""
+;-- Data
+val1 DATA h'0F, 1, 2, 3
+     DATA 4
+
+val2 DATA "hola"
+     DATA "adios", "1", "2", "3"
+
+     HALT
+     end
+""")
+
 
 class TestCase(unittest.TestCase):
 
@@ -186,6 +218,12 @@ class TestCase(unittest.TestCase):
 
     def test_13(self):
         self.assertEqual(test(asmfile13), True)
+
+    def test_14(self):
+        self.assertEqual(test(asmfile14), True)
+
+    def test_15(self):
+        self.assertEqual(test(asmfile15), True)
 
 
 # -- Main program
