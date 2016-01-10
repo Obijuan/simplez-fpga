@@ -156,7 +156,7 @@ class Lexer(object):
     """Lexical analyzer"""
 
     def __init__(self, text):
-        self.text = text.upper()
+        self.text = text
         self.pos = 0
         self.line = 1
 
@@ -166,7 +166,7 @@ class Lexer(object):
 
     def check_hexnumber(self):
         """Check if it is an hexadecimal number. If so, return its value, else None"""
-        scan = re.match(REGEX_HEX, self.text[self.pos:])
+        scan = re.match(REGEX_HEX, self.text[self.pos:].upper())
         if scan:
             self.pos += len(scan.group())
 
@@ -201,7 +201,7 @@ class Lexer(object):
             return int(scan.group()[1:])
 
         # -- Case 2: Address in hexadecimal
-        scan = re.match(REGEX_ADDRNUM2, self.text[self.pos:])
+        scan = re.match(REGEX_ADDRNUM2, self.text[self.pos:].upper())
         if scan:
             self.pos += len(scan.group())
             return int(scan.group()[3:], 16)
@@ -216,7 +216,7 @@ class Lexer(object):
         """Check if it is a directive"""
 
         for direct in [END, ORG, EQU, RES, DATA]:
-            scan = re.match(direct, self.text[self.pos:])
+            scan = re.match(direct, self.text[self.pos:].upper())
             if scan:
                 self.pos += len(scan.group())
                 return direct
@@ -225,7 +225,7 @@ class Lexer(object):
         """Check if it is an instruction"""
 
         for instr in [LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT]:
-            scan = re.match(instr, self.text[self.pos:])
+            scan = re.match(instr, self.text[self.pos:].upper())
             if scan:
                 self.pos += len(scan.group())
                 return instr
@@ -735,7 +735,7 @@ def parse_arguments():
         sys.exit()
 
     # -- Return the file and verbose arguments
-    return raw.upper(), args.verbose
+    return raw, args.verbose
 
 
 # -- Main program
