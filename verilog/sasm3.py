@@ -232,9 +232,9 @@ class Lexer(object):
         """Check if it is an instruction"""
 
         for instr in [LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT]:
-            scan = re.match(instr, self.text[self.pos:].upper())
+            scan = re.match(instr+"\s", self.text[self.pos:].upper())
             if scan:
-                self.pos += len(scan.group())
+                self.pos += len(scan.group()[:-1])
                 return instr
 
     def check_label(self):
@@ -641,6 +641,17 @@ class Parser(object):
     def lineinstruction(self):
         """<lineinstruction> ::= <instruction> | LABEL <instruction>"""
         if self.current_token.type == LABEL:
+
+            line = self.current_token.line
+            label = self.current_token.value
+
+            # - check if the label is already in the table
+            if label in self.prog.symtable:
+                self.error(msg="Duplicated label: {}".format(label), line=line)
+
+            # - Insert the label in the symbol table
+            self.prog.symtable[label] = self.prog.addr
+
             self.assert_type(LABEL)
             self.instruction()
         else:

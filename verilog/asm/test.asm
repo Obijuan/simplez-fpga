@@ -1,11 +1,10 @@
 
+ini   ld /val1
+ini0  ld /val2
+      HALT
 
 ;-- Data
-val1 res 5
-     res 10
+val1 data 5
+val2 data 10
 
-     org 20
-     res 1
-
-     HALT
      end
