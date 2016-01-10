@@ -102,6 +102,10 @@ import re
 
 DEBUG_PARSER = True
 
+# -- Instruction opcodes
+OPCODES = {ST: 0, LD: 1, ADD: 2, BR: 3, BZ: 4,
+           CLR: 5, DEC: 6, HALT: 7, WAIT: 0xF, DATA: 0xFF, }
+
 
 class Token(object):
     """Token generator"""
@@ -352,7 +356,29 @@ class Prog_AST(object):
         # -- Increment the current address
         self.addr += 1
 
-    def __str__(self):
+    def solve_labels(self):
+        """semantic analysis. Assign a value to the instruction arguments that do not
+           have a numeric value"""
+
+        for instr in self.linst:
+
+            # -- Check only the instructions with arguments
+            if instr.arg is not None:
+                # -- Check if the argument is a string
+                if type(instr.arg) is str:
+                    # -- It is a label. Put the label in the label attribute
+                    instr.label = instr.arg
+
+                    # -- Get the label's value from the symtable
+                    try:
+                        value = self.symtable[instr.label]
+                    except KeyError:
+                        raise Exception("Line: {}: Symbol {} not defined".format(instr.line,
+                                                                                 instr.label))
+                    # -- Write the value in the argument
+                    instr.arg = int(value)
+
+    def assembly(self):
         string = ""
         addr = 0
         for instr in self.linst:
@@ -372,6 +398,33 @@ class Prog_AST(object):
         for key, value in self.symtable.items():
             print("{} = {}".format(key, value))
 
+    def machine_code(self, asm=False):
+        string = ""
+        if asm:
+            string += "//mcode    addr nemonic\n"
+            string += "//-----    ---- -------\n"
+
+        addr = 0
+        for instr in self.linst:
+            if addr != instr.addr:
+
+                if asm:
+                    string += "\n"
+                string += "@{0:03X}".format(instr.addr)
+                if asm:
+                    string += "  //--       ORG {0:03X}".format(instr.addr)
+
+                string += "\n"
+                addr = instr.addr
+
+            string += "{:03X}".format(instr.mcode())
+            if asm:
+                string += "   //-- {}".format(instr)
+            string += "\n"
+            addr += 1
+
+        return string
+
 
 class Instruction(object):
     """Simplez instruction class"""
@@ -381,6 +434,22 @@ class Instruction(object):
         self.arg = arg          # -- Instruction argument
         self.line = line        # -- line number where the instruction is located in the src
         self.addr = None        # -- Address were the instruction is stored
+        self.label = None       # -- If the argument is a label
+
+    def opcode(self):
+        """Return the instruction opcode"""
+        return OPCODES[self.nemonic]
+
+    def mcode(self):
+        """Return the machine code"""
+        if self.nemonic == "DATA":
+            return self.arg
+        elif self.nemonic == "WAIT":
+            return 0xF00
+        elif self.arg is not None:
+            return (self.opcode() << 9) + self.arg
+        else:
+            return (self.opcode() << 9)
 
     def __str__(self):
         string = ""
@@ -388,8 +457,9 @@ class Instruction(object):
         if self.addr is not None:
             string += "[{:03X}] ".format(self.addr)
 
-        if self.line is not None:
-            string += "(Line: {}) ".format(self.line)
+        # -- Uncomment for showing the src line numbers
+        # if self.line is not None:
+        #     string += "(Line: {}) ".format(self.line)
 
         string += "{}".format(self.nemonic)
 
@@ -397,7 +467,10 @@ class Instruction(object):
             if self.nemonic == DATA:
                 string += " {}".format(self.arg)
             else:
-                string += " /{}".format(self.arg)
+                if type(self.arg) is int:
+                    string += " /{:03X}".format(self.arg)
+                else:
+                    string += " /{}".format(self.arg)
 
         return string
 
@@ -706,7 +779,6 @@ class Parser(object):
 
     def parse(self):
         self.program()
-        print("PARSING OK!")
         return self.prog
 
 
@@ -742,15 +814,21 @@ def parse_arguments():
         sys.exit()
 
     # -- Return the file and verbose arguments
-    return raw, args.verbose
+    return raw, asmfile, args.verbose
 
+# -- Note: printing with colores: termcolor
+# -- from termcolor import colored
+# -- print(colored('Hello, World!', 'green'))
+# -- https://pypi.python.org/pypi/termcolor
 
 # -- Main program
 if __name__ == '__main__':
 
     # -- Process the arguments. Return the source file and the verbose flags
-    asmfile, verbose = parse_arguments()
+    asmfile, filename, verbose = parse_arguments()
 
+    # -- Lexical analysis
+    print("\n------- Lexical analysis")
     lexer = Lexer(asmfile)
     lexer.test()
     lexer.reset()
@@ -764,6 +842,25 @@ if __name__ == '__main__':
         print(inst)
         sys.exit(0)
     print()
-    print(prog)
+    asmcode1 = prog.assembly()
+    print(asmcode1)
     print("Symbols:")
     prog.show_symbols()
+
+    # -- Semantics analysis: Resolve the labels
+    print()
+    print("-------- Semantics analysis:")
+    try:
+        prog.solve_labels()
+    except Exception as inst:
+        print(inst)
+        sys.exit(0)
+
+    asmcode2 = prog.assembly()
+    print(asmcode2)
+
+    print("-------- Generated machine code")
+    print("//-- Source file: {}".format(filename))
+    print("//-- Output file format: verilog\n")
+    mcode = prog.machine_code(asm=True)
+    print(mcode)

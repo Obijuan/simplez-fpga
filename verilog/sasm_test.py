@@ -200,6 +200,20 @@ val2 data 10
      end
 """)
 
+asmfile18 = ("""
+      BR /ini
+
+
+      org 100
+
+ini   ld /val1
+      HALT
+
+val1  DATA H'0f
+
+     end
+""")
+
 
 class TestCase(unittest.TestCase):
 
@@ -253,6 +267,9 @@ class TestCase(unittest.TestCase):
 
     def test_17(self):
         self.assertEqual(test(asmfile17), True)
+
+    def test_18(self):
+        self.assertEqual(test(asmfile18), True)
 
 
 # -- Main program
