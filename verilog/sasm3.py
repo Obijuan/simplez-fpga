@@ -839,6 +839,9 @@ if __name__ == '__main__':
     # -- Process the arguments. Return the source file and the verbose flags
     asmfile, filename, verbose = parse_arguments()
 
+    print("Assembler for the SIMPLEZ microprocessor")
+    print("Released under the GPL license\n")
+
     # -- Lexical analysis
     lexer = Lexer(asmfile)
 
