@@ -376,8 +376,9 @@ class Prog_AST(object):
                     try:
                         value = self.symtable[instr.label]
                     except KeyError:
-                        raise Exception("Line: {}: Symbol {} not defined".format(instr.line,
-                                                                                 instr.label))
+                        raise Exception(
+                            "Error: Line: {}: Symbol not defined: {}".format(instr.line,
+                                                                             instr.label))
                     # -- Write the value in the argument
                     instr.arg = int(value)
 
@@ -738,12 +739,13 @@ class Parser(object):
             if self.instruction():
                 return True
             else:
-                self.error("Label without instruction", line=line)
+                self.error("Invalid instruction", line=line)
                 return False
 
         # -- There should be now an instruction
         line = self.current_token.line
         self.instruction()
+        return True
 
     def instruction(self):
         """<instruction> ::= <instLD>  | <insST>   | <instADD>  | <instBR> | <instBZ> |
@@ -785,7 +787,7 @@ class Parser(object):
             line = self.current_token.line
             self.assert_type(inst_type)
             arg = self.current_token.value
-            self.assert_type(ADDR)
+            self.assert_type(ADDR, "Invalid address")
             instr = Instruction(inst_type, arg=arg, line=line)
             self.prog.add(instr)
             return True

@@ -1,5 +1,9 @@
 
+val1 res 5
+     res 10
 
-stop  HALT  adf   ;-- finish
+     org 20
+     res 1
 
-end
+     HALT
+     end

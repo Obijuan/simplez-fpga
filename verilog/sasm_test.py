@@ -5,8 +5,17 @@ from sasm3 import Lexer, Parser
 def test_errors(asm):
     lexer = Lexer(asm)
     parser = Parser(lexer)
+
+    # -- Syntax analysis
     try:
         prog = parser.parse()
+    except Exception as inst:
+        msg, = inst.args
+        return msg
+
+    # -- Semantic analysis
+    try:
+        prog.solve_labels()
     except Exception as inst:
         msg, = inst.args
         return msg
@@ -77,6 +86,60 @@ ef11 = ("""
 stop  HALT  adf   ;-- finish
 
 end
+""")
+
+ef12 = ("""
+;-- 2 words program
+;-- With verbosity
+ini EQU 0
+
+      org ini  ;-- Initial
+
+      WAIT ;-- hola
+      WAIT 2 ;<-- There is a sintax error here
+end2  HALT  ;-- Stop
+
+end
+""")
+
+ef13 = ("""
+bra ini  ;-- Syntax error
+
+WAIT
+halt
+
+end
+""")
+
+ef14 = ("""
+
+     br ini  ; <-- Error. Label not defined
+
+     end
+""")
+
+ef15 = ("""
+     br ini  ; <-- Error. It should be br /ini
+
+ini  HALT
+     end
+""")
+
+ef16 = ("""
+     br /ini  ; <= Error: Symbol not defined
+
+     HALT
+     end
+""")
+
+ef17 = ("""
+ini  EQU 1
+
+     br /ini
+
+ini  HALT  ; <= Error. Duplicated label
+
+     end
 """)
 
 
@@ -223,66 +286,156 @@ stop  HALT     ;-- finish
 end
 """)
 
-asmfile6b = ("""
-val1   DATA 10
+# -- 2 words program
+asmfile9 = ("""
+WAIT
+HALT
+end
+""")
+
+asmfile10 = ("""
+;-- 2 words program
+;-- With verbosity
+ini EQU 0
+
+      org ini  ;-- Initial
+
+      WAIT  ;-- Wait 200ns
+end2  HALT  ;-- Stop
+
+end
+""")
+
+asmfile11 = ("""
+;-- Wait test
+;-- Wait for 1 sec before ending
+ini EQU 0
+
+      org ini  ;-- Initial
+
+      WAIT ;-- hola
+etiq  WAIT
+etiq2 WAIT  ;-- Useless
+      WAIT
+WAIT
+
+end2  HALT  ;-- Stop
+
+end
+""")
+
+# -- DATA test
+asmfile12 = ("""
+val1   DATA 0
+       data H'E00   ;-- Halt in machine code ;-)
+       DaTa 1     ;No label
+       DatA 2
 val2   DATA h'FA
+val4   data h'001, H'CAF
        DATA 1, 2, 3, 4, 5, 6
-val3   DATA "a", 3, "b", "hola"
+val3   DATA "a", 3, "b", "hola"  ;- Ascii
        DATA "sentence...."
+     end
+""")
+
+asmfile12_mcode = ("""000\nE00\n001\n002\n0FA\n001\nCAF\n001\n002\n003
+004\n005\n006\n061\n003\n062\n068\n06F\n06C\n061\n073\n065\n06E\n074
+065\n06E\n063\n065\n02E\n02E\n02E\n02E
+""")
+
+asmfile13 = ("""
+     br /ini
+
+ini  HALT
 
      end
 """)
 
-asmfile7b = ("""
+asmfile14 = ("""
+ini EQU 1
+
+     br /ini
+
+     HALT
+
+     end
+""")
+
+asmfile15 = ("""
 ini   LD /aa
 hola  LD /20
       LD /H'100
       LD /val1
+      HALT
 
-     end
+aa    DATA h'0F
+val1  DATA 10
+      end
 """)
 
-asmfile8b = ("""
+asmfile16 = ("""
+      CLR
 ini   ST /h'100
       ST /aa
 hola  ST /20
       ST /H'100
       ST /val1
+      HALT
+
+aa    RES 1
+val1  DATA 0
+
       end
 """)
 
-asmfile9 = ("""
-;-- Test 9
+asmfile17 = ("""
+;-- Test ADD
 ini   ADD /h'100
       ADD /aa
 hola  ADD /20
       ADD /H'100
       ADD /val1
+      HALT
+
+aa    RES 2
+val1  DATA "a"
 
      end
 """)
 
-asmfile10 = ("""
-ini   BR /h'100
-      BR /aa
-hola  BR /20
-      BR /H'100
-      BR /val1
+asmfile18 = ("""
+aa     EQU h'200
+
+ini0   BR /h'100
+       BR /aa
+hola1  BR /20
+       BR /H'100
+       BR /val1
+
+val1   HALT
 
      end
 """)
 
-asmfile11 = ("""
+asmfile19 = ("""
+      CLR
+      BZ /ini
+
 ini   BZ /h'100
       BZ /aa
 hola  BZ /20
       BZ /H'100
       BZ /val1
 
+val1 EQU 20
+
+      org 100
+aa    HALT
+
      end
 """)
 
-asmfile12 = ("""
+asmfile20 = ("""
 ini   CLR
       DEC
       WAIT
@@ -291,54 +444,46 @@ fin   HALT
      end
 """)
 
-asmfile13 = ("""
-;-- Test 13
-    LD /val1
-    ST /500
-    ADD /100
-    BR /ini
-    BZ /loop
+asmfile21 = ("""
+;-- Test 21
 
-    CLR
-    DEC
-    WAIT
-    HALT
+loop    LD /val1
+        ST /500
+        ADD /100
+        BZ /loop
+        BR /stop
+
+         CLR
+         DEC
+         WAIT
+stop     HALT
+val1 DATA h'AA
      end
 """)
 
-asmfile14 = ("""
-;-- Test 14
+asmfile22 = ("""
+ ;-- Test 22
 
-ini         EQU 10  ;-- Comienzo del programa
-data_block  EQU 20  ;-- Dir bloque de datos
+ ini         EQU 10  ;-- Comienzo del programa
+ data_block  EQU 20  ;-- Dir bloque de datos
 
-     org ini
+      org ini
 
-     LD /val1
-     ST /508
+      LD /val1
+      ST /508
 
-     HALT
+      HALT
 
-     org data_block
-     WAIT
-     CLR
+      org data_block
+      WAIT
+      CLR
+val1  DATA "a"
 
-     end
+      end
 """)
 
-asmfile15 = ("""
-;-- Data
-val1 DATA h'0F, 1, 2, 3
-     DATA 4
 
-val2 DATA "hola"
-     DATA "adios", "1", "2", "3"
-
-     HALT
-     end
-""")
-
-asmfile16 = ("""
+asmfile23 = ("""
 val1 res 5
      res 10
 
@@ -349,7 +494,10 @@ val1 res 5
      end
 """)
 
-asmfile17 = ("""
+asmfile23_result = ("""000\n000\n000\n000\n000
+000\n000\n000\n000\n000\n000\n000\n000\n000\n000\n@014\n000\nE00\n""")
+
+asmfile24 = ("""
 ini   ld /val1
 ini0  ld /val2
       HALT
@@ -361,7 +509,7 @@ val2 data 10
      end
 """)
 
-asmfile18 = ("""
+asmfile25 = ("""
       BR /ini
 
 
@@ -381,7 +529,7 @@ class TestCase(unittest.TestCase):
     # -- Lexer tests
     def test_lexer_01(self):
         self.assertEqual(lexer_test(lex1), lex1_result)
-"""
+
     # -- Errors
     def test_error_01(self):
         self.assertEqual(test_errors(ef1), "Error: END expected. Line: 2")
@@ -390,10 +538,10 @@ class TestCase(unittest.TestCase):
         self.assertEqual(test_errors(ef2), "Error: No EOL after END. Line: 2")
 
     def test_error_03(self):
-        self.assertEqual(test_errors(ef3), "Error: Label without instruction. Line: 3")
+        self.assertEqual(test_errors(ef3), "Error: Invalid instruction. Line: 3")
 
     def test_error_04(self):
-        self.assertEqual(test_errors(ef4), "Error: Label without instruction. Line: 2")
+        self.assertEqual(test_errors(ef4), "Error: Invalid instruction. Line: 2")
 
     def test_error_05(self):
         self.assertEqual(test_errors(ef5), "Error: END expected. Line: 4")
@@ -415,6 +563,24 @@ class TestCase(unittest.TestCase):
 
     def test_error_11(self):
         self.assertEqual(test_errors(ef11), "Error: Unexpected element. Line: 2")
+
+    def test_error_12(self):
+        self.assertEqual(test_errors(ef12), "Error: Unexpected element. Line: 9")
+
+    def test_error_13(self):
+        self.assertEqual(test_errors(ef13), "Error: Invalid instruction. Line: 2")
+
+    def test_error_14(self):
+        self.assertEqual(test_errors(ef14), "Error: Invalid address. Line: 3")
+
+    def test_error_15(self):
+        self.assertEqual(test_errors(ef15), "Error: Invalid address. Line: 2")
+
+    def test_error_16(self):
+        self.assertEqual(test_errors(ef16), "Error: Line: 2: Symbol not defined: ini")
+
+    def test_error_17(self):
+        self.assertEqual(test_errors(ef17), "Error: Duplicated label: ini. Line: 6")
 
     # ------------ Code ok
     def test_01(self):
@@ -440,38 +606,58 @@ class TestCase(unittest.TestCase):
 
     def test_08(self):
         self.assertEqual(test(asmfile8), "E00\n")
-# -- aQUI
 
     def test_09(self):
-        self.assertEqual(test(asmfile9), True)
+        self.assertEqual(test(asmfile9), "F00\nE00\n")
 
     def test_10(self):
-        self.assertEqual(test(asmfile10), True)
+        self.assertEqual(test(asmfile10), "F00\nE00\n")
 
     def test_11(self):
-        self.assertEqual(test(asmfile11), True)
+        self.assertEqual(test(asmfile11), "F00\nF00\nF00\nF00\nF00\nE00\n")
 
     def test_12(self):
-        self.assertEqual(test(asmfile12), True)
+        self.assertEqual(test(asmfile12), asmfile12_mcode)
 
     def test_13(self):
-        self.assertEqual(test(asmfile13), True)
+        self.assertEqual(test(asmfile13), "601\nE00\n")
 
     def test_14(self):
-        self.assertEqual(test(asmfile14), True)
+        self.assertEqual(test(asmfile14), "601\nE00\n")
 
     def test_15(self):
-        self.assertEqual(test(asmfile15), True)
+        self.assertEqual(test(asmfile15), "205\n214\n300\n206\nE00\n00F\n00A\n")
 
     def test_16(self):
-        self.assertEqual(test(asmfile16), True)
+        self.assertEqual(test(asmfile16), "A00\n100\n007\n014\n100\n008\nE00\n000\n000\n")
 
     def test_17(self):
-        self.assertEqual(test(asmfile17), True)
+        self.assertEqual(test(asmfile17), "500\n406\n414\n500\n408\nE00\n000\n000\n061\n")
 
     def test_18(self):
-        self.assertEqual(test(asmfile18), True)
-"""
+        self.assertEqual(test(asmfile18), "700\n800\n614\n700\n605\nE00\n")
+
+    def test_19(self):
+        self.assertEqual(test(asmfile19), "A00\n802\n900\n864\n814\n900\n814\n@064\nE00\n")
+
+    def test_20(self):
+        self.assertEqual(test(asmfile20), "A00\nC00\nF00\nE00\n")
+
+    def test_21(self):
+        self.assertEqual(test(asmfile21), "209\n1F4\n464\n800\n608\nA00\nC00\nF00\nE00\n0AA\n")
+
+    def test_22(self):
+        self.assertEqual(test(asmfile22), "@00A\n216\n1FC\nE00\n@014\nF00\nA00\n061\n")
+
+    def test_23(self):
+        self.assertEqual(test(asmfile23), asmfile23_result)
+
+    def test_24(self):
+        self.assertEqual(test(asmfile24), "203\n204\nE00\n005\n00A\n")
+
+    def test_25(self):
+        self.assertEqual(test(asmfile25), "664\n@064\n266\nE00\n00F\n")
+
 
 # -- Main program
 if __name__ == '__main__':
