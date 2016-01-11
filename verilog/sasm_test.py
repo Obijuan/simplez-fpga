@@ -80,6 +80,52 @@ end
 """)
 
 
+# -- Lexer tests
+def lexer_test(asmfile):
+    lexer = Lexer(asmfile)
+    log = lexer.test()
+    return log
+
+# -- All the possible tokens
+lex1 = ("""
+  ;Comment
+  label 102 h'FA /504 /h'100  "string" ,
+ORG EQU RES DATA END
+ST LD ADD BR BZ CLR DEC WAIT HALT
+[""")
+
+lex1_result = ("""[1] Token: EOL
+[2] Token: COMMENT (Comment)
+[2] Token: EOL
+[3] Token: LABEL (label)
+[3] Token: NUMBER (102)
+[3] Token: NUMBER (250)
+[3] Token: ADDR (504)
+[3] Token: ADDR (256)
+[3] Token: STRING (string)
+[3] Token: COMMA
+[3] Token: EOL
+[4] Token: ORG
+[4] Token: EQU
+[4] Token: RES
+[4] Token: DATA
+[4] Token: END
+[4] Token: EOL
+[5] Token: ST
+[5] Token: LD
+[5] Token: ADD
+[5] Token: BR
+[5] Token: BZ
+[5] Token: CLR
+[5] Token: DEC
+[5] Token: WAIT
+[5] Token: HALT
+[5] Token: EOL
+[6] Token: Unknown ([)
+[6] Token: EOF
+""")
+
+
 def test(asmfile):
     lexer = Lexer(asmfile)
     parser = Parser(lexer)
@@ -87,6 +133,7 @@ def test(asmfile):
     prog.solve_labels()
     mcode = prog.machine_code()
     return mcode
+
 
 # -- Blank program. It compiles ok, but the output machine code is blank
 asmfile1 = ("""
@@ -331,6 +378,10 @@ val1  DATA H'0f
 
 class TestCase(unittest.TestCase):
 
+    # -- Lexer tests
+    def test_lexer_01(self):
+        self.assertEqual(lexer_test(lex1), lex1_result)
+"""
     # -- Errors
     def test_error_01(self):
         self.assertEqual(test_errors(ef1), "Error: END expected. Line: 2")
@@ -389,7 +440,8 @@ class TestCase(unittest.TestCase):
 
     def test_08(self):
         self.assertEqual(test(asmfile8), "E00\n")
-"""
+# -- aQUI
+
     def test_09(self):
         self.assertEqual(test(asmfile9), True)
 
