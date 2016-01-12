@@ -1,624 +1,802 @@
-# ---------------------------------------------------------------------------------
-# --  Asembler for the Simplez microprocessor
-# --  (C) BQ November 2015. Written by Juan Gonzalez (obijuan)
-# --  Python 3
-# ----------------------------------------------------------------------------------
-# -- Released under the GPL v3 License
-# ----------------------------------------------------------------------------------
+# - Simplez assembler
+# - Grammar definition
+# -
+# --- A program is a list of lines with the END keyword in the end (finished by EOL)
+# --- Notice that after the END there could be more instructions, but they will be ignored
+# <program> ::= <lines> "END" EOL
+#
+# --- There could be more than one lines. Each line should be end by EOL
+# <lines> ::= (<line> EOL+ )* | <lines>
+#
+# -- Each line can be a comment, a line of code followed by a commnet
+# -- or just a simple line of code
+# <line> ::= COMMENT | <lineofcode> COMMENT | <lineofcode>
+#
+# -- Lines of code can be either a directive or line with a simplez instructions
+# <lineofcode> ::= <directive> | <lineinstruction>
+#
+# -- All the instruction can have a label in the beginning of the line (optionally)
+# <lineinstruction> ::= <instruction> | LABEL <instruction>
+#
+# -- There are 9 different simplez-F instructions
+# <instruction> ::= <instLD>  | <insST>   | <instADD>  | <instBR> | <instBZ> |
+# ----------------- <instCLR> | <instDEC> | <instHALT> | <instWAIT>
+#
+
+# - There are 4 different directives
+# <directive> ::= <dirORG> | <dirEQU> | <dirRES> | <dirDATA>
+#
+# - ORG directive do not have any label in the left. The argument can be a number or a label
+# - label (defined by the EQU directive)
+# <dirORG> ::= ORG NUMBER | ORG LABEL
+#
+# -- EQU Directive
+# <dirEQU> ::= LABEL EQU NUMBER
+#
+# -- DATA directive.  Label is optional
+# <dirDATA> ::= LABEL DATA <datacollection> |  DATA <datacollection>
+#
+# -- Collection of data,separated by ,
+# <datacollection> ::= <data> (,<data>)*
+#
+# -- Type of data accepted as "DATA"
+# <data> ::= STRING | NUMBER
+#
+# -- RES directive. Label is optional
+# <dirRES> ::= LABEL RES NUMBER | RES NUMBER
+#
+
+# -- Instruction LD
+# <instLD> ::= LD <addr>
+#
+# -- The address can be giben numerically (eg. /501), or by label (eg. /ini)
+# <addr> ::= ADDRNUM | ADDRLABEL
+#
+# -- Instruction ST
+# <instST> ::= ST <addr>
+#
+# -- Instruction ADD
+# <instADD> ::= ADD <addr>
+#
+# -- Instruction BR
+# <instBR> ::= BR <addr>
+#
+# -- Instruction BZ
+# <instrBZ> ::= BZ <addr>
+#
+# -- Instruction CLR
+# <instrCLR> ::= CLR
+#
+# -- Instruction DEC
+# <instrDEC> ::= DEC
+#
+# -- Istruction HALT
+# <instrHAL> ::= HALT
+#
+# -- Instruction WAIT
+# <instWAIT> ::= WAIT
+
+# - Tokens:
+#
+# - EOL, EOF, COMMENT, LABEL, ORG, NUMBER, STRING, ADDRNUM, ADDRLABEL
+# - LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT
+
+# - COMMENT: ;(any ascii char)*
+# - LABEL: (any ascii char)*  That is NOT a reserved word
+# - NUMBER: Decimal or hexadecimal number:  [0-9]* | H'[0-9,a-f,A-F]*
+# - STRING: "(any ascii char)"
+# - ADDRNUM: /NUMBER
+# - ADDRLABEL: /LABEL
+
 import sys
 import re
 
+# --- Token types
+(EOL, EOF, COMMENT, LABEL, ORG, NUMBER, ADDR,
+ LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT, UNKNOWN, END, EQU, RES,
+ DATA, STRING, COMMA) = (
+ 'EOL', 'EOF', 'COMMENT', 'LABEL', 'ORG', 'NUMBER',  'ADDR',
+ 'LD', 'ST', 'ADD', 'BR', 'BZ', 'CLR', 'DEC', 'HALT', 'WAIT', 'UNKNOWN', 'END', 'EQU', 'RES',
+ 'DATA', 'STRING', 'COMMA'
+)
+
+# -- default output file with the machine code for SIMPLEZ
+OUTPUT_FILE = "prog.list"
+
+# -- Instruction opcodes
+OPCODES = {ST: 0, LD: 1, ADD: 2, BR: 3, BZ: 4,
+           CLR: 5, DEC: 6, HALT: 7, WAIT: 0xF, DATA: 0xFF, }
+
+
+class Token(object):
+    """Token generator"""
+
+    def __init__(self, type, value, line=None):
+        self.type = type
+        self.value = value
+        self.line = line
+
+    def __str__(self):
+
+        # -- Print the Token line number
+        string = "[{}] Token: ".format(self.line)
+
+        # -- Case 1: These token have no value
+        if self.type in [EOL, EOF, END, ORG, EQU, RES, DATA,
+                         COMMA, LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT]:
+            string += self.type
+
+        # -- Case 2: These tokens have values
+        elif self.type in [COMMENT, STRING, NUMBER, LABEL, ADDR]:
+            string += "{} ({})".format(self.type, self.value)
+
+        else:
+            string += "Unknown ({})".format(self.value)
+
+        return string
+
+# ------------- Regular expresion definitions for the Lexer --------
+# -- Decimal number
+REGEX_DEC = r"[0-9]+"
+
+# -- Hexadecimal number
+REGEX_HEX = r"H\'[0-9a-fA-F]+"
+
+# -- Comment
+REGEX_COMMENT = r";[^\n]*"
+
+# -- White spaces. \n is not included
+REGEX_WSPACE = r"[ \t\r\f\v]+"
+
+# -- Label
+REGEX_LABEL = r"[a-zA-Z0-9_]+"
+
+# -- String
+REGEX_STRING = r"\"[^\"]*\""
+
+# -- Numeric address (in decimal)
+REGEX_ADDRNUM1 = r"/[0-9]+"
+
+# -- Numeric address (in hexadecimal)
+REGEX_ADDRNUM2 = r"/H\'[0-9a-fA-F]+"
+
+# -- Address label
+REGEX_ADDRLABEL = r"/[a-zA-Z0-9_]+"
+
 
 class Lexer(object):
-    """General functions for parsing"""
+    """Lexical analyzer"""
 
-    # - Symbol used for defining comments in the assembler
-    # - It is a parameter. It can be changed
-    # COMMENT_SYMBOL = "//"  # - C / Verilog style
-    # COMMENT_SYMBOL = "#"  # - Python style
-    COMMENT_SYMBOL = ";"
+    def __init__(self, text):
+        self.text = text
+        self.pos = 0
+        self.line = 1
 
-    # Symbols for representing hexadecimal numbers
-    # SYM_HEX = "0x"  # - Notation in C / python style
-    SYM_HEX = "H'"  # - Notation in Simlez
+    def reset(self):
+        self.pos = 0
+        self.line = 1
 
-    # Regular expresions for Parsing Hexadecimal numbers
-    # - In Simplez, hexadecimal numbers are written as: H'8A, H'960A, etc
-    REGEX_HEX = r"^{}[0-9a-fA-F]+$".format(SYM_HEX.upper())
+    def check_hexnumber(self):
+        """Check if it is an hexadecimal number. If so, return its value, else None"""
+        scan = re.match(REGEX_HEX, self.text[self.pos:].upper())
+        if scan:
+            self.pos += len(scan.group())
 
-    @staticmethod
-    def is_comment(word):
-        """Return True if the word is a comment"""
-
-        # - Split the word usign the COMMENT_SYMBOL
-        words = word.split(Lexer.COMMENT_SYMBOL)
-
-        # - It does not contains the comment symbol
-        if (len(words) == 1):
-            return False
-
-        # - The first word should be null (no charcters before the comment symbol)
-        if (len(words[0]) == 0):
-            return True
+            # -- Return the number
+            return int(scan.group()[2:], 16)
         else:
-            return False
+            return None
 
-    @staticmethod
-    def is_comment_line(line):
-        """Returns true if the whole line is a comment"""
+    def check_decimal(self):
+        """Check if it is a decimal number. If so, return it svalue, else None"""
 
-        # -- Divide the line into a list of words
-        words = line.split()
+        scan = re.match(REGEX_DEC, self.text[self.pos:])
+        if scan:
+            self.pos += len(scan.group())
+            return int(scan.group())
 
-        # - It is a commnet line if the first words is a comment
-        return Lexer.is_comment(words[0])
+    def check_comment(self):
+        """Check if it is a comment. It returns the comment or None"""
 
-    @staticmethod
-    def is_blank_line(line):
-        """Returns true if the line is blank"""
+        scan = re.match(REGEX_COMMENT, self.text[self.pos:])
+        if scan:
+            self.pos += len(scan.group())
+            return scan.group()[1:]
 
-        # -- Divide the line into a list of words
-        words = line.split()
+    def check_addr(self):
+        """Check if it is an address"""
 
-        # -- If it is a blank line, ignore it
-        if len(words) == 0:
-            return True
-        else:
-            return False
+        # -- Case 1: Address in decimal
+        scan = re.match(REGEX_ADDRNUM1, self.text[self.pos:])
+        if scan:
+            self.pos += len(scan.group())
+            return int(scan.group()[1:])
 
-    @staticmethod
-    def is_hexdigit(word):
-        """Returns True if words is an ASCII hexadecimal number"""
+        # -- Case 2: Address in hexadecimal
+        scan = re.match(REGEX_ADDRNUM2, self.text[self.pos:].upper())
+        if scan:
+            self.pos += len(scan.group())
+            return int(scan.group()[3:], 16)
 
-        if re.search(Lexer.REGEX_HEX, word):
-            return True
-        else:
-            return False
+        # -- Case 3: Address is a label
+        scan = re.match(REGEX_ADDRLABEL, self.text[self.pos:])
+        if scan:
+            self.pos += len(scan.group())
+            return scan.group()[1:]
 
-    @staticmethod
-    def is_number(word):
-        """Determine if the word is a number (in decimal) or in hexadecimal
-           It returns:
-           -True: is a number
-           -False: is not a number"""
-        return word.isdigit() or Lexer.is_hexdigit(word)
+    def check_directive(self):
+        """Check if it is a directive"""
+
+        for direct in [END, ORG, EQU, RES, DATA]:
+            scan = re.match(direct+"\s", self.text[self.pos:].upper())
+            if scan:
+                self.pos += len(scan.group()[:-1])
+                return direct
+
+    def check_instruction(self):
+        """Check if it is an instruction"""
+
+        for instr in [LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT]:
+            scan = re.match(instr+"\s", self.text[self.pos:].upper())
+            if scan:
+                self.pos += len(scan.group()[:-1])
+                return instr
+
+    def check_label(self):
+        """Check if it is a label"""
+
+        scan = re.match(REGEX_LABEL, self.text[self.pos:])
+        if scan:
+            self.pos += len(scan.group())
+            return scan.group()
+
+    def check_string(self):
+        """Check if it is a string"""
+        scan = re.match(REGEX_STRING, self.text[self.pos:])
+        if scan:
+            self.pos += len(scan.group())
+            return scan.group()[1:-1]
+
+    def get_token(self):
+        """Get the next token from tex"""
+
+        # -- Remove the white spaces (except \n)
+        scan = re.match(REGEX_WSPACE, self.text[self.pos:])
+        if scan:
+            self.pos += len(scan.group())
+
+        # -- Is it a commnet?
+        comment = self.check_comment()
+        if comment:
+            return Token(COMMENT, comment, line=self.line)
+
+        # -- Is it a hexadecimal number?
+        hexnumber = self.check_hexnumber()
+        if hexnumber is not None:
+            return Token(NUMBER, hexnumber, line=self.line)
+
+        # -- Is it a decimal number?
+        number = self.check_decimal()
+        if number is not None:
+            return Token(NUMBER, number, line=self.line)
+
+        # -- Is it a string?
+        string = self.check_string()
+        if string is not None:
+            return Token(STRING, string, line=self.line)
+
+        # -- Is it an address?
+        addr = self.check_addr()
+        if addr is not None:
+            return Token(ADDR, addr, line=self.line)
+
+        # -- Check if it is a directive
+        direct = self.check_directive()
+        if direct:
+            return Token(direct, None, line=self.line)
+
+        # -- Check if it is an instruction
+        instr = self.check_instruction()
+        if instr:
+            return Token(instr, None, line=self.line)
+
+        # -- Check if it is a label
+        label = self.check_label()
+        if label:
+            return Token(LABEL, label, line=self.line)
+
+        # --Get the current char
+        try:
+            current_char = self.text[self.pos]
+        except IndexError:
+            return Token(EOF, None, line=self.line)
+
+        # -- Is it a EOL?
+        if current_char == '\n':
+            self.pos += 1
+            line = self.line
+            self.line += 1
+            return Token(EOL, None, line=line)
+
+        # -- Is it a COMMA?
+        if current_char == ',':
+            self.pos += 1
+            return Token(COMMA, None, line=self.line)
+
+        self.pos += 1
+        return Token(UNKNOWN, current_char, line=self.line)
+
+    def test(self):
+        """Test the lexer"""
+
+        string = ""
+        while True:
+            token = self.get_token()
+            string += "{}\n".format(token)
+            if token.type == EOF:
+                return string
 
 
-class Prog(object):
-    """Abstract syntax Tree (AST) for the assembled program"""
-
-    RESERVED_WORDS = ["ST", "LD", "ADD", "BR", "BZ", "CLR", "DEC", "HALT",  "WAIT",
-                      "ORG", "DATA"]
-
+# ---------------------- AST
+class Prog_AST(object):
     def __init__(self):
-        self._addr = 0   # -- Current address
+        self.addr = 0   # -- Current address
         self.linst = []  # -- List of instructions
 
         # -- Symbol table. It is used for storing the pairs label - address
         self.symtable = {}
 
-    def add_instruction(self, inst):
-        """Add the instruction in the current address. The current dir is incremented
+    def add(self, inst):
+        """Add the instruction in the current address. Increment the address counter
         """
 
         # -- Assign the current address
-        inst.addr = self._addr
+        inst.addr = self.addr
 
         # -- Insert the instruction
         self.linst.append(inst)
 
         # -- Increment the current address
-        self._addr += 1
+        self.addr += 1
 
-    def is_label(self, word):
-        """Return True if the word is a label"""
+    def solve_labels(self):
+        """semantic analysis. Assign a value to the instruction arguments that do not
+           have a numeric value"""
 
-        # - it is a label if it is NOT a reserved word or
-        # - a number
+        for instr in self.linst:
 
-        # - It is a number (decirmal or hexadecila. It is NOT a label)
-        if word.isdigit() or Lexer.is_hexdigit(word):
-            return False
+            # -- Check only the instructions with arguments
+            if instr.arg is not None:
+                # -- Check if the argument is a string
+                if type(instr.arg) is str:
+                    # -- It is a label. Put the label in the label attribute
+                    instr.label = instr.arg
 
-        # - It is a reserved word: not a label!
-        if word in self.RESERVED_WORDS:
-            return False
+                    # -- Get the label's value from the symtable
+                    try:
+                        value = self.symtable[instr.label]
+                    except KeyError:
+                        raise Exception(
+                            "Error: Line: {}: Symbol not defined: {}".format(instr.line,
+                                                                             instr.label))
+                    # -- Write the value in the argument
+                    instr.arg = int(value)
 
-        # - It should be a label
-        return True
-
-    def set_label(self, label, nline):
-        """Assign the label to the current address"""
-
-        if label in self.symtable:
-            msg = "ERROR. Label {} is duplicated in line {}".format(label, nline)
-            raise SyntaxError(msg, 0)
-        else:
-            self.symtable[label] = self._addr
-
-    def assign_labels(self):
-        """Check all the labels of the JP instructions of the program
-           to make sure they all have an address asigned. If not, the attribute addr
-           is updated with the right value
-           If there are unknown labels an exception is raised
-        """
-        for inst in self.linst:
-            if inst.nemonic in ["LD", "BR", "BZ", "ST", "ADD"]:
-                try:
-                    if len(inst.label) != 0:
-                        inst._dat = prog.symtable[inst.label]
-                except KeyError:
-                    msg = "ERROR: Label {} unknow in line {}".format(inst.label, inst.nline)
-                    raise SyntaxError(msg, inst.nline)
-
-    def set_addr(self, addr):
-        """Set the current address"""
-        self._addr = addr
-
-    def get_addr(self):
-        """Return the current address"""
-        return self._addr
-
-    def __str__(self):
-        """Print the current program (in assembly language)"""
-
-        # -- Calculate the length of the longest label
-        labels = list(self.symtable.keys())
-        lenlabels = list(map(len, labels))
-        maxlen = max(lenlabels)
-
-        str = ""
+    def assembly(self):
+        string = ""
         addr = 0
+        for instr in self.linst:
+            # -- There is a gap between in the addresses
+            if addr != instr.addr:
+                string += "\n      ORG 0x{0:03X}\n".format(instr.addr)
+                addr = instr.addr
 
-        for inst in self.linst:
-            if addr != inst.addr:
-                # -- there is a gap in the addresses
-                str += "\n"
-                str += " " * (maxlen + 8)
-                str += "ORG {0}{1:03X}\n".format(Lexer.SYM_HEX, inst.addr)
-                addr = inst.addr
-
-            str += "{}\n".format(inst.get_asmstr(symtable=self.symtable))
+            string += "{}\n".format(instr)
             addr += 1
 
-        return str
+        return string
 
-    def machine_code(self):
-        """Generate the program in simplez machine code"""
+    def show_symbols(self):
+        """Print the symbol table"""
 
-        # -- Calculate the length of the longest label
-        labels = list(self.symtable.keys())
-        if len(labels) == 0:
-            maxlen = 0
-        else:
-            lenlabels = list(map(len, labels))
-            maxlen = max(lenlabels)
+        for key, value in self.symtable.items():
+            print("{} = {}".format(key, value))
+
+    def machine_code(self, asm=False):
+        string = ""
+        if asm:
+            string += "//mcode    addr nemonic\n"
+            string += "//-----    ---- -------\n"
 
         addr = 0
-        code = ""
-        for inst in self.linst:
-            inst_ascii = ""
-            if addr != inst.addr:
-                # -- There is a gap in the addresses
-                inst_ascii = "\n@{0:03X}  //-- ".format(inst.addr)
-                inst_ascii += " " * (8 + maxlen)
-                inst_ascii += "ORG 0x{0:03X}\n".format(inst.addr)
-                addr = inst.addr
+        for instr in self.linst:
+            if addr != instr.addr:
 
-            inst_ascii += "{:03X}   //-- {}".format(inst.mcode(), inst.get_asmstr(self.symtable))
-            code += inst_ascii + "\n"
+                if asm:
+                    string += "\n"
+                string += "@{0:03X}".format(instr.addr)
+                if asm:
+                    string += "  //--       ORG {0:03X}".format(instr.addr)
+
+                string += "\n"
+                addr = instr.addr
+
+            string += "{:03X}".format(instr.mcode())
+            if asm:
+                string += "   //-- {}".format(instr)
+            string += "\n"
             addr += 1
 
-        return code
+        return string
 
 
 class Instruction(object):
     """Simplez instruction class"""
 
-    # -- Instruction opcodes
-    opcodes = {"ST": 0, "LD": 1, "ADD": 2, "BR": 3, "BZ": 4,
-               "CLR": 5, "DEC": 6, "HALT": 7, "WAIT": 0xF,
-               "DATA": 0xFF, }
-
-    def __init__(self, nemonic, dat=0, addr=0, label="", nline=0):
-        """Create the instruction from the co and dat fields"""
+    def __init__(self, nemonic, arg=None, line=None):
         self.nemonic = nemonic  # -- Instruction name
-        self._dat = dat     # -- Instruction argument
-        self.addr = addr    # -- Address where the instruction is stored in memory
-        self.label = label  # -- Label (if any)
-        self.nline = nline  # -- Line number
+        self.arg = arg          # -- Instruction argument
+        self.line = line        # -- line number where the instruction is located in the src
+        self.addr = None        # -- Address were the instruction is stored
+        self.label = None       # -- If the argument is a label
 
     def opcode(self):
         """Return the instruction opcode"""
-        return self.opcodes[self.nemonic]
+        return OPCODES[self.nemonic]
 
     def mcode(self):
         """Return the machine code"""
         if self.nemonic == "DATA":
-            return self._dat
+            return self.arg
         elif self.nemonic == "WAIT":
             return 0xF00
+        elif self.arg is not None:
+            return (self.opcode() << 9) + self.arg
         else:
-            return (self.opcode() << 9) + self._dat
+            return (self.opcode() << 9)
 
-    def get_asmstr(self, symtable):
-        """Print the instruction in assembly"""
+    def __str__(self):
+        string = ""
 
-        # -- Calculate the length of the longest label
-        labels = list(symtable.keys())
-        if len(labels) == 0:
-            maxlen = 0
+        if self.addr is not None:
+            string += "[{:03X}] ".format(self.addr)
+
+        # -- Uncomment for showing the src line numbers
+        # if self.line is not None:
+        #     string += "(Line: {}) ".format(self.line)
+
+        string += "{}".format(self.nemonic)
+
+        if self.arg is not None:
+            if self.nemonic == DATA:
+                string += " {}".format(self.arg)
+            else:
+                if type(self.arg) is int:
+                    string += " /{:03X}".format(self.arg)
+                else:
+                    string += " /{}".format(self.arg)
+
+        return string
+
+# ----------- Syntax analyzer
+
+
+class Parser(object):
+    """Sintax analysis"""
+
+    def __init__(self, lexer):
+        self.lexer = lexer
+        self.prog = Prog_AST()
+
+        # -- The last two token are read in advance
+        self.current_token = self.lexer.get_token()
+        self.next_token = self.lexer.get_token()
+
+    def error(self, msg=None, line=None):
+        raise Exception('Error: {}. Line: {}'.format(msg, line))
+
+    def assert_type(self, type, error_msg="", debug=False):
+        """Make sure the current token is of the given type"""
+
+        if self.current_token.type == type:
+            if debug:
+                print(self.current_token)
+
+            self.current_token = self.next_token
+            self.next_token = self.lexer.get_token()
+
         else:
-            lenlabels = list(map(len, labels))
-            maxlen = max(lenlabels)
+            self.error(error_msg, line=self.current_token.line)
 
-        # -- String for the address
-        saddr = "[{:03X}]".format(self.addr)
+    def program(self):
+        """<program> ::= <lines> "END" EOL"""
 
-        # -- Check if the argument has a label associated
-        if self._dat in symtable.values():
-            index = list(symtable.values()).index(self._dat)
-            sarg = "/{0} {1}-- {0} = {2}{3:03X} ".format(list(symtable.keys())[index],
-                                                         Lexer.COMMENT_SYMBOL,
-                                                         Lexer.SYM_HEX,
-                                                         self._dat)
+        self.lines()
+        self.assert_type(END, "END expected")
+        self.assert_type(EOL, "No EOL after END")
+
+    def lines(self):
+        """<lines> ::= EOL*  (<line> EOL+)* """
+
+        while self.current_token.type not in [EOF, END]:
+
+            self.line()
+            self.assert_type(EOL, "Unexpected element")
+
+            # -- Remove the extra EOL (if any)
+            while (self.current_token.type == EOL):
+                self.assert_type(EOL)
+
+    def line(self):
+        """<line> ::= COMMENT | <lineofcode> (COMMENT)"""
+
+        if self.current_token.type == COMMENT:
+            self.assert_type(COMMENT)
+
         else:
-            sarg = "/{0}{1:03X}".format(Lexer.SYM_HEX, self._dat)
+            if self.lineofcode():
+                if (self.current_token.type == COMMENT):
+                    self.assert_type(COMMENT)
 
-        # - Check if the current address has a label associated to it
-        if self.addr in symtable.values():
-            index = list(symtable.values()).index(self.addr)
-            label = list(symtable.keys())[index]
-            saddr += "[{}]".format(label)
-            saddr += " " * (maxlen - len(label))
+    def lineofcode(self):
+        """<lineofcode> ::= <directive> | <lineinstruction>"""
+
+        if self.directive():
+            return True
         else:
-            # - Calculate the length of the longest label
-            saddr += " " * (maxlen + 2)
+            # -- It is not a directive, should be a instruction
+            return self.lineinstruction()
 
-        if self.nemonic in ["LD", "BR", "BZ", "ST", "ADD"]:
-            return "{} {} {}".format(saddr, self.nemonic, sarg)
-        elif self.nemonic == "DATA":
-            return "{0} DATA {1}{2:03X}".format(saddr, Lexer.SYM_HEX, self._dat)
+    def directive(self):
+        """<directive> ::= <dirORG> | <dirEQU> | <dirRES> | <dirDATA>"""
+
+        if self.dir_org():
+            return True
+        elif self.dir_equ():
+            return True
+        elif self.dir_res():
+            return True
+        elif self.dir_data():
+            return True
         else:
-            return "{} {}".format(saddr, self.nemonic)
+            # -- It is not a directive
+            return False
 
+    def dir_org(self):
+        """<dirORG> ::= ORG NUMBER | ORG LABEL"""
 
-class SyntaxError(Exception):
-    """Syntax error exceptions"""
-    def __init__(self, msg, nline):
-        self.msg = msg        # - Sintax error message
-        self.nline = nline    # - Number of line were the sintax error is located
+        # -- If it is not an ORG token, return
+        if self.current_token.type == ORG:
+            self.assert_type(ORG)
 
+            if self.current_token.type == NUMBER:
+                addr = self.current_token.value
+                self.assert_type(NUMBER)
 
-def parse_dat(dat, nline):
-    """Parse a numerical data
-       * Returns (ok, dat)
-          -ok: True: Successfully parsed
-          -dat: Numerical data
-    """
+                # -- Change the current address
+                self.prog.addr = addr
 
-    if dat.isdigit():
-        return True, int(dat)
+            # -- If the address is not a number... it should be a label
+            else:
+                label = self.current_token.value
+                line = self.current_token.line
+                self.assert_type(LABEL, "ORG: Label or number expected")
 
-    if Lexer.is_hexdigit(dat):
+                # -- Get the address asociated to the label
+                try:
+                    addr = self.prog.symtable[label]
+                except KeyError:
+                    self.error("Unknow Label: {}".format(label), line=line)
 
-        # -- Convert the string into number
-        try:
-            hex = int(dat[2:], 16)
-        except ValueError:
-            msg = "ERROR: Invalid hexadecimal number in line {}".format(nline)
-            raise SyntaxError(msg, nline)
+                # -- Change the current address
+                self.prog.addr = addr
 
-        return True, hex
+            return True
 
-    # -- Not a number
-    return False, 0
+        # -- Not an ORG directive
+        else:
+            return False
 
+    def dir_equ(self):
+        """<dirEQU> ::= LABEL EQU NUMBER"""
 
-def parse_label(prog, label, nline):
-    """Parse the label and added it to the symbol table
-        INPUTS:
-        - prog: AST tree where the current program is being processed
-        - label: A string to parse
+        if self.current_token.type == LABEL and self.next_token.type == EQU:
+            label = self.current_token.value
+            line = self.current_token.line
+            self.assert_type(LABEL)
+            self.assert_type(EQU)
+            value = self.current_token.value
+            self.assert_type(NUMBER, "EQU: Expected a number")
 
-        Returns:
-        -TRUE: If it is a label
-        -False: Not a label
-    """
-    if prog.is_label(label):
-        # -- Inset the label in the symbol table
-        prog.set_label(label, nline)
-        return True
-    else:
+            # - check if the label is already in the table
+            if label in self.prog.symtable:
+                self.error(msg="Duplicated label: {}".format(label), line=line)
+
+            # - Insert the label in the symbol table
+            self.prog.symtable[label] = value
+
+            return True
+        elif self.current_token.type == EQU:
+            self.error("EQU without label", line=self.current_token.line)
+        else:
+            # -- It is not an EQU directive
+            return False
+
+    def dir_res(self):
+        """<dirRES> ::= (LABEL) RES NUMBER"""
+
+        # -- Case 1:  LABEL RES
+        if self.current_token.type == LABEL and self.next_token.type == RES:
+            label = self.current_token.value
+            line = self.current_token.line
+            self.assert_type(LABEL)
+
+            # - check if the label is already in the table
+            if label in self.prog.symtable:
+                self.error(msg="Duplicated label: {}".format(label), line=line)
+
+            # - Insert the label in the symbol table
+            self.prog.symtable[label] = self.prog.addr
+
+        # -- Case 2: RES (without label)
+        if self.current_token.type == RES:
+            line = self.current_token.line
+            self.assert_type(RES)
+            value = self.current_token.value
+            self.assert_type(NUMBER)
+
+            # -- Reserving 0 words does not make any sense
+            if value == 0:
+                self.error(msg="Not possible to reserve 0 words", line=line)
+
+            # - Create all the data instructions reserved by the directive res
+            for i in range(value):
+                instr = Instruction(DATA, line=line, arg=0)
+                self.prog.add(instr)
+
+            return True
+        else:
+            return False
+
+    def dir_data(self):
+        """<dirDATA> ::= LABEL DATA <datacollection> |  DATA <datacollection>"""
+
+        # -- Case 1: LABEL DATA
+        if self.current_token.type == LABEL and self.next_token.type == DATA:
+
+            # -- Get the label
+            label = self.current_token.value
+            line = self.current_token.line
+            self.assert_type(LABEL)
+
+            # - check if the label is already in the table
+            if label in self.prog.symtable:
+                self.error(msg="Duplicated label: {}".format(label), line=line)
+
+            # -- Insert the lable in the symbol table
+            self.prog.symtable[label] = self.prog.addr
+
+            self.assert_type(DATA)
+            self.data_collection()
+
+            return True
+
+        # -- Case 2: DATA (no label)
+        if self.current_token.type == DATA:
+            self.assert_type(DATA)
+            self.data_collection()
+
+            return True
+
+        # -- It is not a DATA directive
         return False
 
+    def data_collection(self):
+        """<datacollection> ::= <data> (,<data>)*"""
 
-def parse_org(prog, words, nline):
-    """Parse the org directive
-        Inputs:
-          * prog: AST tree were to store the information obtained from parsing the line
-          * words: List of words to parse
-          * nline: number of the line that is being parsed
+        self.data()
+        while self.current_token.type == COMMA:
+            self.assert_type(COMMA)
+            self.data()
 
-        Returns:
-          * False, If it is not an org directive
-          * True. Success
-          * An exception is raised in case of a sintax error
-    """
+    def data(self):
+        """<data> ::= STRING | NUMBER"""
 
-    # -- The first word is not ORG. It is not an org directive
-    if not words[0] == "ORG":
+        if self.current_token.type == NUMBER:
+            line = self.current_token.line
+            value = self.current_token.value
+            self.assert_type(NUMBER)
+            instr = Instruction(DATA, line=line, arg=value)
+            self.prog.add(instr)
+        else:
+            line = self.current_token.line
+            value = self.current_token.value
+            self.assert_type(STRING)
+
+            # -- Insert one data instruction per character in the string
+            for char in value:
+                instr = Instruction(DATA, line=line, arg=ord(char))
+                self.prog.add(instr)
+
+    def lineinstruction(self):
+        """<lineinstruction> ::= (LABEL) <instruction>"""
+
+        if self.current_token.type == LABEL:
+
+            line = self.current_token.line
+            label = self.current_token.value
+
+            # - check if the label is already in the table
+            if label in self.prog.symtable:
+                self.error(msg="Duplicated label: {}".format(label), line=line)
+
+            # - Insert the label in the symbol table
+            self.prog.symtable[label] = self.prog.addr
+
+            self.assert_type(LABEL)
+
+            # -- If there is a label, there should be an instrucction in the same line
+            if self.instruction():
+                return True
+            else:
+                self.error("Invalid instruction", line=line)
+                return False
+
+        # -- There should be now an instruction
+        line = self.current_token.line
+        self.instruction()
+        return True
+
+    def instruction(self):
+        """<instruction> ::= <instLD>  | <insST>   | <instADD>  | <instBR> | <instBZ> |
+                             <instCLR> | <instDEC> | <instHALT> | <instWAIT>"""
+
+        # -- Case 1: Instructions with no arguments
+        for instr in [CLR, DEC, HALT, WAIT]:
+            if self.parse_instr0(instr):
+                return True
+
+        # -- Case 2: Instructions with 1 argument (an absolute address)
+        for instr in [ST, LD, ADD, BR, BZ]:
+            if self.parse_instr1(instr):
+                return True
+
+        # -- It is not an instruction
         return False
 
-    # -- Sintax error: The org directive should have one argument with the address
-    if len(words) == 1:
-        msg = "ERROR: No address is given after ORG in line {}".format(nline)
-        raise SyntaxError(msg, nline)
-
-    # -- Read the argument. It should be a number
-    okdat, dat = parse_dat(words[1], nline)
-
-    # -- Invalid data
-    if not okdat:
-        msg = "ERROR: ORG {}: Invalid address in line {}".format(words[1], nline)
-        raise SyntaxError(msg, nline)
-
-    # -- Update the current address. The next instruction will be stored in this
-    # -- address
-    prog.set_addr(dat)
-
-    # -- Get the following words if any. They should only be comments
-    words = words[2:]
-
-    # -- If no more words to parse, return
-    if len(words) == 0:
-        return True
-
-    # -- If there are comments, return true. If they are not comments, there
-    # -- is a sintax error
-    if Lexer.is_comment(words[0]):
-        return True
-    else:
-        msg = "Syntax error in line {}: Unknow command {}".format(nline, words[0])
-        raise SyntaxError(msg, nline)
-
-
-def parse_dir(prog, word, nline):
-    """Parse the address argument"""
-
-    # -- Check the address mode. For simplez is always absolute
-    if word[0] != "/":
-        msg = "ERROR: Invalid argument {} for instruction in line {}".format(word, nline)
-        msg += "\nIt should be an absolute direction (/)"
-
-        raise SyntaxError(msg, nline)
-
-    # -- Remove the / symbol
-    word = word[1:]
-
-    # -- The next string could be a number ...
-    if Lexer.is_number(word):
-        # -- Read the data
-        okdat, dat = parse_dat(word, nline)
-
-        # -- It returns the address and blank label
-        return dat, ""
-
-    # -- Or a label
-    if prog.is_label(word):
-
-        # -- It returns the address 0 and the label
-        return 0, word
-
-
-def parse_instruction_data(prog, words, nline):
-        """Parse the DATA assembler directive
-            INPUTS:
-              -prog: AST tree where to insert the parsed instruction
-              -words: List of words to parse
-              -nline: Number of the line that is beign parsed
-
-            RETURNS:
-              -True: Success. Instruction parsed and added into the AST
-              -False: Not data directive
-              -An exception is raised in case of a syntax error
+    def parse_instr0(self, inst_type):
+        """Parse the instructions with 0 arguments
+           HALT, WAIT, DEC, CLR
         """
-        # -- Parse the LEDS instruction
-        if words[0] == "DATA":
 
-            # -- Read the data
-            okdat, dat = parse_dat(words[1], nline)
-
-            # -- Invalid data
-            if not okdat:
-                msg = "ERROR: Invalid data for the instruction {} in line {}".format(
-                       words[0], nline)
-                raise SyntaxError(msg, nline)
-
-            # -- Create the instruction
-            inst = Instruction(words[0], dat)
-
-            # -- Insert in the AST tree
-            prog.add_instruction(inst)
-
+        if self.current_token.type == inst_type:
+            line = self.current_token.line
+            self.assert_type(inst_type)
+            instr = Instruction(inst_type, line=line)
+            self.prog.add(instr)
             return True
-
         else:
             return False
 
+    def parse_instr1(self, inst_type):
+        """Parse the instructions with 1 argument
+           ST, LD, ADD, BR, BZ
+        """
 
-def parse_instruction_arg1(prog, words, nline):
-    """Parse the instruction with 1 argument: LD, ST ...and insert into the prog AST tree
-        INPUTS:
-          -prog: AST tree where to insert the parsed instruction
-          -words: List of words to parse
-          -nline: Number of the line that is beign parsed
-
-        RETURNS:
-          -True: Success. Instruction parsed and added into the AST
-          -False: Not an instruction
-          -An exception is raised in case of a sintax error
-    """
-    # -- Check that there are at least 2 words in the line (1 for the nemonic and
-    # -- one for the argument. If not, raise an exception)
-    if len(words) == 1:
-        msg = "ERROR: No data for the instruction {} in line {}".format(words[0], nline)
-        raise SyntaxError(msg, nline)
-
-    # -- Check if there is a data assembler directive
-    parse_instruction_data(prog, words, nline)
-
-    # -- Check if it is a instruction with 1 argument
-    if words[0] in ["ST", "LD", "ADD", "BR", "BZ"]:
-
-        # -- Read the address argument
-        dat, label = parse_dir(prog, words[1], nline)
-
-        # -- Create the instruction
-        inst = Instruction(words[0], dat=dat, label=label, nline=nline)
-
-        # -- Insert in the AST tree
-        prog.add_instruction(inst)
-
-    # -- Parse the comments, if any
-    words = words[2:]
-
-    # -- If no more words to parse, return
-    if len(words) == 0:
-        return True
-
-    # -- There can only be comments. If not, it is a syntax error
-    if Lexer.is_comment(words[0]):
-        return True
-    else:
-        msg = "Syntax error in line {}: Unknow command".format(nline)
-        raise SyntaxError(msg, nline)
-
-    return False
-
-
-def parse_instruction_arg0(prog, words, nline):
-    """Parse the instructions with no arguments
-        INPUTS:
-          -prog: AST tree where to insert the parsed instruction
-          -words: List of words to parse
-          -nline: Number of the line that is beign parsed
-
-        RETURNS:
-          -True: Success. Instruction parsed and added into the AST
-          -False: Not the LEDS instruction
-          -An exception is raised in case of a syntax error
-    """
-    if words[0] in ["HALT", "WAIT", "CLR", "DEC"]:
-
-        # -- Create the instruction from the nemonic
-        inst = Instruction(words[0])
-
-        # -- Insert it in the AST tree
-        prog.add_instruction(inst)
-
-        # -- Check that there are only comments or nothing after these nemonics
-        words = words[1:]
-
-        # -- If no more words to parse, return
-        if len(words) == 0:
-            return True
-
-        if Lexer.is_comment(words[0]):
+        if self.current_token.type == inst_type:
+            line = self.current_token.line
+            self.assert_type(inst_type)
+            arg = self.current_token.value
+            self.assert_type(ADDR, "Invalid address")
+            instr = Instruction(inst_type, arg=arg, line=line)
+            self.prog.add(instr)
             return True
         else:
-            msg = "Syntax error in line {}: Unknow command".format(nline)
-            raise SyntaxError(msg, nline)
             return False
-    else:
-        # -- The instructions are not HALT or WAIT
-        return False
 
-
-def parse_instruction(prog, words, nline):
-    """Parse the instruction and insert into the prog AST tree
-        INPUTS:
-          -prog: AST tree where to insert the parsed instruction
-          -words: List of words to parse
-          -nline: Number of the line that is beign parsed
-
-        RETURNS:
-          -True: Success. Instruction parsed and added into the AST
-          -False: Not an instruction
-          -An exception is raised in case of a sintax error
-    """
-
-    # -- Check if the first word is a correct nemonic
-    if not words[0] in Instruction.opcodes.keys():
-        msg = "ERROR: Unkwown instruction {} in line {}".format(words[0], nline)
-        raise SyntaxError(msg, nline)
-
-    # -- Check if it is a nenomic with no arguments (HALT, WAIT)
-    if parse_instruction_arg0(prog, words, nline):
-        return True
-
-    # -- Check if it is a nenomic with 1 argument (LD, ST...)
-    if parse_instruction_arg1(prog, words, nline):
-        return True
-
-    return False
-
-
-def parse_line(prog, line,  nline):
-    """Parse one line of the assembly program"""
-
-    # - Split the line into words
-    words = line.split()
-
-    # -- Check if the line is an ORG directive
-    if parse_org(prog, words, nline):
-        return
-
-    # -- check if the first word in the line is a label
-    # -- If so, insert it into the symbol table
-    if parse_label(prog, words[0], nline):
-        words = words[1:]
-
-        # -- Etiqueta sola
-        if len(words) == 0:
-            return
-
-        # -- Comentarios
-        if Lexer.is_comment(words[0]):
-            return
-
-    # -- Parse instructions
-    if parse_instruction(prog, words, nline):
-        return
-
-    # --- Debug
-    print ("[{}] {}".format(nline, words))
-
-
-def syntax_analisis(prog, asmfile):
-    """Perform the syntax analisis
-        prog: AST with the processed program (outuput)
-        asmfile: ASCII raw file (input)
-    """
-
-    # -- Split the ASCII file into isolates lines
-    asmfile = asmfile.splitlines()
-
-    # -- Syntax analisis: line by line
-    for nline, line in enumerate(asmfile):
-
-        # - Remove blank lines
-        if Lexer.is_blank_line(line) or Lexer.is_comment_line(line):
-            continue
-
-        # -- Parse line
-        try:
-            parse_line(prog, line, nline+1)
-
-        # -- There was a syntax error. Print the message and exit
-        except SyntaxError as e:
-            print(e.msg)
-            sys.exit()
+    def parse(self):
+        self.program()
+        return self.prog
 
 
 def parse_arguments():
@@ -653,58 +831,69 @@ def parse_arguments():
         sys.exit()
 
     # -- Return the file and verbose arguments
-    return raw.upper(), args.verbose
+    return raw, asmfile, args.verbose
 
-
-if __name__ == "__main__":
-    """Main program"""
-
-    # -- default output file with the machine code for SIMPLEZ
-    OUTPUT_FILE = "prog.list"
+# -- Main program
+if __name__ == '__main__':
 
     # -- Process the arguments. Return the source file and the verbose flags
-    asmfile, verbose = parse_arguments()
-
-    # -- Create a blank AST for storing the processed program
-    prog = Prog()
+    asmfile, filename, verbose = parse_arguments()
 
     print("Assembler for the SIMPLEZ microprocessor")
     print("Released under the GPL license\n")
 
-    # -- Perform the sintax analisis. The sintax errors are reported
-    # -- In case of errors, it exits
-    # -- If sucess, the program is stored in the prog object
-    syntax_analisis(prog, asmfile)
+    # -- Lexical analysis
+    lexer = Lexer(asmfile)
 
-    # -- Semantics analisis: Check if all the labels are ok
-    # -- All the labels should have an address
+    if verbose:
+        print("\n------- Lexical analysis")
+
+        lexer_log = lexer.test()
+        print(lexer_log)
+        lexer.reset()
+
+        print("\n------- Sintax Analysis ------")
+
+    # -- Syntax analysis
+    parser = Parser(lexer)
     try:
-        prog.assign_labels()
+        prog = parser.parse()
+    except Exception as inst:
+        print(inst)
+        sys.exit(0)
 
-    except SyntaxError as e:
-        print(e.msg)
-        sys.exit()
+    if verbose:
+        print()
+        asmcode1 = prog.assembly()
+        print(asmcode1)
+        print("Symbols:")
+        prog.show_symbols()
+
+        print()
+        print("-------- Semantics analysis:")
+
+    try:
+        prog.solve_labels()
+    except Exception as inst:
+        print(inst)
+        sys.exit(0)
+
+    if verbose:
+        asmcode2 = prog.assembly()
+        print(asmcode2)
+
+        print("-------- Generated machine code")
+
+    mcode = ""
+    mcode += "//-- Source file: {}\n".format(filename)
+    mcode += "//-- Output file format: verilog\n\n"
+    mcode += prog.machine_code(asm=True)
+
+    if verbose:
+        print(mcode)
 
     # -- Write the machine code in the output file file
     with open(OUTPUT_FILE, mode='w') as f:
-        f.write(prog.machine_code())
+        f.write(mcode)
 
     print("OK! Machine code for SIMPLEZ generated: {}".format(OUTPUT_FILE))
-
-    # -- Only in verbose mode
-    if verbose:
-        # -- Print the symbol table
-        print()
-        print("Symbol table:\n")
-        for key in prog.symtable:
-            print("{} = 0x{:02X}".format(key, prog.symtable[key]))
-
-        # -- Print the parsed code
-        print()
-        print("SIMPLEZ assembly program:\n")
-        print(prog)
-
-        # -- Print the machine cod
-        print()
-        print("Machine code:\n")
-        print(prog.machine_code())
