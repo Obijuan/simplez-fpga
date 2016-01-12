@@ -1,6 +1,88 @@
-from sasm import Lexer, SyntaxError
 import sys
 import re
+
+
+# -- It was part of the v1.0 sasm.py
+class Lexer(object):
+    """General functions for parsing"""
+
+    # - Symbol used for defining comments in the assembler
+    # - It is a parameter. It can be changed
+    # COMMENT_SYMBOL = "//"  # - C / Verilog style
+    # COMMENT_SYMBOL = "#"  # - Python style
+    COMMENT_SYMBOL = ";"
+
+    # Symbols for representing hexadecimal numbers
+    # SYM_HEX = "0x"  # - Notation in C / python style
+    SYM_HEX = "H'"  # - Notation in Simlez
+
+    # Regular expresions for Parsing Hexadecimal numbers
+    # - In Simplez, hexadecimal numbers are written as: H'8A, H'960A, etc
+    REGEX_HEX = r"^{}[0-9a-fA-F]+$".format(SYM_HEX.upper())
+
+    @staticmethod
+    def is_comment(word):
+        """Return True if the word is a comment"""
+
+        # - Split the word usign the COMMENT_SYMBOL
+        words = word.split(Lexer.COMMENT_SYMBOL)
+
+        # - It does not contains the comment symbol
+        if (len(words) == 1):
+            return False
+
+        # - The first word should be null (no charcters before the comment symbol)
+        if (len(words[0]) == 0):
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def is_comment_line(line):
+        """Returns true if the whole line is a comment"""
+
+        # -- Divide the line into a list of words
+        words = line.split()
+
+        # - It is a commnet line if the first words is a comment
+        return Lexer.is_comment(words[0])
+
+    @staticmethod
+    def is_blank_line(line):
+        """Returns true if the line is blank"""
+
+        # -- Divide the line into a list of words
+        words = line.split()
+
+        # -- If it is a blank line, ignore it
+        if len(words) == 0:
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def is_hexdigit(word):
+        """Returns True if words is an ASCII hexadecimal number"""
+
+        if re.search(Lexer.REGEX_HEX, word):
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def is_number(word):
+        """Determine if the word is a number (in decimal) or in hexadecimal
+           It returns:
+           -True: is a number
+           -False: is not a number"""
+        return word.isdigit() or Lexer.is_hexdigit(word)
+
+
+class SyntaxError(Exception):
+    """Syntax error exceptions"""
+    def __init__(self, msg, nline):
+        self.msg = msg        # - Sintax error message
+        self.nline = nline    # - Number of line were the sintax error is located
 
 
 class Test_progs(object):
