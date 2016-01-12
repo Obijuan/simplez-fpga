@@ -1,17 +1,29 @@
-//-- Source file: asm/sec.asm
+//-- Source file: asm/eco.asm
 //-- Output file format: verilog
 
 //mcode    addr nemonic
 //-----    ---- -------
-207   //-- [000] LD /007
+20F   //-- [000] LD /00F
 1FB   //-- [001] ST /1FB
 F00   //-- [002] WAIT
-208   //-- [003] LD /008
+A00   //-- [003] CLR
 1FB   //-- [004] ST /1FB
-F00   //-- [005] WAIT
-600   //-- [006] BR /000
-003   //-- [007] DATA 3
-00C   //-- [008] DATA 12
+3FE   //-- [005] LD /1FE
+805   //-- [006] BZ /005
+3FF   //-- [007] LD /1FF
+1FB   //-- [008] ST /1FB
+010   //-- [009] ST /010
+3FC   //-- [00A] LD /1FC
+80A   //-- [00B] BZ /00A
+210   //-- [00C] LD /010
+1FD   //-- [00D] ST /1FD
+605   //-- [00E] BR /005
+00F   //-- [00F] DATA 15
+000   //-- [010] DATA 0
 
 @1FB  //--       ORG 1FB
 000   //-- [1FB] DATA 0
+000   //-- [1FC] DATA 0
+000   //-- [1FD] DATA 0
+000   //-- [1FE] DATA 0
+000   //-- [1FF] DATA 0

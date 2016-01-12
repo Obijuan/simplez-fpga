@@ -9,10 +9,8 @@
         ST /LEDS
 
 ;-- Bucle principal: Incrementar contador cada vez que se recibe un caracter
-main
 
-       ;-- Esperar a que llegue un caracter
-       LD /RXSTATUS
+main   LD /RXSTATUS  ;-- Esperar a que llegue un caracter
        BZ /main
 
        ;-- Leer caracter
@@ -26,9 +24,8 @@ main
 
        ;-- Enviarlo de vuelta
 
-txloop ;-- Esperar a que pantalla lista
-       LD /TXSTATUS
-       BZ /txloop
+txloop  LD /TXSTATUS  ;-- Esperar a que pantalla lista
+        BZ /txloop
 
        ;-- Sacarlo por pantalla
        LD /car
@@ -55,3 +52,5 @@ TXDATA    DATA    0  ;-- 509:  Registro de datos
 ;-- Direcciones de acceso al teclado
 RXSTATUS  DATA    0  ;-- 510:  Registro de estado
 RXDATA    DATA    0  ;-- 511:  Registro de datos
+
+end
