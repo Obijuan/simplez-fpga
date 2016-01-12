@@ -1,24 +1,12 @@
-//-- Source file: asm/test.asm
+//-- Source file: asm/leds_on.asm
 //-- Output file format: verilog
 
 //mcode    addr nemonic
 //-----    ---- -------
-000   //-- [000] DATA 0
-000   //-- [001] DATA 0
-000   //-- [002] DATA 0
-000   //-- [003] DATA 0
-000   //-- [004] DATA 0
-000   //-- [005] DATA 0
-000   //-- [006] DATA 0
-000   //-- [007] DATA 0
-000   //-- [008] DATA 0
-000   //-- [009] DATA 0
-000   //-- [00A] DATA 0
-000   //-- [00B] DATA 0
-000   //-- [00C] DATA 0
-000   //-- [00D] DATA 0
-000   //-- [00E] DATA 0
+203   //-- [000] LD /003
+1FB   //-- [001] ST /1FB
+E00   //-- [002] HALT
+00F   //-- [003] DATA 15
 
-@014  //--       ORG 014
-000   //-- [014] DATA 0
-E00   //-- [015] HALT
+@1FB  //--       ORG 1FB
+000   //-- [1FB] DATA 0
