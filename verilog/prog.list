@@ -1,12 +1,17 @@
-//-- Source file: asm/leds_on.asm
+//-- Source file: asm/sec.asm
 //-- Output file format: verilog
 
 //mcode    addr nemonic
 //-----    ---- -------
-203   //-- [000] LD /003
+207   //-- [000] LD /007
 1FB   //-- [001] ST /1FB
-E00   //-- [002] HALT
-00F   //-- [003] DATA 15
+F00   //-- [002] WAIT
+208   //-- [003] LD /008
+1FB   //-- [004] ST /1FB
+F00   //-- [005] WAIT
+600   //-- [006] BR /000
+003   //-- [007] DATA 3
+00C   //-- [008] DATA 12
 
 @1FB  //--       ORG 1FB
 000   //-- [1FB] DATA 0
