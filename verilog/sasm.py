@@ -1,4 +1,11 @@
-# - Simplez assembler
+# ---------------------------------------------------------------------------------
+# --  Asembler for the Simplez microprocessor
+# --  (C) BQ November 2015. Written by Juan Gonzalez (obijuan)
+# --  Python 3
+# --  v1.2
+# ----------------------------------------------------------------------------------
+# -- Released under the GPL v3 License
+# ----------------------------------------------------------------------------------
 # - Grammar definition
 # -
 # --- A program is a list of lines with the END keyword in the end (finished by EOL)
@@ -102,6 +109,8 @@ import re
 
 # -- default output file with the machine code for SIMPLEZ
 OUTPUT_FILE = "prog.list"
+
+VERSION = "v1.2"
 
 # -- Instruction opcodes
 OPCODES = {ST: 0, LD: 1, ADD: 2, BR: 3, BZ: 4,
@@ -839,7 +848,7 @@ if __name__ == '__main__':
     # -- Process the arguments. Return the source file and the verbose flags
     asmfile, filename, verbose = parse_arguments()
 
-    print("Assembler for the SIMPLEZ microprocessor")
+    print("Assembler for the SIMPLEZ microprocessor (Version: {})".format(VERSION))
     print("Released under the GPL license\n")
 
     # -- Lexical analysis
