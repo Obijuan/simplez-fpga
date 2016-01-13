@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # ---------------------------------------------------------------------------------
 # --  Asembler for the Simplez microprocessor
 # --  (C) BQ November 2015. Written by Juan Gonzalez (obijuan)
