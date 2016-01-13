@@ -151,6 +151,17 @@ x1    DATA VAL1
      end
 """)
 
+ef19 = ("""
+VAL1 EQU 1
+
+     WAIT
+     HALT
+
+x1    DATA h'VAL1
+
+     end
+""")
+
 
 # -- Lexer tests
 def lexer_test(asmfile):
@@ -607,6 +618,9 @@ class TestCase(unittest.TestCase):
 
     def test_error_18(self):
         self.assertEqual(test_errors(ef18), "Error: Line: 5: Symbol not defined: VAL1")
+
+    def test_error_19(self):
+        self.assertEqual(test_errors(ef19), "Error: Unexpected element. Line: 7")
 
     # ------------ Code ok
     def test_01(self):
