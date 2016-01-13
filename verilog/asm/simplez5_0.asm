@@ -1,6 +1,7 @@
 ; Programa de ejemplo para Simplez
 ; EJEMPLO 5: Subrutina. Resta de dos numeros
-
+; Se realiza la resta: result2 = dato - res1 - res2
+; Con los valores por defecto, el resultado es 12 (0xC) que se saca por los leds
 
 
         BR /inicio
@@ -13,8 +14,7 @@
         DATA 27     ; Direccion de retorno 2
 
         org 10
-inicio
-        LD /51      ; Transmision del
+inicio  LD /51      ; Transmision del
         ST /202     ;   del sustraendo
         LD /4       ; Construccion de la
         ADD /5      ;   Instruccion
@@ -25,8 +25,7 @@ inicio
         BR /op2
 
         org 20
-op2
-        LD /101     ; Transmision del
+op2     LD /101     ; Transmision del
         ST /202     ;    sustraendo
         LD /4       ; Construccion de la
         ADD /6      ;   Instruccion
@@ -34,6 +33,7 @@ op2
         LD /52     ; Transmision del minuendo  (Diferente al prog. del libro de Gregorio)
         BR /200     ; Salto al subprograma
         ST /102     ; Guardar resultado
+        st /507     ; sacar por leds
         HALT
 
         ;--Variables
@@ -62,3 +62,6 @@ op2
         BR /203   ;  y se vuelve al bucle
         LD /201   ; Resultado al acumulador
         DATA 0    ; Aqui deposita el programa la instruccion de retorno
+
+        end
+        
