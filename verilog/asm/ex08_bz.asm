@@ -1,8 +1,11 @@
 ;-- Programas de prueba para Simplez
 ;-- Ejemplo 8: Prueba de BZ.  Se comprueba el valor de comp
-;--  Si comp == 0: LEDS = 1 (Se enciende un led)
-;--  Si comp != 0: LEDS = F (se encienden todos los leds)
-;-- Cambiar el valor de comp para comprobarlo
+;--  Si VAL == 0: LEDS = 1 (Se enciende un led)
+;--  Si VAL != 0: LEDS = F (se encienden todos los leds)
+;-- Cambiar el valor de VAL para comprobarlo
+
+;-- Modificar VAL. Poner 0 ó un valor distinto de cero
+VAL EQU 0
 
        WAIT         ;-- Inicio: esperar 200ms
 
@@ -20,7 +23,7 @@ iscero ld /val0
        HALT
 
 ;--- Datos
-comp    DATA  0     ;-- Valor a comparar. Poner 0 o un numero distinto de cero
+comp    DATA  VAL     ;-- Valor a comparar
 val0    DATA  h'1   ;-- Valor cuando A es 0
 valn0   DATA  h'F   ;-- Valor cuando A NO es 0
 

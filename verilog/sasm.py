@@ -709,23 +709,26 @@ class Parser(object):
             self.data()
 
     def data(self):
-        """<data> ::= STRING | NUMBER"""
+        """<data> ::= STRING | NUMBER | LABEL"""
+
+        line = self.current_token.line
+        value = self.current_token.value
 
         if self.current_token.type == NUMBER:
-            line = self.current_token.line
-            value = self.current_token.value
             self.assert_type(NUMBER)
             instr = Instruction(DATA, line=line, arg=value)
             self.prog.add(instr)
-        else:
-            line = self.current_token.line
-            value = self.current_token.value
+        elif self.current_token.type == STRING:
             self.assert_type(STRING)
 
             # -- Insert one data instruction per character in the string
             for char in value:
                 instr = Instruction(DATA, line=line, arg=ord(char))
                 self.prog.add(instr)
+        elif self.current_token.type == LABEL:
+            self.assert_type(LABEL)
+            instr = Instruction(DATA, line=line, arg=value)
+            self.prog.add(instr)
 
     def lineinstruction(self):
         """<lineinstruction> ::= (LABEL) <instruction>"""

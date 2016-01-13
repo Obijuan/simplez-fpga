@@ -1,5 +1,5 @@
 import unittest
-from sasm3 import Lexer, Parser
+from sasm import Lexer, Parser
 
 
 def test_errors(asm):
@@ -138,6 +138,15 @@ ini  EQU 1
      br /ini
 
 ini  HALT  ; <= Error. Duplicated label
+
+     end
+""")
+
+ef18 = ("""
+     WAIT
+     HALT
+
+x1    DATA VAL1
 
      end
 """)
@@ -523,6 +532,20 @@ val1  DATA H'0f
      end
 """)
 
+asmfile26 = ("""
+VAL1 EQU 1
+VAL2 EQU 2
+VAL3 EQU 3
+
+     WAIT
+     HALT
+
+x1    DATA VAL1
+y     DATA VAL2, VAL3, 4, "5", h'6
+
+     end
+""")
+
 
 class TestCase(unittest.TestCase):
 
@@ -581,6 +604,9 @@ class TestCase(unittest.TestCase):
 
     def test_error_17(self):
         self.assertEqual(test_errors(ef17), "Error: Duplicated label: ini. Line: 6")
+
+    def test_error_18(self):
+        self.assertEqual(test_errors(ef18), "Error: Line: 5: Symbol not defined: VAL1")
 
     # ------------ Code ok
     def test_01(self):
@@ -657,6 +683,9 @@ class TestCase(unittest.TestCase):
 
     def test_25(self):
         self.assertEqual(test(asmfile25), "664\n@064\n266\nE00\n00F\n")
+
+    def test_26(self):
+        self.assertEqual(test(asmfile26), "F00\nE00\n001\n002\n003\n004\n035\n006\n")
 
 
 # -- Main program
