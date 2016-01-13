@@ -1,6 +1,8 @@
 ;-- Programas de prueba para Simplez
-;-- t22.asm: Prueba de perifericos
-;-- Se hace eco de lo recibido por el puerto serie y ademas se saca por los leds
+;-- Ejemplo 15: Cada vez que se recibe un caracter por el puerto serie, se incrementa un contador
+;-- que se visualiza por los leds
+
+        WAIT         ;-- Inicio: esperar 200ms
 
 ;-- Lanzar una rafaga por los leds, para indicar que arranca el programa
         LD /cval1
@@ -9,38 +11,32 @@
         CLR
         ST /LEDS
 
-;-- Bucle principal: Incrementar contador cada vez que se recibe un caracter
-main
+;-- Inicializar contador
+    CLR
+    ST /cont
 
-       ;-- Esperar a que llegue un caracter
-       LD /RXSTATUS
+;-- Bucle principal: Incrementar contador cada vez que se recibe un caracter
+
+main   LD /RXSTATUS   ;-- Esperar a que llegue un caracter
        BZ /main
 
        ;-- Leer caracter
        LD /RXDATA
 
-       ;-- Sacarlo por los leds
+       ;-- Incrementar contador
+       LD /cont
+       ADD /uno
+       ST /cont
+
+       ;-- Sacar contador por los leds
        ST /LEDS
-
-       ;-- Alcacenar caracter recibido
-       ST /car
-
-       ;-- Enviarlo de vuelta
-
-txloop ;-- Esperar a que pantalla lista
-       LD /TXSTATUS
-       BZ /txloop
-
-       ;-- Sacarlo por pantalla
-       LD /car
-       ST /TXDATA
 
        BR /main
 
 ;-- Variables y constantes
 cval1  DATA  H'0F   ;-- Valor constante
-car    DATA  0      ;-- Caracter recibido
-
+uno    DATA  H'01   ;-- Valor constante
+cont   DATA  0      ;-- Contador
 
 ;------ PERIFERICOS ------------------
 
@@ -56,3 +52,5 @@ TXDATA    DATA    0  ;-- 509:  Registro de datos
 ;-- Direcciones de acceso al teclado
 RXSTATUS  DATA    0  ;-- 510:  Registro de estado
 RXDATA    DATA    0  ;-- 511:  Registro de datos
+
+end
