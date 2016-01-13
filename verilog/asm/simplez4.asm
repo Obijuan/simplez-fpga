@@ -1,5 +1,7 @@
 ; Programa de ejemplo para Simplez
 ; EJEMPLO 4: Intercambio de dos zonas de memoria: (Bloque 100-150 con bloque 200-250)
+; El primer dato de la zona 1 es 0. Al finalizar el intercambio habrá una F en este dato
+; Se saca por los leds para comprobar
 
 
         BR /ini
@@ -8,8 +10,7 @@ k1      DATA 1
 cont    DATA 0
 tmp     DATA 0
 
-ini
-        LD /k50   ; Inicializacion del contador
+ini     LD /k50   ; Inicializacion del contador
         ST /cont
 inst1   LD /200   ; LLeva palabra de zona 2
         ST /tmp   ; a memoria intermedia
@@ -35,9 +36,8 @@ inst4   ST /zona1   ; a zona 1
         ST /inst4    ; instruccion 12
         BR /inst1    ; Vuelta al bucle
 
-fin
-        ;-- Comprobar lo que hay en la posicion 100 sacandolo por los leds
-        LD /zona1
+fin     LD /zona1   ;-- Comprobar lo que hay en la posicion 100 sacandolo por los leds
+        ST /leds
         HALT
 
         ;-- Zona de memoria 1
@@ -102,3 +102,10 @@ zona1   DATA 0
         org 200
 
 zona2   DATA H'F
+
+;---- Perifericos
+
+      ORG 507
+leds  RES 1    ;-- Leds. Reservar 1 posicion de memoria en la direccion 507
+
+     end

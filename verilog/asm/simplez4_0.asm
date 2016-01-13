@@ -35,6 +35,7 @@
 
         ;-- Comprobar lo que hay en la posicion 100 sacandolo por los leds
         LD /100
+        ST /507
         HALT
 
         ;-- Zona de memoria 1
@@ -99,3 +100,5 @@
         org 200
 
         DATA H'F
+
+end
