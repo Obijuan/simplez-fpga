@@ -557,6 +557,119 @@ y     DATA VAL2, VAL3, 4, "5", h'6
      end
 """)
 
+# ---------------- Working examples
+
+we01 = ("""
+;-- Programas de ejemplo para Simplez
+;-- leds_on.asm: Encender todos los leds
+
+    LD /val    ; Cargar en A valor a enviar al puerto de los leds
+    ST /LEDS   ; Escribir valor en el puerto de leds
+    HALT       ; Terminar
+
+;-- Datos
+val  DATA H'0F   ;-- Valor a sacar por los leds
+
+
+;------ PERIFERICO: puerto de leds ------------------
+
+          ORG 507
+
+LEDS      DATA    0  ;-- Todo lo escrito aqui se saca por los leds
+
+end
+""")
+
+we02 = ("""
+;-- Programas de ejemplo para Simplez
+;-- sec.asm: Sacar una secuencia de 2 estados por los leds
+
+loop    LD /val1   ;-- Sacar valor 1 por los leds
+        ST /LEDS
+        WAIT       ; Pausa
+        LD /val2   ;-- Sacar valor 2 por los leds
+        ST /LEDS
+        WAIT
+        BR /loop   ;-- Repetir
+
+
+;-- Datos
+val1  DATA H'03   ;-- Valor 1 de la secuencia
+val2  DATA H'0C   ;-- Valor 2 de la secuencia
+
+
+;------ PERIFERICO: puerto de leds ------------------
+
+          ORG 507
+
+LEDS      DATA    0  ;-- Todo lo escrito aqui se saca por los leds
+
+end
+""")
+
+we03 = ("""
+;-- Programas de ejemplo para Simplez
+;-- eco.asm: Se hace eco de lo recibido por el puerto serie y ademas se saca por los leds
+
+;-- Lanzar una rafaga por los leds, para indicar que arranca el programa
+        LD /cval1
+        ST /LEDS
+        WAIT
+        CLR
+        ST /LEDS
+
+;-- Bucle principal: Incrementar contador cada vez que se recibe un caracter
+
+main   LD /RXSTATUS  ;-- Esperar a que llegue un caracter
+       BZ /main
+
+       ;-- Leer caracter
+       LD /RXDATA
+
+       ;-- Sacarlo por los leds
+       ST /LEDS
+
+       ;-- Alcacenar caracter recibido
+       ST /car
+
+       ;-- Enviarlo de vuelta
+
+txloop  LD /TXSTATUS  ;-- Esperar a que pantalla lista
+        BZ /txloop
+
+       ;-- Sacarlo por pantalla
+       LD /car
+       ST /TXDATA
+
+       BR /main
+
+;-- Variables y constantes
+cval1  DATA  H'0F   ;-- Valor constante
+car    DATA  0      ;-- Caracter recibido
+
+
+;------ PERIFERICOS ------------------
+
+          ORG 507
+;-- LEDS
+LEDS      DATA    0  ;-- 507: Escritura en leds
+
+
+;--- PANTALLA
+TXSTATUS  DATA    0  ;-- 508:  Registro de estado
+TXDATA    DATA    0  ;-- 509:  Registro de datos
+
+;-- Direcciones de acceso al teclado
+RXSTATUS  DATA    0  ;-- 510:  Registro de estado
+RXDATA    DATA    0  ;-- 511:  Registro de datos
+
+end
+""")
+
+we03_result = ("""20F\n1FB\nF00\nA00\n1FB\n3FE\n805\n3FF\n1FB\n010
+3FC\n80A\n210\n1FD\n605\n00F\n000\n@1FB\n000\n000\n000\n000\n000
+""")
+
 
 class TestCase(unittest.TestCase):
 
@@ -701,6 +814,15 @@ class TestCase(unittest.TestCase):
     def test_26(self):
         self.assertEqual(test(asmfile26), "F00\nE00\n001\n002\n003\n004\n035\n006\n")
 
+    # -- Working examples
+    def test_we_01(self):
+        self.assertEqual(test(we01), "203\n1FB\nE00\n00F\n@1FB\n000\n")
+
+    def test_we_02(self):
+        self.assertEqual(test(we02), "207\n1FB\nF00\n208\n1FB\nF00\n600\n003\n00C\n@1FB\n000\n")
+
+    def test_we_03(self):
+        self.assertEqual(test(we03), we03_result)
 
 # -- Main program
 if __name__ == '__main__':
