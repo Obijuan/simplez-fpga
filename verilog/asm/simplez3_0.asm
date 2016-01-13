@@ -1,6 +1,7 @@
 ; Programa de ejemplo para Simplez
 ; EJEMPLO 3: Suma de cien números almacenados en la memoria (desde la 100 a la 149)
-
+; (Por comidad, solo se almacenan 50 numeros, del 0 al 49, en las posiciones desde la 100 a la 149)
+;
 ; ATENCION: Al ejecutarlo en el simplez sintetizado, solo funcionara la primera vez,
 ; haciendo la suma correcta. Sin embargo las siguientes veces, hará sumas distintas
 ; porque es un programa que se modifica a si mismo
@@ -8,7 +9,7 @@
 ; Para que siempre se ejecute igual, hay que modificar el programa para que se almacene
 ; la instruccion ADD /149 en la posicion 6
 ;  (No se ha hecho para respetar el programa original de Gregorio Fernandez)
-
+; La suma total es: 1225 (0x4C9). Por los leds se saca el valor 9 (dos leds encendidos)
 
         BR /3
         DATA 100    ; Constante 100
@@ -31,6 +32,7 @@
         ;-- fin
         ;-- Cargar el resultado final en el acumulador A para verlo en los leds
         LD /150
+        ST /507
         HALT
 
         org 100
@@ -91,3 +93,5 @@
 
         org 150
         DATA 0    ; Suma
+
+end

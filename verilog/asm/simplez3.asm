@@ -1,5 +1,6 @@
 ; Programa de ejemplo para Simplez
-; EJEMPLO 3: Suma de cien números almacenados en la memoria (desde la 100 a la 149)
+; EJEMPLO 3: Suma de cien números almacenados en la memoria (Por comidad, solo se almacenan
+;   50 numeros, del 0 al 49, en las posiciones desde la 100 a la 149)
 ; VERSION CON ETIQUETAS
 
 ; ATENCION: Al ejecutarlo en el simplez sintetizado, solo funcionara la primera vez,
@@ -9,13 +10,14 @@
 ; Para que siempre se ejecute igual, hay que modificar el programa para que se almacene
 ; la instruccion ADD /149 en la posicion 6
 ;  (No se ha hecho para respetar el programa original de Gregorio Fernandez)
-
+; La suma total es: 1225 (0x4C9). Por los leds se saca el valor 9 (dos leds encendidos)
 
         BR /ini
 cien    DATA 100
 cont    DATA 0
-ini
-        LD /cien
+
+
+ini     LD /cien
         ST /cont    ; cont = 100. Inicial el contador
         CLR
 inst    ADD /dato0  ; Suma los numeros
@@ -30,11 +32,12 @@ inst    ADD /dato0  ; Suma los numeros
         LD /suma    ; Carga ultimo resultado parcial
         BR /inst    ; Vuelta al bucle
 
-fin
-        ;-- Cargar el resultado final en el acumulador A para verlo en los leds
-        LD /suma
+
+fin     LD /suma    ;-- Cargar el resultado final en el acumulador A para verlo en los leds
+        ST /leds
         HALT
 
+        ;-- Datos. Como ejemplo se ponen los numeros del 0 al 49
         org 100
         DATA 0
         DATA 1
@@ -93,3 +96,11 @@ dato0   DATA 49
 
         org 150
 suma    DATA 0
+
+
+;---- Perifericos
+
+      ORG 507
+leds  RES 1    ;-- Leds. Reservar 1 posicion de memoria en la direccion 507
+
+     end

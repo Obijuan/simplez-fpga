@@ -12,3 +12,5 @@
 num1    DATA H'7
 num2    DATA H'8
 suma    DATA 0
+
+end

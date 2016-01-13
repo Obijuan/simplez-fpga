@@ -26,6 +26,7 @@
 
         ;-- Fin. Cargar la suma en registro A para mostrarlo por los leds
         LD /50
+        st /507
         HALT
 
 
@@ -38,3 +39,5 @@
         DATA 0    ; SUM
         DATA 1
         DATA 8
+
+end
