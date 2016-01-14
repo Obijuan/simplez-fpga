@@ -1,0 +1,19 @@
+//-- Source file: asm/boot_04_count.asm
+//-- Output file format: verilog
+
+//mcode    addr nemonic
+//-----    ---- -------
+
+@100  //--       ORG 100
+F00   //-- [100] WAIT
+307   //-- [101] LD /107
+1FB   //-- [102] ST /1FB
+F00   //-- [103] WAIT
+508   //-- [104] ADD /108
+1FB   //-- [105] ST /1FB
+703   //-- [106] BR /103
+001   //-- [107] DATA 1
+001   //-- [108] DATA 1
+
+@1FB  //--       ORG 1FB
+000   //-- [1FB] DATA 0

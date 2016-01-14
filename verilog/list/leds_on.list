@@ -1,0 +1,11 @@
+//-- Source file: asm/boot_01_leds.asm
+//-- Output file format: verilog
+
+//mcode    addr nemonic
+//-----    ---- -------
+
+@100  //--       ORG 100
+303   //-- [100] LD /103
+1FB   //-- [101] ST /1FB
+E00   //-- [102] HALT
+007   //-- [103] DATA 7
