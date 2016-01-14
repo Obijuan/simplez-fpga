@@ -393,6 +393,7 @@ class Prog_AST(object):
                     instr.arg = int(value)
 
     def assembly(self):
+        """Write the program in assembly language"""
         string = ""
         addr = 0
         for instr in self.linst:
@@ -406,6 +407,24 @@ class Prog_AST(object):
 
         return string
 
+    def size(self):
+        """Calculate the program size (code, data), in words
+         """
+
+        # -- Calculate the size of data
+        # -- Data above the address 504 is not counted
+        sdata = 0
+        scode = 0
+        for instr in self.linst:
+            # -- Only the data / code below 504 counts
+            if instr.addr < 504:
+                if instr.nemonic == DATA:
+                    sdata += 1
+                else:
+                    scode += 1
+
+        return scode, sdata
+
     def show_symbols(self):
         """Print the symbol table"""
 
@@ -413,6 +432,7 @@ class Prog_AST(object):
             print("{} = {}".format(key, value))
 
     def machine_code(self, asm=False):
+        """Write the program in machine code"""
         string = ""
         if asm:
             string += "//mcode    addr nemonic\n"
@@ -910,3 +930,7 @@ if __name__ == '__main__':
         f.write(mcode)
 
     print("OK! Machine code for SIMPLEZ generated: {}".format(OUTPUT_FILE))
+    scode, sdata = prog.size()
+    print("Size: {} words".format(scode + sdata))
+    print("  Code: {} words".format(scode))
+    print("  data: {} words".format(sdata))
