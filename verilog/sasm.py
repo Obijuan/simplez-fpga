@@ -849,11 +849,18 @@ def parse_arguments():
     # -- Add the assembler argument: verbose
     parser.add_argument("-verbose", help="verbose mode on", action="store_true")
 
+    # -- Output file argument
+    parser.add_argument("-o", metavar="output", default=OUTPUT_FILE,
+                        help="Specify the output filename")
+
     # -- Parse the anguments
     args = parser.parse_args()
 
     # -- File to assembly
     asmfile = args.asmfile
+
+    # -- Output file
+    output_file = args.o
 
     # -- Read the file
     try:
@@ -864,13 +871,13 @@ def parse_arguments():
         sys.exit()
 
     # -- Return the file and verbose arguments
-    return raw, asmfile, args.verbose
+    return raw, asmfile, output_file, args.verbose
 
 # -- Main program
 if __name__ == '__main__':
 
     # -- Process the arguments. Return the source file and the verbose flags
-    asmfile, filename, verbose = parse_arguments()
+    asmfile, filename, output_file, verbose = parse_arguments()
 
     print("Assembler for the SIMPLEZ microprocessor (Version: {})".format(VERSION))
     print("Released under the GPL license\n")
@@ -926,11 +933,12 @@ if __name__ == '__main__':
         print(mcode)
 
     # -- Write the machine code in the output file file
-    with open(OUTPUT_FILE, mode='w') as f:
+    with open(output_file, mode='w') as f:
         f.write(mcode)
 
-    print("OK! Machine code for SIMPLEZ generated: {}".format(OUTPUT_FILE))
+    print("OK! Machine code for SIMPLEZ generated\n")
+    print("File: {}".format(output_file))
     scode, sdata = prog.size()
-    print("Size: {} words".format(scode + sdata))
+    print("Size:   {} words".format(scode + sdata))
     print("  Code: {} words".format(scode))
     print("  data: {} words".format(sdata))
