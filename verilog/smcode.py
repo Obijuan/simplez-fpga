@@ -14,6 +14,7 @@ t_ignore = ' \t\r\f\v'
 # - Comments are ignored
 def t_COMMENT(t):
     r'//[^\n]*'
+    pass
 
 
 def t_DATA(t):
@@ -34,9 +35,9 @@ def t_newline(t):
 
 
 # Error handling rule
-# def t_error(t):
-#    print("Illegal character '%s'" % t.value[0])
-#    t.lexer.skip(1)
+def t_error(t):
+    print("Illegal character '%s'" % t.value[0])
+    t.lexer.skip(1)
 
 # Build the lexer
 lexer = lex.lex()
@@ -58,4 +59,5 @@ while True:
     tok = lexer.token()
     if not tok:
         break      # No more input
-    print(tok)
+    print(tok.type, tok.value, tok.lineno, tok.lexpos)
+    # print(tok)
