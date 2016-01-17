@@ -1,106 +1,71 @@
+
+;-------------------------------------------------------------------------------------------
 ;-- Bootloader para Simplez
+;-------------------------------------------------------------------------------------------
+;-- (c) BQ. January 2016. Written by Juan Gonzalez (obijuan)
+;-------------------------------------------------------------------------------------------
+;-- El protocolo de comunicacion entre el PC y simplez es el siguiente:
+;--
+;--  Al arrancar, simplez ejecuta este bootloader
+;--  Simplez envia el caracter BREADY al PC (transmision serie) para informar que el
+;--  bootloader esta listo para recibir un programa
+;--
+;--  El PC envia el tamaño del programa a cargar, en una palabra de simplez (12 bits)
+;--  Se envia dividida en 2 bytes: primero el byte de mayor peso, y luego el de menor
+;--
+;--  A continuacion se envían todas las palabras con los datos / instrucciones que se
+;--  almacenan SECUENCIALMENTE a partir de la direccion inicial de carga (40h)
+;--  Cada dato es de 12 bits, por lo que se envía en 2 bytes (primero el alto y luego el bajo)
+;-----------------------------------------------------------------------------------------------
+;-- LOS PROGRAMAS A CARGAR DEBEN EMPEZAR A PARTIR DE LA DIRECCION 40h
+;-----------------------------------------------------------------------------------------------
 
-INI     EQU  h'100  ;-- Direccion de inicio de carga del programa
+;-- Direccion de inicio de carga de los programas
+INI     EQU  h'40
 
-        Wait      ;-- Inicio: esperar 200ms
+;---------------------------------------------------
+;-- Constantes para acceso a PERIFERICOS
+;---------------------------------------------------
+LEDS      EQU  507    ;-- Periferico: LEDS
+TXSTATUS  EQU  508    ;-- 508:  Registro de estado pantalla
+TXDATA    EQU  509    ;-- 509:  Registro de datos  pantalla
+RXSTATUS  EQU  510    ;-- 510:  Registro de estado teclado
+RXDATA    EQU  511    ;-- 511:  Registro de datos teclado
 
-        LD /F     ;-- Encender todos los leds para indicar modo bootloader
-        ST /LEDS
 
-        LD /DESTC  ;-- Inicializar la direccion destino, donde cargar el programa
-        ST /dest
+            Wait      ;-- Inicio: esperar 200ms
+
+            LD /F     ;-- Encender todos los leds para indicar modo bootloader
+            ST /LEDS
+
+            LD /DESTC  ;-- Inicializar la direccion destino, donde cargar el programa
+            ST /dest
 
 ;-- Enviar caracter "B" para indicar que bootloader listo
-txloop  LD /TXSTATUS  ;-- Esperar a que pantalla lista
-        BZ /txloop
-        LD /B
-        ST /TXDATA
+txloop      LD /TXSTATUS  ;-- Esperar a que pantalla lista
+            BZ /txloop
+            LD /BREADY
+            ST /TXDATA    ;-- Enviar caracter B
 
-;--- Esperar a recibir el programa. Primero se recibe el numero de bytes
-;-- La palabra es de 2 bytes. Primero se envia el MAS SIGNIFICATIVO y luego el menor
-rxl1   LD /RXSTATUS
-       BZ /rxl1
 
-       ;-- Leer caracter
-       LD /RXDATA
+;--- Leer el tamano del programa, llamando a read_byte()
+;---  tam = read_word()
+            LD /br_template
+            ADD /ret_addr_p1
+            ST /br_ret
+            BR /read_word
+ret_addr1   ST /tam
 
-       ;-- Alcacenar caracter recibido
-       ST /tamh
+;-- Bucle de recepcion del programa. Se esperan recibir tam palabras (de 2 bytes)
+;-- que se almacenaran a partir de la direccion INI
 
-       ;-- Multiplicar por 256 para desplazarlo 8 bits a la izquierda
-       ADD /tamh   ; A = tamh + tamh = 2 * tamh. Desplazamiento de un bit a la izquierda
-       ST  /tamh
-       ADD /tamh   ; A = A + A = 4 * tamh   (2 bits)
-       ST /tamh
-       ADD /tamh   ; A = A + A = 8 * tamh   (3 bits)
-       ST /tamh
-       ADD /tamh   ; 16 * tamh (4 bits)
-       ST /tamh
-       ADD /tamh   ; <-- 5 bits
-       ST /tamh
-       ADD /tamh   ; <-- 6 bits
-       ST /tamh
-       ADD /tamh   ; <-- 7 bits
-       ST /tamh
-       ADD /tamh   ; <-- 8 bits
-       ST /tamh
 
-       ;-- Leer la palabra menos significativa
-rxl2   LD /RXSTATUS
-       BZ /rxl2
-
-       ;-- Leer caracter  (taml)
-       LD /RXDATA
-
-       ADD /tamh
-       ST /tam     ;--  tam = 256 * tamh + taml
-
-       ST /LEDS    ;-- Debug: visualizar en los leds
-
-       ;-- Bucle principal. Se esperan recibir tam palabras (de 2 bytes)
-       ;-- que se almacenaran a partir de la direccion INI
-
-;--------------------------- Main loop
-       ;-- Leer byte alto
-rxl3   LD /RXSTATUS
-       BZ /rxl3
-
-      ;-- Leer caracter
-      LD /RXDATA
-
-      ;-- Almacenar caracter recibido
-      ST /insth
-
-      ADD /insth  ; <-- (1 bit)
-      ST /insth
-      ADD /insth  ; <-- (2 bit)
-      ST /insth
-      ADD /insth  ; <-- (3 bit)
-      ST /insth
-      ADD /insth  ; <-- (4 bit)
-      ST /insth
-      ADD /insth  ; <-- (5 bit)
-      ST /insth
-      ADD /insth  ; <-- (6 bit)
-      ST /insth
-      ADD /insth  ; <-- (7 bit)
-      ST /insth
-      ADD /insth  ; <-- (8 bit)
-      ST /insth
-
-      ST /LEDS
-
-      ;-- Leer byte bajo
-rxl4  LD /RXSTATUS
-      BZ /rxl4
-
-      ;-- Leer caracter  (instl)
-      LD /RXDATA
-
-      ADD /insth
-      ST /inst     ;--  inst = 256 * inst + instl
-
-      ST /LEDS     ;-- Debug
+;--- data = read_word()
+prog_loop   LD /br_template
+            ADD /ret_addr_p2
+            ST /br_ret
+            BR /read_word
+ret_addr2   ST /inst
 
       ;-- Esta instruccion se modifica para almacenar la instrucciones recibida en la
       ;-- siguiente posicion de memoria
@@ -117,33 +82,70 @@ dest  ST /INI      ;-- Almacenar la instruccion
       ADD /UNO
       ST /dest     ;-- [dest] = [dest] + 1
 
-      BR /rxl3     ;-- Siguiente palabra
+      BR /prog_loop   ;-- Siguiente palabra
 
 fin    BR /INI     ;-- Ejecutar el programa!
 
 
 F       DATA h'0f   ;-- Dato a sacar por los leds al comenzar el bootloader
-B       DATA "B"    ;-- Caracter para indicar bootloader listo
+BREADY  DATA "B"    ;-- Caracter para indicar bootloader listo
 tam     RES 1       ;-- Tamaño del programa a cargar
-tamh    RES 1       ;-- Byte alto del tamaño
-insth   RES 1       ;-- Byte alto instruccion
 inst    RES 1       ;-- Instruccion
 DESTC   ST /INI     ;-- Inicializacion de la direccion destino
 UNO     DATA 1      ;-- Constante 1. Para incrementar
 
-;------ PERIFERICOS ------------------
-
-          ORG 507
-;-- LEDS
-LEDS      DATA    0  ;-- 507: Escritura en leds
 
 
-;--- PANTALLA
-TXSTATUS  DATA    0  ;-- 508:  Registro de estado
-TXDATA    DATA    0  ;-- 509:  Registro de datos
+;------------------------------------------------------------------------------------
+;-- Subrutina: read_word()
+;------------------------------------------------------------------------------------
+;-- Leer por el puerto serie 2 bytes y convertilos a una palabra
+;-- A = byteh * 256 + bytel
+;-- Primero se recibe el byte mas significativo (byteh) y luego el menor (bytel)
+;--
+;-- DEVUELVE:
+;--    -El registro A contiene el valor de vuelta, con la palabra leida
+;------------------------------------------------------------------------------------
 
-;-- Direcciones de acceso al teclado
-RXSTATUS  DATA    0  ;-- 510:  Registro de estado
-RXDATA    DATA    0  ;-- 511:  Registro de datos
+read_word    LD /RXSTATUS
+             BZ /read_word
+
+             ;-- Leer caracter
+             LD /RXDATA
+
+             ;-- Alcacenar caracter recibido
+             ST /byteh
+
+             ;-- Inicializar contador de bits a 8
+             LD /k8
+             ST /shift_count
+
+             ;-- Multiplicar por 256 para desplazarlo 8 bits a la izquierda
+shift_loop   LD /byteh
+             ADD /byteh   ; A = byteh + byteh = 2 * byteh. Desplazamiento de un bit a la izquierda
+             ST  /byteh
+             LD /shift_count
+             DEC
+             BZ /rxl2
+             ST /shift_count
+             BR /shift_loop
+
+;-- Leer la palabra menos significativa
+rxl2         LD /RXSTATUS
+             BZ /rxl2
+
+             ;-- Leer caracter  (taml)
+             LD /RXDATA
+             ADD /byteh
+
+br_ret       BR /0     ;-- Retorno de subrutina (la instruccion se modifica)
+
+shift_count  RES  1
+k8           DATA 8  ;-- Constante 8
+br_template  BR /0   ;-- Instruccion BR. Para usarla como retorno de las subrutinas
+ret_addr_p1  DATA ret_addr1  ;-- Puntero a la direccion ret_addr1
+ret_addr_p2  DATA ret_addr2  ;-- Puntero a la direccion ret_addr2
+byteh        RES 1           ;-- Byte alto del tamaño
+
 
 end

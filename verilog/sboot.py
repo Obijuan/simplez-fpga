@@ -16,6 +16,8 @@
 # -  Cuando se han enviado todas, el bootloader le pasa el control al nuevo programa
 # -  cargado
 # -----------------------------------------------------------------------------------------
+# - Los programas a cargar tiene que comenzar a patir de la direccion 40h
+# -----------------------------------------------------------------------------------------
 
 import serial
 import time
@@ -30,7 +32,7 @@ SEC2 = [0x307, 0x1FB, 0xF00, 0x308, 0x1FB, 0xF00, 0x700, 0x00C, 0x003]
 BREADY = b'B'
 
 # -- Initial address were the programs are loaded
-INITIAL_ADDR = 0x100
+INITIAL_ADDR = 0x40
 
 
 # -- Download the program

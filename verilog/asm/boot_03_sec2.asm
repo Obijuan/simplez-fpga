@@ -1,6 +1,5 @@
 ;-------------------------------------------------------------------------------------------
-;-- Programa de ejemplo para Bootloader.
-;-- Contador de 4 bits por los leds
+;-- Programa de ejemplo para Bootloader. Secuencia de dos estados que se saca por los leds
 ;--
 ;-- Este programa se carga mediante el bootloader
 ;--------------------------------------------------------------------------------------------
@@ -12,15 +11,15 @@ leds    EQU 507
 ;-- Direccion h'40: para cargarlo con el bootloader
         org h'40
 
-       ld /val1   ; Inicializar acumulador
-       st /leds   ; Mostrarlo por los leds
-bucle  WAIT
-       add /uno   ; Incrementar en uno
-       st /leds   ; Sacarlo por los leds
-       BR /bucle   ; Repetir
+loop    LD /val1
+        ST /leds
+        Wait
+        ld /val2
+        st /leds
+        wait
+        BR /loop
 
-;--- Datos
-val1    DATA  h'1
-uno     DATA  h'1
+val1     DATA h'3
+val2     DATA h'C
 
-     end
+END
