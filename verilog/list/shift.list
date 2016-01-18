@@ -1,0 +1,24 @@
+//-- Source file: asm/boot_05_shift.asm
+//-- Output file format: verilog
+
+//mcode    addr nemonic
+//-----    ---- -------
+
+@040  //--       ORG 040
+24D   //-- [040] LD /04D
+1FB   //-- [041] ST /1FB
+F00   //-- [042] WAIT
+24E   //-- [043] LD /04E
+1FB   //-- [044] ST /1FB
+F00   //-- [045] WAIT
+24F   //-- [046] LD /04F
+1FB   //-- [047] ST /1FB
+F00   //-- [048] WAIT
+250   //-- [049] LD /050
+1FB   //-- [04A] ST /1FB
+F00   //-- [04B] WAIT
+640   //-- [04C] BR /040
+001   //-- [04D] DATA 1
+002   //-- [04E] DATA 2
+004   //-- [04F] DATA 4
+008   //-- [050] DATA 8
