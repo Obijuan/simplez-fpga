@@ -109,10 +109,11 @@ if __name__ == '__main__':
     # Create the lexer with some data
     l = Lexer(data)
 
+    # -- Read the first block
     init_addr, bmem = l.get_block()
-
     i = 1
 
+    # -- Read every block and print its information
     while init_addr:
         print("Block {}".format(i))
         print("  Addr: {:03X}".format(init_addr))
