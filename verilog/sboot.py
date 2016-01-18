@@ -21,7 +21,8 @@
 
 import serial
 import time
-from ssim import simplez
+import sys
+import vmem
 
 # - Example programs. For testing
 LEDS = [0x303, 0x1FB, 0xE00, 0x00E]
@@ -39,7 +40,6 @@ INITIAL_ADDR = 0x40
 def download(ser, prog):
 
     tam = len(prog)
-    print("Size: {} byte(s)".format(tam))
 
     # -- Send program size (in words)
     tamb = tam.to_bytes(2, byteorder='big')
@@ -53,6 +53,28 @@ def download(ser, prog):
 
         # -- Send the bytes
         ser.write(instb)
+
+
+def parse_file(filename):
+    """Parse the file with the machine code. It returns:
+    (Initial address and memory block)"""
+
+    # -- Read the file
+    try:
+        with open(filename, mode='r') as f:
+            rawdata = f.read()
+    except:
+        print("Error: file not found: {}".format(filename))
+        sys.exit()
+
+    # Create the lexer with some data
+    l = vmem.Lexer(rawdata)
+
+    # -- Read the first block
+    init_addr, bmem = l.get_block()
+
+    # -- Return the size, initial addr and memory block
+    return init_addr, bmem
 
 
 def parse_arguments():
@@ -79,21 +101,19 @@ if __name__ == '__main__':
     # -- Process the arguments
     input_file = parse_arguments()
 
-    # - Create the virtual simplez processor
-    s = simplez()
+    # -- Parse the input file. Format: verilog memory. Data is hexadecimal
+    init_addr, prog = parse_file(input_file)
 
     print("File: {}".format(input_file))
+    print("Size: {} words".format(len(prog)))
+    print("Initial address: H'{:03X}".format(init_addr))
 
-    # -- Load the machine code to simulate
-    s.load_mcode_file(input_file)
+    if init_addr < INITIAL_ADDR:
+        print("Error: Initial address below H'{:03X}".format(INITIAL_ADDR))
+        sys.exit(0)
 
-    end_addr = s._load_addr
-    print("Final address: h'{:03X}".format(end_addr))
-
-    tam = s._load_addr - INITIAL_ADDR
-    print("Size: {} words".format(tam))
-
-    prog = s._mem[INITIAL_ADDR: end_addr]
+    if init_addr > INITIAL_ADDR:
+        print("Warning: Initial address is NOT H'{:03X}".format(INITIAL_ADDR))
 
     ser = serial.Serial('/dev/ttyUSB1', baudrate=115200, timeout=0.5)
 
