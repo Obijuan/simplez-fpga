@@ -127,6 +127,7 @@ if __name__ == '__main__':
         print("Bootloader ready!!!!")
     else:
         print("ERROR: NO bootloader")
+        sys.exit(0)
 
     # download(ser, LEDS)
     # download(ser, SEC2)
