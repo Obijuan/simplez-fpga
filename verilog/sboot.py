@@ -89,31 +89,40 @@ def parse_arguments():
     # -- Add the assembler input file
     parser.add_argument("inputfile", help="Simplez machine code file (.list)")
 
+    parser.add_argument("-t", help="Load a test example (-t 1)",  action="store_true")
+
     # -- Parse the anguments
     args = parser.parse_args()
 
-    return args.inputfile
+    return args.inputfile, args.t
 
 
 # -- Main program
 if __name__ == '__main__':
 
     # -- Process the arguments
-    input_file = parse_arguments()
+    input_file, test = parse_arguments()
 
-    # -- Parse the input file. Format: verilog memory. Data is hexadecimal
-    init_addr, prog = parse_file(input_file)
+    if test:
+        # -- Load the test example
+        print("Test!")
+        prog = [24D, 1FB, F00, 24E, 1FB, F00, 24F, 1FB, F00, 250, 1FB,
+                F00, 640, 001, 002, 004, 008]
+    else:
+        # -- Load from file
+        # -- Parse the input file. Format: verilog memory. Data is hexadecimal
+        init_addr, prog = parse_file(input_file)
 
-    print("File: {}".format(input_file))
-    print("Size: {} words".format(len(prog)))
-    print("Initial address: H'{:03X}".format(init_addr))
+        print("File: {}".format(input_file))
+        print("Size: {} words".format(len(prog)))
+        print("Initial address: H'{:03X}".format(init_addr))
 
-    if init_addr < INITIAL_ADDR:
-        print("Error: Initial address below H'{:03X}".format(INITIAL_ADDR))
-        sys.exit(0)
+        if init_addr < INITIAL_ADDR:
+            print("Error: Initial address below H'{:03X}".format(INITIAL_ADDR))
+            sys.exit(0)
 
-    if init_addr > INITIAL_ADDR:
-        print("Warning: Initial address is NOT H'{:03X}".format(INITIAL_ADDR))
+        if init_addr > INITIAL_ADDR:
+            print("Warning: Initial address is NOT H'{:03X}".format(INITIAL_ADDR))
 
     ser = serial.Serial('/dev/ttyUSB1', baudrate=115200, timeout=0.5)
 
