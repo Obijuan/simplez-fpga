@@ -106,8 +106,8 @@ if __name__ == '__main__':
     if test:
         # -- Load the test example
         print("Test!")
-        prog = [24D, 1FB, F00, 24E, 1FB, F00, 24F, 1FB, F00, 250, 1FB,
-                F00, 640, 001, 002, 004, 008]
+        prog = [0x24D, 0x1FB, 0xF00, 0x24E, 0x1FB, 0xF00, 0x24F, 0x1FB, 0xF00, 0x250, 0x1FB,
+                0xF00, 0x640, 0x001, 0x002, 0x004, 0x008]
     else:
         # -- Load from file
         # -- Parse the input file. Format: verilog memory. Data is hexadecimal
