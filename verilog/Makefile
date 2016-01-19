@@ -33,6 +33,8 @@ sim: $(NAME)_tb.vcd
 #-----------------------------------------------
 sint: $(NAME).bin
 
+time: $(NAME).rpt
+
 #-------------------------------
 #-- Compilacion y simulacion
 #-------------------------------
@@ -50,22 +52,25 @@ $(NAME)_tb.vcd: $(NAME).v $(DEPS) $(NAME)_tb.v prog.list
 #------------------------------
 #-- Sintesis completa
 #------------------------------
-$(NAME).bin: $(NAME).pcf $(NAME).v $(DEPS) prog.list
+$(NAME).blif: $(NAME).pcf $(NAME).v $(DEPS) prog.list
 
 	#-- Sintesis
 	yosys -p "synth_ice40 -blif $(NAME).blif" $(NAME).v $(DEPS)
 
-	#-- Place & route
-	arachne-pnr -d 1k -p $(NAME).pcf $(NAME).blif -o $(NAME).asc
+#--
+%.asc: $(NAME).pcf %.blif
+	arachne-pnr -d 1k -o $@ -p $^
 
-	#-- Generar binario final, listo para descargar en fgpa
-	icepack $(NAME).asc $(NAME).bin
+#-- Realizar el analis del tiempo
+%.rpt: %.asc
+	icetime -mtr $@ $<
 
-
+# -- Generar el bitstream binario
+%.bin: %.asc
+	icepack $< $@
 
 #-- Limpiar todo
 clean:
-	rm -f *.bin *.asc *.blif *.out *.vcd *~
+	rm -f *.bin *.asc *.blif *.out *.vcd *~ *.rpt
 
-.PHONY: all clean prog sim
-
+.PHONY: all clean prog sim time sint
