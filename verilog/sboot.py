@@ -23,6 +23,12 @@ import serial
 import time
 import sys
 import vmem
+import consola_io
+import threading
+
+
+# -- Character for quiting the interactive mode
+EXITCHAR = b'\x1b'
 
 # - Example programs. For testing
 LEDS = [0x303, 0x1FB, 0xE00, 0x00E]
@@ -91,17 +97,22 @@ def parse_arguments():
 
     parser.add_argument("-t", help="Load a test example (-t 1)",  action="store_true")
 
+    parser.add_argument("-i",
+                        help="Open an interactive serial terminal for comunicating with Simplez",
+                        action="store_true")
+
     # -- Parse the anguments
     args = parser.parse_args()
 
-    return args.inputfile, args.t
+    # -- Return the input file, test and interactive
+    return args.inputfile, args.t, args.i
 
 
 # -- Main program
 if __name__ == '__main__':
 
     # -- Process the arguments
-    input_file, test = parse_arguments()
+    input_file, test, interactive = parse_arguments()
 
     if test:
         # -- Load the test example
@@ -143,3 +154,23 @@ if __name__ == '__main__':
     download(ser, prog)
 
     print("EXECUTING!!!")
+
+    # -- If in interactive mode (-i option), a simple terminal is created
+    if interactive:
+        print("Entering the interactive mode...")
+        print("Press ESC to exit\n")
+        while 1:
+            try:
+                # -- Wait for a key typed
+                c = consola_io.getkey()
+
+                # -- Exit char
+                if c == EXITCHAR:
+                    break
+                else:
+                    # -- Send the char to simplez
+                    ser.write(c)
+
+            except:  # -- Si se ha pulsado control-c terminar
+                print ("Abortando...")
+                break
