@@ -28,7 +28,7 @@ import threading
 
 
 # -- Character for quiting the interactive mode
-EXITCHAR = b'\x1b'
+EXITCHAR = b'\x04'
 
 # - Example programs. For testing
 LEDS = [0x303, 0x1FB, 0xE00, 0x00E]
@@ -40,6 +40,9 @@ BREADY = b'B'
 
 # -- Initial address were the programs are loaded
 INITIAL_ADDR = 0x40
+
+# -- Flag for indicating that the threads are executing
+executing = 1
 
 
 # -- Download the program
@@ -59,6 +62,22 @@ def download(ser, prog):
 
         # -- Send the bytes
         ser.write(instb)
+
+
+def reader(ser):
+    """Thread for reading data from simplez and printing on the screen"""
+    while executing:
+        try:
+            data = ser.read()
+        except:
+            print("Serial reading error")
+            sys.exit(0)
+
+        try:
+            sys.stdout.write(data.decode("utf-8"))
+            sys.stdout.flush()
+        except:
+            pass
 
 
 def parse_file(filename):
@@ -158,7 +177,13 @@ if __name__ == '__main__':
     # -- If in interactive mode (-i option), a simple terminal is created
     if interactive:
         print("Entering the interactive mode...")
-        print("Press ESC to exit\n")
+        print("Press CTRL-D to exit\n")
+
+        # -- Launch a thread for reading the data coming from simplez
+        r = threading.Thread(target=reader, args=[ser])
+        r.start()
+
+        # -- Sending data to simplez from the keyboard
         while 1:
             try:
                 # -- Wait for a key typed
@@ -174,3 +199,8 @@ if __name__ == '__main__':
             except:  # -- Si se ha pulsado control-c terminar
                 print ("Abortando...")
                 break
+
+    executing = 0
+    r.join()
+
+    ser.close()

@@ -1,0 +1,24 @@
+//-- Source file: asm/boot_06_echo.asm
+//-- Output file format: verilog
+
+//mcode    addr nemonic
+//-----    ---- -------
+
+@040  //--       ORG 040
+24F   //-- [040] LD /04F
+1FB   //-- [041] ST /1FB
+F00   //-- [042] WAIT
+A00   //-- [043] CLR
+1FB   //-- [044] ST /1FB
+3FE   //-- [045] LD /1FE
+845   //-- [046] BZ /045
+3FF   //-- [047] LD /1FF
+1FB   //-- [048] ST /1FB
+050   //-- [049] ST /050
+3FC   //-- [04A] LD /1FC
+84A   //-- [04B] BZ /04A
+250   //-- [04C] LD /050
+1FD   //-- [04D] ST /1FD
+645   //-- [04E] BR /045
+00F   //-- [04F] DATA 15
+000   //-- [050] DATA 0
