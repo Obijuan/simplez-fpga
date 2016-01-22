@@ -1,0 +1,21 @@
+
+# -- Nombre del fichero a ensamblar
+NAME = 'boot_02_sec1'
+
+# -- Constructor para ensamblar
+assembler = Builder(action='sasm.py $SOURCE -o $TARGET',
+                    suffix='.list',
+                    src_suffix='.asm')
+
+env = Environment(BUILDERS={'Assemble': assembler})
+env.PrependENVPath('PATH', '../')
+
+Help("""
+Type: 'scons' to assemble the file,
+      'scons upload' to upload it to simplez
+""")
+
+prog = env.Assemble(NAME)
+
+upload = env.Alias('upload', prog, 'sboot.py $SOURCE')
+AlwaysBuild(upload)
