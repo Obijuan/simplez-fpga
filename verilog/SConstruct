@@ -1,0 +1,19 @@
+
+# -- Nombre del fichero a ensamblar
+NAME = 'simplez'
+DEPS = 'genram.v {0}/dividerp1.v {0}/uart_tx.v {0}/baudgen_tx.v \
+        {0}/uart_rx.v {0}/baudgen_rx.v'.format("peripherals")
+
+# -- Constructor para sintetizar
+synth = Builder(action='yosys -p \"synth_ice40 -blif $TARGET\" $SOURCES',
+                suffix='.blif',
+                src_suffix='.v')
+
+env = Environment(BUILDERS={'Synth': synth})
+
+file1 = Entry('simplez.v')
+file2 = Entry('genram.v')
+
+# env.Command('simplez.blif', [file1, file2], "echo $SOURCE $TARGET")
+
+blif = env.Synth(NAME, ['simplez.v', 'genram.v'])
