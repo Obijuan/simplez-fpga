@@ -200,7 +200,7 @@ if __name__ == '__main__':
                 print ("Abortando...")
                 break
 
-    executing = 0
-    r.join()
+        executing = 0
+        r.join()
 
     ser.close()
