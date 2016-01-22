@@ -52,7 +52,7 @@ $(NAME)_tb.vcd: $(NAME).v $(DEPS) $(NAME)_tb.v prog.list
 #------------------------------
 #-- Sintesis completa
 #------------------------------
-$(NAME).blif: $(NAME).pcf $(NAME).v $(DEPS) prog.list
+$(NAME).blif: $(NAME).v $(DEPS) prog.list
 
 	#-- Sintesis
 	yosys -p "synth_ice40 -blif $(NAME).blif" $(NAME).v $(DEPS)
