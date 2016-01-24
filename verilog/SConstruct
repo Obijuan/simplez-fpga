@@ -1,19 +1,26 @@
 
 # -- Nombre del fichero a ensamblar
 NAME = 'simplez'
-DEPS = 'genram.v {0}/dividerp1.v {0}/uart_tx.v {0}/baudgen_tx.v \
-        {0}/uart_rx.v {0}/baudgen_rx.v'.format("peripherals")
+DEPS = Split('simplez.v genram.v {0}/dividerp1.v {0}/uart_tx.v {0}/baudgen_tx.v \
+              {0}/uart_rx.v {0}/baudgen_rx.v'.format('peripherals'))
+PCF = NAME + '.pcf'
 
 # -- Constructor para sintetizar
 synth = Builder(action='yosys -p \"synth_ice40 -blif $TARGET\" $SOURCES',
                 suffix='.blif',
                 src_suffix='.v')
 
-env = Environment(BUILDERS={'Synth': synth})
+pnr = Builder(action='arachne-pnr -d 1k -o $TARGET -p {} $SOURCE'.format(PCF),
+              suffix='.asc',
+              src_suffix='.blif')
 
-file1 = Entry('simplez.v')
-file2 = Entry('genram.v')
+bitstream = Builder(action='icepack $SOURCE $TARGET',
+                    suffix='.bin',
+                    src_suffix='.asc')
 
-# env.Command('simplez.blif', [file1, file2], "echo $SOURCE $TARGET")
+env = Environment(BUILDERS={'Synth': synth, 'PnR': pnr, 'Bin': bitstream})
 
-blif = env.Synth(NAME, ['simplez.v', 'genram.v'])
+
+blif = env.Synth(NAME, DEPS)
+asc = env.PnR(blif)
+env.Bin(NAME)
