@@ -22,5 +22,5 @@ env = Environment(BUILDERS={'Synth': synth, 'PnR': pnr, 'Bin': bitstream})
 
 
 blif = env.Synth(NAME, DEPS)
-asc = env.PnR(blif)
+asc = env.PnR([blif, PCF])
 env.Bin(NAME)
