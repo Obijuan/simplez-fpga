@@ -34,6 +34,10 @@ Default(env.Bin(asc))
 
 # -- Objetivo time para calcular el tiempo
 rpt = env.Time(asc)
-env.Alias('time', rpt)
+t = env.Alias('time', rpt)
+
+# -- These is for cleaning also the .rpt file (that were generated using the time target)
+if GetOption('clean'):
+    env.Default(t)
 
 # env.Time(NAME)
