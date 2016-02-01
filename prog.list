@@ -1,0 +1,12 @@
+//-- Source file: ex02_leds.asm
+//-- Output file format: verilog
+
+//mcode    addr nemonic
+//-----    ---- -------
+203   //-- [000] LD /003
+1FB   //-- [001] ST /1FB
+E00   //-- [002] HALT
+00F   //-- [003] DATA 15
+
+@1FB  //--       ORG 1FB
+000   //-- [1FB] DATA 0

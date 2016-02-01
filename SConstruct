@@ -1,11 +1,13 @@
 import os
+from SCons.Script import (AlwaysBuild, Builder, Environment,
+                          Default, Split, GetOption)
 
 # -- Nombre del fichero a ensamblar
 NAME = 'simplez'
-DEPS_str = 'simplez.v genram.v {0}/dividerp1.v {0}/uart_tx.v {0}/baudgen_tx.v \
-            {0}/uart_rx.v {0}/baudgen_rx.v'.format('peripherals')
+DEPS_str = 'src/simplez.v src/genram.v src/dividerp1.v src/uart_tx.v \
+            src/baudgen_tx.v src/uart_rx.v src/baudgen_rx.v'
 DEPS = Split(DEPS_str)
-PCF = NAME + '.pcf'
+PCF = 'src/' + NAME + '.pcf'
 
 # -- Constructor para sintetizar
 synth = Builder(action='yosys -p \"synth_ice40 -blif $TARGET\" $SOURCES',
@@ -26,8 +28,8 @@ time_rpt = Builder(action='icetime -mtr $TARGET $SOURCE',
                    src_suffix='.asc')
 
 # -- Construir el entorno
-env = Environment(BUILDERS={'Synth': synth, 'PnR': pnr, 'Bin': bitstream, 'Time': time_rpt})
-
+env = Environment(BUILDERS={'Synth': synth, 'PnR': pnr,
+                            'Bin': bitstream, 'Time': time_rpt})
 
 # -- Sintesis complesta: de verilog a bitstream
 blif = env.Synth(NAME, DEPS)
@@ -38,7 +40,6 @@ Default(env.Bin(asc))
 rpt = env.Time(asc)
 t = env.Alias('time', rpt)
 
-
 # ----------- Entorno para simulacion
 
 # -- Constructor para generar simulacion: icarus Verilog
@@ -48,17 +49,18 @@ iverilog = Builder(action='iverilog $SOURCES -o $TARGET',
 
 vcd = Builder(action='./$SOURCE', suffix='.vcd', src_suffix='.out')
 
-# -- Create the simulation environment. All the environment variables are included
-# -- (if not, there is an error executing gtkwave)
+# -- Create the simulation environment. All the environment variables are
+# included (if not, there is an error executing gtkwave)
 simenv = Environment(BUILDERS={'IVerilog': iverilog, 'VCD': vcd},
                      ENV=os.environ)
 
-TB = NAME+'_tb'
+TB = 'src/' + NAME + '_tb'
 out = simenv.IVerilog(NAME+'_tb', Split(DEPS_str+' '+TB+'.v'))
 vcd_file = simenv.VCD(out)
 
 
-gtkwave = simenv.Alias('sim', vcd_file, 'gtkwave $SOURCE '+TB+'.gtkw'+' &')
+gtkwave = simenv.Alias('sim', vcd_file,
+                       'gtkwave simulation.vcd src/simulation.gtkw'+' &')
 AlwaysBuild(gtkwave)
 
 # -- These is for cleaning the files generated using the alias targets
