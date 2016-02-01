@@ -3,3 +3,7 @@ __pycache__/
 .pioenvs/
 *.vcd
 *.out
+*.pyc
+dist/
+*~
+*.egg-info

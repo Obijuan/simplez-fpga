@@ -104,8 +104,8 @@ import re
  LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT, UNKNOWN, END, EQU, RES,
  DATA, STRING, COMMA) = (
  'EOL', 'EOF', 'COMMENT', 'LABEL', 'ORG', 'NUMBER',  'ADDR',
- 'LD', 'ST', 'ADD', 'BR', 'BZ', 'CLR', 'DEC', 'HALT', 'WAIT', 'UNKNOWN', 'END', 'EQU', 'RES',
- 'DATA', 'STRING', 'COMMA'
+ 'LD', 'ST', 'ADD', 'BR', 'BZ', 'CLR', 'DEC', 'HALT', 'WAIT', 'UNKNOWN', 'END',
+ 'EQU', 'RES', 'DATA', 'STRING', 'COMMA'
 )
 
 # -- default output file with the machine code for SIMPLEZ
@@ -187,7 +187,9 @@ class Lexer(object):
         self.line = 1
 
     def check_hexnumber(self):
-        """Check if it is an hexadecimal number. If so, return its value, else None"""
+        """Check if it is an hexadecimal number. If so, return its value,
+           else None
+        """
         scan = re.match(REGEX_HEX, self.text[self.pos:].upper())
         if scan:
             self.pos += len(scan.group())
@@ -873,8 +875,8 @@ def parse_arguments():
     # -- Return the file and verbose arguments
     return raw, asmfile, output_file, args.verbose
 
-# -- Main program
-if __name__ == '__main__':
+
+def main():
 
     # -- Process the arguments. Return the source file and the verbose flags
     asmfile, filename, output_file, verbose = parse_arguments()
@@ -942,3 +944,7 @@ if __name__ == '__main__':
     print("Size:   {} words".format(scode + sdata))
     print("  Code: {} words".format(scode))
     print("  data: {} words".format(sdata))
+
+# -- Main program
+if __name__ == '__main__':
+    main()
