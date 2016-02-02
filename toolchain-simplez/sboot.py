@@ -1,23 +1,25 @@
 #!/usr/bin/python3
-# --------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # -  Cargador de programas en SIMPLEZ
 # --  (C) BQ Enero 2016. Written by Juan Gonzalez (obijuan)
 # --  Python 3
-# --------------------------------------------------------------------------------------
-# - La FPGA tiene que estar configurada con SIMPLEZ con el programa boot.asm grabado
-# - (es un bootloader).
+# ------------------------------------------------------------------------------
+# - La FPGA tiene que estar configurada con SIMPLEZ con el programa boot.asm
+# grabado (es un bootloader).
 # - sboot.py se comunica con el bootloader
 # - Al arrancar SIMPLEZ se ejecuta el bootloader. El protocolo es el siguiente:
 # -
 # -  Bootloader: Envía el caracter BREADY para indicar que esta listo
 # -  sboot envía primero el tamaño del fichero a cargar, en palabras
-# -  Cada palabra se envía como 2 bytes, primero el de mayor peso y luego el de menor
-# -  A continuación sboot comienza a enviar todas las palabras que componen el programa
-# -  Cuando se han enviado todas, el bootloader le pasa el control al nuevo programa
-# -  cargado
-# -----------------------------------------------------------------------------------------
+# -  Cada palabra se envía como 2 bytes, primero el de mayor peso y luego
+# -  el de menor
+# -  A continuación sboot comienza a enviar todas las palabras que componen
+# - el programa
+# -  Cuando se han enviado todas, el bootloader le pasa el control al nuevo
+# - programa cargado
+# ------------------------------------------------------------------------------
 # - Los programas a cargar tiene que comenzar a patir de la direccion 40h
-# -----------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import serial
 import time
@@ -106,7 +108,8 @@ def parse_arguments():
     """Parse the arguments"""
 
     import argparse
-    description = """SIMPLEZ Loader.  Load programs into the simplez RAM memory"""
+    description = \
+        """SIMPLEZ Loader.  Load programs into the simplez RAM memory"""
 
     # -- Add the description
     parser = argparse.ArgumentParser(description=description)
@@ -114,11 +117,13 @@ def parse_arguments():
     # -- Add the assembler input file
     parser.add_argument("inputfile", help="Simplez machine code file (.list)")
 
-    parser.add_argument("-t", help="Load a test example (-t 1)",  action="store_true")
-
-    parser.add_argument("-i",
-                        help="Open an interactive serial terminal for comunicating with Simplez",
+    parser.add_argument("-t", help="Load a test example (-t 1)",
                         action="store_true")
+
+    parser.add_argument(
+        "-i",
+        help="Open an interactive serial terminal for comunicating with Simplez",
+        action="store_true")
 
     # -- Parse the anguments
     args = parser.parse_args()
@@ -135,8 +140,8 @@ def main():
     if test:
         # -- Load the test example
         print("Test!")
-        prog = [0x24D, 0x1FB, 0xF00, 0x24E, 0x1FB, 0xF00, 0x24F, 0x1FB, 0xF00, 0x250, 0x1FB,
-                0xF00, 0x640, 0x001, 0x002, 0x004, 0x008]
+        prog = [0x24D, 0x1FB, 0xF00, 0x24E, 0x1FB, 0xF00, 0x24F, 0x1FB, 0xF00,
+                0x250, 0x1FB, 0xF00, 0x640, 0x001, 0x002, 0x004, 0x008]
     else:
         # -- Load from file
         # -- Parse the input file. Format: verilog memory. Data is hexadecimal
@@ -151,7 +156,8 @@ def main():
             sys.exit(0)
 
         if init_addr > INITIAL_ADDR:
-            print("Warning: Initial address is NOT H'{:03X}".format(INITIAL_ADDR))
+            print("Warning: Initial address is NOT H'{:03X}".format(
+                   INITIAL_ADDR))
 
     ser = serial.Serial('/dev/ttyUSB1', baudrate=115200, timeout=0.5)
 
@@ -160,7 +166,8 @@ def main():
     time.sleep(0.2)
     ser.setDTR(0)
 
-    # -- Wait for the character "B" to be received. It means the bootloader is ready
+    # -- Wait for the character "B" to be received. It means the bootloader
+    # --  is ready
     if ser.read() == BREADY:
         print("Bootloader ready!!!!")
     else:
@@ -199,6 +206,7 @@ def main():
                 print ("Abortando...")
                 break
 
+        global executing
         executing = 0
         r.join()
 

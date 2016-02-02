@@ -1,16 +1,18 @@
 #!/usr/bin/python3
-# ---------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # --  Asembler for the Simplez microprocessor
 # --  (C) BQ November 2015. Written by Juan Gonzalez (obijuan)
 # --  Python 3
 # --  v1.2
-# ----------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # -- Released under the GPL v3 License
-# ----------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # - Grammar definition
 # -
-# --- A program is a list of lines with the END keyword in the end (finished by EOL)
-# --- Notice that after the END there could be more instructions, but they will be ignored
+# --- A program is a list of lines with the END keyword in the end
+#     (finished by EOL)
+# --- Notice that after the END there could be more instructions, but
+#     they will be ignored
 # <program> ::= <lines> "END" EOL
 #
 # --- There could be more than one lines. Each line should be end by EOL
@@ -23,7 +25,8 @@
 # -- Lines of code can be either a directive or line with a simplez instructions
 # <lineofcode> ::= <directive> | <lineinstruction>
 #
-# -- All the instruction can have a label in the beginning of the line (optionally)
+# -- All the instruction can have a label in the beginning of the line
+#   (optionally)
 # <lineinstruction> ::= <instruction> | LABEL <instruction>
 #
 # -- There are 9 different simplez-F instructions
@@ -34,7 +37,8 @@
 # - There are 4 different directives
 # <directive> ::= <dirORG> | <dirEQU> | <dirRES> | <dirDATA>
 #
-# - ORG directive do not have any label in the left. The argument can be a number or a label
+# - ORG directive do not have any label in the left
+#   The argument can be a number or a label
 # - label (defined by the EQU directive)
 # <dirORG> ::= ORG NUMBER | ORG LABEL
 #
@@ -200,7 +204,8 @@ class Lexer(object):
             return None
 
     def check_decimal(self):
-        """Check if it is a decimal number. If so, return it svalue, else None"""
+        """Check if it is a decimal number. If so, return it svalue,
+           else None"""
 
         scan = re.match(REGEX_DEC, self.text[self.pos:])
         if scan:
@@ -359,7 +364,8 @@ class Prog_AST(object):
         self.symtable = {}
 
     def add(self, inst):
-        """Add the instruction in the current address. Increment the address counter
+        """Add the instruction in the current address.
+           Increment the address counter
         """
 
         # -- Assign the current address
@@ -372,8 +378,8 @@ class Prog_AST(object):
         self.addr += 1
 
     def solve_labels(self):
-        """semantic analysis. Assign a value to the instruction arguments that do not
-           have a numeric value"""
+        """semantic analysis. Assign a value to the instruction arguments
+           that do not have a numeric value"""
 
         for instr in self.linst:
 
@@ -389,8 +395,10 @@ class Prog_AST(object):
                         value = self.symtable[instr.label]
                     except KeyError:
                         raise Exception(
-                            "Error: Line: {}: Symbol not defined: {}".format(instr.line,
-                                                                             instr.label))
+                            "Error: Line: {}: Symbol not defined: {}".format(
+                                instr.line,
+                                instr.label))
+
                     # -- Write the value in the argument
                     instr.arg = int(value)
 
@@ -468,7 +476,7 @@ class Instruction(object):
     def __init__(self, nemonic, arg=None, line=None):
         self.nemonic = nemonic  # -- Instruction name
         self.arg = arg          # -- Instruction argument
-        self.line = line        # -- line number where the instruction is located in the src
+        self.line = line        # -- src line number where the inst. is located
         self.addr = None        # -- Address were the instruction is stored
         self.label = None       # -- If the argument is a label
 
@@ -770,7 +778,8 @@ class Parser(object):
 
             self.assert_type(LABEL)
 
-            # -- If there is a label, there should be an instrucction in the same line
+            # -- If there is a label, there should be an instrucction
+            # -- in the same line
             if self.instruction():
                 return True
             else:
@@ -783,8 +792,9 @@ class Parser(object):
         return True
 
     def instruction(self):
-        """<instruction> ::= <instLD>  | <insST>   | <instADD>  | <instBR> | <instBZ> |
-                             <instCLR> | <instDEC> | <instHALT> | <instWAIT>"""
+        """<instruction> ::= <instLD>  | <insST>   | <instADD>  | <instBR> |
+                             <instBZ>  | <instCLR> | <instDEC> | <instHALT> |
+                             <instWAIT>"""
 
         # -- Case 1: Instructions with no arguments
         for instr in [CLR, DEC, HALT, WAIT]:
@@ -881,7 +891,9 @@ def main():
     # -- Process the arguments. Return the source file and the verbose flags
     asmfile, filename, output_file, verbose = parse_arguments()
 
-    print("Assembler for the SIMPLEZ microprocessor (Version: {})".format(VERSION))
+    print("Assembler for the SIMPLEZ microprocessor (Version: {})".format(
+        VERSION))
+
     print("Released under the GPL license\n")
 
     # -- Lexical analysis
