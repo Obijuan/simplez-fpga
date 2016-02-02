@@ -9,8 +9,10 @@ DEPS_str = 'src/simplez.v src/genram.v src/dividerp1.v src/uart_tx.v \
 DEPS = Split(DEPS_str)
 PCF = 'src/' + NAME + '.pcf'
 
+print("DEPS: {}".format(DEPS))
+
 # -- Constructor para sintetizar
-synth = Builder(action='yosys -p \"synth_ice40 -blif $TARGET\" $SOURCES',
+synth = Builder(action='yosys -p \"synth_ice40 -blif $TARGET\" {}'.format(DEPS_str),
                 suffix='.blif',
                 src_suffix='.v')
 
@@ -32,9 +34,9 @@ env = Environment(BUILDERS={'Synth': synth, 'PnR': pnr,
                             'Bin': bitstream, 'Time': time_rpt})
 
 # -- Sintesis complesta: de verilog a bitstream
-blif = env.Synth(NAME, DEPS)
+blif = env.Synth(NAME, [DEPS, 'prog.list'])
 asc = env.PnR([blif, PCF])
-Default(env.Bin(asc))
+Default(env.Bin([asc, 'prog.list']))
 
 # -- Objetivo time para calcular el tiempo
 rpt = env.Time(asc)
