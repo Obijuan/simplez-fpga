@@ -437,7 +437,8 @@ def example_simplez5(s):
     s.add_var("arg", 202)
 
 
-def main():
+if __name__ == "__main__":
+    """Main program"""
 
     # - Create the virtual simplez processor
     s = simplez()
@@ -447,8 +448,3 @@ def main():
 
     # -- Simulate the SIMPLEZ2 example
     # example_simplez5(s)
-
-if __name__ == "__main__":
-    """Main program"""
-
-    main()

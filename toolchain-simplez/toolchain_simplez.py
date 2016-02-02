@@ -15,4 +15,4 @@ Simplez. The included tools are:
 __author__ = 'Juan Gonzalez-Gomez (obijuan)'
 __email__ = 'juan.gonzalez@bq.com'
 __license__ = 'GPLv2'
-__version__ = '0.0.10'
+__version__ = '0.0.11'
