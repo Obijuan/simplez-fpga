@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import sys
 import re
 
@@ -31,7 +32,8 @@ class Lexer(object):
         if (len(words) == 1):
             return False
 
-        # - The first word should be null (no charcters before the comment symbol)
+        # - The first word should be null (no charcters before the
+        # - comment symbol)
         if (len(words[0]) == 0):
             return True
         else:
@@ -81,8 +83,8 @@ class Lexer(object):
 class SyntaxError(Exception):
     """Syntax error exceptions"""
     def __init__(self, msg, nline):
-        self.msg = msg        # - Sintax error message
-        self.nline = nline    # - Number of line were the sintax error is located
+        self.msg = msg       # - Sintax error message
+        self.nline = nline   # - Number of line were the sintax error is located
 
 
 class Test_progs(object):
@@ -90,12 +92,13 @@ class Test_progs(object):
     SIMPLEZ1 = [0x0, 0x205, 0x406, 0x007, 0xE00, 0x007, 0x008, 0x00]
 
     """Program example 2: Sum of the 10 term of the fibonacci serie"""
-    SIMPLEZ2 = [0xA00, 0x02F, 0x233, 0x030, 0x032, 0x234, 0x02E, 0x22F, 0x430, 0x031,
-                0x432, 0x032, 0x230, 0x02F, 0x231, 0x030, 0x22E, 0xC00, 0x815, 0x02E,
-                0x607, 0x232, 0xE00,     0,     0,     0,     0,     0,     0,     0,
-                0,         0,     0,     0,     0,     0,     0,     0,     0,     0,
-                0,         0,     0,     0,     0,     0,     0,     0,     0,     0,
-                0,         1,     8,     0,     0,     0,     0,     0,     0,     0,
+    SIMPLEZ2 = [0xA00, 0x02F, 0x233, 0x030, 0x032, 0x234, 0x02E, 0x22F, 0x430,
+                0x031, 0x432, 0x032, 0x230, 0x02F, 0x231, 0x030, 0x22E, 0xC00,
+                0x815, 0x02E, 0x607, 0x232, 0xE00,     0,     0,     0,     0,
+                0,         0,     0,     0,     0,     0,     0,     0,     0,
+                0,         0,     0,     0,     0,     0,     0,     0,     0,
+                0,         0,     0,     0,     0,     0,     1,     8,     0,
+                0,         0,     0,     0,     0,     0,
                 ]
 
 
@@ -131,7 +134,8 @@ class simplez(object):
         self._load_addr = 0  # - Address for loading the machine code
 
     def _decode(self, inst):
-        """Return the opcode and argument of a given instruction in machine code"""
+        """Return the opcode and argument of a given instruction
+           in machine code"""
         return (inst >> 9, inst & 0x1FF)
 
     def show(self):
@@ -149,11 +153,11 @@ class simplez(object):
             print("Next: [{:03X}] {}".format(self._PC, self._code2asm(ir)))
 
     def load(self, prog):
-        """Load a program into the memory. The program consist of a list of consecutive
-           instructions"""
+        """Load a program into the memory. The program consist of a
+           list of consecutive instructions"""
 
         l = len(prog)
-        s._mem[0:l] = prog
+        self._mem[0:l] = prog
 
     def mem(self, nblocks=32):
         """Print the memory
@@ -383,7 +387,8 @@ class simplez(object):
         print("\nprog.list loaded into memory!")
 
     def _code2asm(self, inst):
-        """Return a string with the given machine code instruction in assembly language"""
+        """Return a string with the given machine code instruction
+           in assembly language"""
 
         opcode, addr = self._decode(inst)
         nemonic = self.NEMONIC[opcode]
@@ -431,8 +436,8 @@ def example_simplez5(s):
     s.add_var("resta", 201)
     s.add_var("arg", 202)
 
-if __name__ == "__main__":
-    """Main program"""
+
+def main():
 
     # - Create the virtual simplez processor
     s = simplez()
@@ -442,3 +447,8 @@ if __name__ == "__main__":
 
     # -- Simulate the SIMPLEZ2 example
     # example_simplez5(s)
+
+if __name__ == "__main__":
+    """Main program"""
+
+    main()

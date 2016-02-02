@@ -127,8 +127,7 @@ def parse_arguments():
     return args.inputfile, args.t, args.i
 
 
-# -- Main program
-if __name__ == '__main__':
+def main():
 
     # -- Process the arguments
     input_file, test, interactive = parse_arguments()
@@ -204,3 +203,7 @@ if __name__ == '__main__':
         r.join()
 
     ser.close()
+
+# -- Main program
+if __name__ == '__main__':
+    main()

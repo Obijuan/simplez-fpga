@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # This file is part of the VPM Project
 
@@ -15,4 +15,4 @@ Simplez. The included tools are:
 __author__ = 'Juan Gonzalez-Gomez (obijuan)'
 __email__ = 'juan.gonzalez@bq.com'
 __license__ = 'GPLv2'
-__version__ = '0.0.2'
+__version__ = '0.0.8'

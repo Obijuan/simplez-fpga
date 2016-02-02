@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from setuptools import setup
 
@@ -12,9 +12,13 @@ setup(name='toolchain-simplez',
       url='https://github.com/Obijuan/simplez-fpga',
       download_url='https://pypi.python.org/pypi/toolchain-simplez',
       license=toolchain_simplez.__license__,
-      py_modules=['sasm'],
-      entry_points={'console_scripts': ['sasm=sasm:main']},
-      install_requires=['pyserial==3.0.1'],
+      py_modules=['toolchain_simplez', 'sasm', 'sreset', 'sboot', 'vmem',
+                  'consola_io', 'ssim'],
+      entry_points={'console_scripts': ['sasm=sasm:main',
+                                        'sreset=sreset:main',
+                                        'sboot=sboot:main',
+                                        'ssim=ssim:main']},
+      install_requires=['pyserial'],
       classifiers=[
           'Development Status :: 1 - Planning',
           'Environment :: Console',
