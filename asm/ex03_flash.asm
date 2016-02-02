@@ -3,6 +3,7 @@
 ;-- La instruccion wait realiza una pausa de 200ms
 ;-- se pueden ejecutar varias instrucciones WAIT seguidas para hacer pausas multiplos de 200ms
 
+     WAIT
      LD /val1
      ST /leds    ;-- Encender los leds
 

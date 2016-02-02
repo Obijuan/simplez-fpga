@@ -1,12 +1,16 @@
-//-- Source file: ex02_leds.asm
+//-- Source file: asm/ex03_flash.asm
 //-- Output file format: verilog
 
 //mcode    addr nemonic
 //-----    ---- -------
-203   //-- [000] LD /003
-1FB   //-- [001] ST /1FB
-E00   //-- [002] HALT
-00F   //-- [003] DATA 15
+F00   //-- [000] WAIT
+207   //-- [001] LD /007
+1FB   //-- [002] ST /1FB
+F00   //-- [003] WAIT
+A00   //-- [004] CLR
+1FB   //-- [005] ST /1FB
+E00   //-- [006] HALT
+00F   //-- [007] DATA 15
 
 @1FB  //--       ORG 1FB
 000   //-- [1FB] DATA 0
