@@ -18,7 +18,7 @@ setup(name='toolchain-simplez',
                                         'sreset=sreset:main',
                                         'sboot=sboot:main',
                                         'ssim=ssim:main']},
-      install_requires=['pyserial'],
+      install_requires=['pyserial', 'ply'],
       classifiers=[
           'Development Status :: 1 - Planning',
           'Environment :: Console',
