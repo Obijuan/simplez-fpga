@@ -37,9 +37,6 @@ RXDATA    EQU  511    ;-- 511:  Registro de datos teclado
 
             Wait      ;-- Inicio: esperar 200ms
 
-            LD /F     ;-- Encender todos los leds para indicar modo bootloader
-            ST /LEDS
-
             LD /DESTC  ;-- Inicializar la direccion destino, donde cargar
             ST /dest   ;-- el programa
 
@@ -49,6 +46,14 @@ txloop      LD /TXSTATUS  ;-- Esperar a que pantalla lista
             LD /BREADY
             ST /TXDATA    ;-- Enviar caracter B
 
+;-- Esperar respuesta del PC. Si no se recibe ningun caracter, se salta
+;-- a la direccion donde esta el programa cargado
+            wait
+            wait
+            LD /RXSTATUS
+            BZ /INI  ;-- Ningun caracter: ejecutar prog almacenado
+
+            LD /RXDATA ;-- Caracter basura. Ignorar
 
 ;--- Leer el tamano del programa, llamando a read_byte()
 ;---  tam = read_word()
@@ -89,7 +94,6 @@ dest  ST /INI      ;-- Almacenar la instruccion
 fin    BR /INI     ;-- Ejecutar el programa!
 
 
-F       DATA h'0f   ;-- Dato a sacar por los leds al comenzar el bootloader
 BREADY  DATA "B"    ;-- Caracter para indicar bootloader listo
 tam     RES 1       ;-- Tamaño del programa a cargar
 inst    RES 1       ;-- Instruccion
@@ -150,5 +154,9 @@ ret_addr_p1  DATA ret_addr1  ;-- Puntero a la direccion ret_addr1
 ret_addr_p2  DATA ret_addr2  ;-- Puntero a la direccion ret_addr2
 byteh        RES 1           ;-- Byte alto del tamaño
 
+
+;--- Comienzo del programa cargado. Por defecto no se hace nada
+            ORG INI
+            halt
 
 end
