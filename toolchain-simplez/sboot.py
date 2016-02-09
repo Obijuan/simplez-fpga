@@ -174,6 +174,14 @@ def main():
         print("ERROR: NO bootloader")
         sys.exit(0)
 
+    # -- Send any character to the bootloader. It is a kind of pring
+    # -- if the the bootloader detects this character, it goes to the
+    # -- booloader mode. If nothing is detected, the code in the RAM
+    # -- is execute
+    # -- 500ms delay is a MUST! do not remove it!
+    ser.write(BREADY)
+    time.sleep(0.5)
+
     # download(ser, LEDS)
     # download(ser, SEC2)
     download(ser, prog)
