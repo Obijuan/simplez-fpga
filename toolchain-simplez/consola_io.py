@@ -37,14 +37,7 @@ elif os.name == 'posix':
 
     # -- Abrir la consola y modificar sus propiedades
     fd = sys.stdin.fileno()
-    old = termios.tcgetattr(fd)
-    new = termios.tcgetattr(fd)
-    new[3] = new[3] & ~termios.ICANON & ~termios.ECHO
-    new[6][termios.VMIN] = 1
-    new[6][termios.VTIME] = 0
-
-    # -- Cambiar los atributos
-    termios.tcsetattr(fd, termios.TCSANOW, new)
+    old = None
 
     # -- Funcion para leer una tecla
     def getkey():
@@ -53,19 +46,37 @@ elif os.name == 'posix':
 
     # -- Funcion para restablecer la consola al finalizar
     def cleanup_console():
-        termios.tcsetattr(fd, termios.TCSAFLUSH, old)
-
-    # -- Restaurar el terminal a la salida
-    atexit.register(cleanup_console)
+        if old:
+            termios.tcsetattr(fd, termios.TCSAFLUSH, old)
 
 else:
-    raise "Consola_io No esta implementado para la plataforma".format(sys.platform)
+    raise "Consola_io No esta implementado para la plataforma".format(
+        sys.platform)
+
+
+def init():
+    if os.name == 'posix':
+        global old
+        old = termios.tcgetattr(fd)
+        new = termios.tcgetattr(fd)
+        new[3] = new[3] & ~termios.ICANON & ~termios.ECHO
+        new[6][termios.VMIN] = 1
+        new[6][termios.VTIME] = 0
+
+        # -- Cambiar los atributos
+        termios.tcsetattr(fd, termios.TCSANOW, new)
+
+        # -- Restaurar el terminal a la salida
+        atexit.register(cleanup_console)
+    pass
+
 
 # -------------------------------------
 # Pequena prueba del modulo
 # -------------------------------------
 if __name__ == '__main__':
 
+    init()
     print ("Pulse una tecla")
     getkey()
     print ("Adios...")

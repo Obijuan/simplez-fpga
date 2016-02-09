@@ -185,6 +185,8 @@ def main():
         print("Entering the interactive mode...")
         print("Press CTRL-D to exit\n")
 
+        consola_io.init()
+
         # -- Launch a thread for reading the data coming from simplez
         r = threading.Thread(target=reader, args=[ser])
         r.start()
