@@ -25,13 +25,14 @@ bitstream = Builder(action='icepack $SOURCE $TARGET',
                     src_suffix='.asc')
 
 # -- Construccion del informe de tiempos
-time_rpt = Builder(action='icetime -mtr $TARGET $SOURCE',
+time_rpt = Builder(action='icetime -d hx1k -mtr $TARGET $SOURCE',
                    suffix='.rpt',
                    src_suffix='.asc')
 
 # -- Construir el entorno
 env = Environment(BUILDERS={'Synth': synth, 'PnR': pnr,
-                            'Bin': bitstream, 'Time': time_rpt})
+                            'Bin': bitstream, 'Time': time_rpt},
+                  ENV=os.environ)
 
 # -- Sintesis complesta: de verilog a bitstream
 blif = env.Synth(NAME, [DEPS, 'prog.list'])
