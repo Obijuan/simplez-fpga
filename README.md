@@ -28,6 +28,8 @@ Toda la documentación se está escribiendo en la wiki de github de este repo:
 * Herramientas para la simulación de SIMPLEZ F:
   * **Simulador de Verilog**: [ícarus Verilog](http://iverilog.icarus.com/)
   * **Visualizador de señales**: [Gtkwave](http://gtkwave.sourceforge.net/)
+  * 
+* [BQ](http://bq.com), por apoyar y financiar este proyecto desde el 2015-07-01 hasta el 2016-04-14  
 
 # Licencia
 ![](https://github.com/Obijuan/simplez-fpga/raw/master/doc/images/bq-logo-cc-sa-small-150px.png)
