@@ -9,7 +9,7 @@
 //--  * DW: Numero de bits de los datos
 //--  * ROMFILE: Fichero a usar para cargar la memoria
 //--
-//-- Con este componente podemos hacer memorias ram de cualquier tamaño
+//-- Con este componente podemos hacer memorias ram de cualquier tamano
 //----------------------------------------------------------------------------
 
 module genram #(             //-- Parametros

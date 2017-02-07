@@ -15,7 +15,7 @@
 //----------------------------------------------------------------------------
 `default_nettype none
 
-`include "src/baudgen.vh"
+`include "baudgen.vh"
 
 //--- Serial transmitter unit module
 //--- TX output is not registered
