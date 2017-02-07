@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# coding=utf-8
 # ------------------------------------------------------------------------------
 # -  Cargador de programas en SIMPLEZ
 # --  (C) BQ Enero 2016. Written by Juan Gonzalez (obijuan)
@@ -9,7 +10,7 @@
 # - sboot.py se comunica con el bootloader
 # - Al arrancar SIMPLEZ se ejecuta el bootloader. El protocolo es el siguiente:
 # -
-# -  Bootloader: Envía el caracter BREADY para indicar que esta listo
+# -  Bootloader: Envía el caracter BREADY para indicar que está listo
 # -  sboot envía primero el tamaño del fichero a cargar, en palabras
 # -  Cada palabra se envía como 2 bytes, primero el de mayor peso y luego
 # -  el de menor
@@ -18,7 +19,7 @@
 # -  Cuando se han enviado todas, el bootloader le pasa el control al nuevo
 # - programa cargado
 # ------------------------------------------------------------------------------
-# - Los programas a cargar tiene que comenzar a patir de la direccion 40h
+# - Los programas a cargar tiene que comenzar a patir de la dirección 40h
 # ------------------------------------------------------------------------------
 
 import serial
@@ -32,7 +33,7 @@ import threading
 # -- Character for quiting the interactive mode
 EXITCHAR = b'\x04'
 
-# - Example programs. For testing
+# -- Example programs. For testing
 LEDS = [0x303, 0x1FB, 0xE00, 0x00E]
 SEC1 = [0x307, 0x1FB, 0xF00, 0x308, 0x1FB, 0xF00, 0x700, 0x009, 0x006]
 SEC2 = [0x307, 0x1FB, 0xF00, 0x308, 0x1FB, 0xF00, 0x700, 0x00C, 0x003]
@@ -46,6 +47,27 @@ INITIAL_ADDR = 0x40
 # -- Flag for indicating that the threads are executing
 executing = 1
 
+# -- For python 2.7
+def to_bytes(n, length):
+    return ('%%0%dx' % (length << 1) % n).decode('hex')[-length:]
+
+# -- Download the program (for Python 2.7)
+def download_27(ser, prog):
+
+    tam = len(prog)
+    
+    # -- Send program size (in words)
+    tamb = to_bytes(tam, 2)
+    ser.write(tamb)
+
+    # -- Transmit the program
+    for inst in prog:
+
+        # -- Convert the word to bytes
+        instb = to_bytes(inst,2)
+
+        # -- Send the bytes
+        ser.write(instb)
 
 # -- Download the program
 def download(ser, prog):
@@ -117,25 +139,31 @@ def parse_arguments():
     # -- Add the assembler input file
     parser.add_argument("inputfile", help="Simplez machine code file (.list)")
 
-    parser.add_argument("-t", help="Load a test example (-t 1)",
-                        action="store_true")
+    parser.add_argument(
+        "-t",
+        help="Load a test example (-t 1)",
+        action="store_true")
 
     parser.add_argument(
         "-i",
         help="Open an interactive serial terminal for comunicating with Simplez",
         action="store_true")
 
+    parser.add_argument(
+        "-p", "--port", default='/dev/ttyUSB0',
+        help="Port for serial terminal")
+
     # -- Parse the anguments
     args = parser.parse_args()
 
-    # -- Return the input file, test and interactive
-    return args.inputfile, args.t, args.i
+    # -- Return the input file, test, interactive and port.
+    return args.inputfile, args.t, args.i, args.port
 
 
 def main():
 
     # -- Process the arguments
-    input_file, test, interactive = parse_arguments()
+    input_file, test, interactive, port = parse_arguments()
 
     if test:
         # -- Load the test example
@@ -159,7 +187,12 @@ def main():
             print("Warning: Initial address is NOT H'{:03X}".format(
                    INITIAL_ADDR))
 
-    ser = serial.Serial('/dev/ttyUSB1', baudrate=115200, timeout=0.5)
+    # -- Try open the serial port
+    try:
+        ser = serial.Serial(port, baudrate=115200, timeout=0.5)
+    except:
+        print("Error: Serial port not found: {}".format(port))
+        sys.exit(0)
 
     # -- Reset Simplez
     ser.setDTR(1)
@@ -184,7 +217,10 @@ def main():
 
     # download(ser, LEDS)
     # download(ser, SEC2)
-    download(ser, prog)
+    if sys.version_info >= (3,):
+        download (ser, prog)
+    else:
+        download_27 (ser, prog)
 
     print("EXECUTING!!!")
 
