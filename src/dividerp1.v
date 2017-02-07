@@ -7,7 +7,7 @@
 //-----------------------------------------------------------------------------
 //-- GPL license
 //-----------------------------------------------------------------------------
-`include "src/divider.vh"
+`include "divider.vh"
 
 //-- ENTRADAS:
 //--     -clk: Senal de reloj del sistema (12 MHZ en la iceStick)
@@ -28,7 +28,7 @@ localparam N = $clog2(M);
 //-- Registro para implementar el contador modulo M
 reg [N-1:0] divcounter = 0;
 
-//-- Contador módulo M
+//-- Contador modulo M
 always @(posedge clk)
     if (timer_ena)
       divcounter <= (divcounter == M - 1) ? 0 : divcounter + 1;

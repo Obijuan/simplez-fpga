@@ -15,7 +15,7 @@
 //----------------------------------------------------------------------------
 `default_nettype none
 
-`include "src/baudgen.vh"
+`include "baudgen.vh"
 
 //-- Serial receiver unit module
 module uart_rx #(

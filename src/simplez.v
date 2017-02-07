@@ -1,12 +1,12 @@
 //--------------------------------------------------------------------------------------------
-//-- Procesador SIMPLEZ F:   Implementación del procesador SIMPLEZ de Gregorio Fernández en
+//-- Procesador SIMPLEZ F:   Implementacion del procesador SIMPLEZ de Gregorio Fernandez en
 //--  FPGA, mediante lenguaje Verilog
 //--------------------------------------------------------------------------------------------
-//-- (C) BQ. December 2015. Written by Juan Gonzaelz-Gomez (Obijuan)
+//-- (C) BQ. December 2015. Written by Juan Gonzalez-Gomez (Obijuan)
 //--------------------------------------------------------------------------------------------
 `default_nettype none
-`include "src/divider.vh"
-`include "src/baudgen.vh"
+`include "divider.vh"
+`include "baudgen.vh"
 
 //-- Procesador Simplez
 module simplez  #(
@@ -17,7 +17,7 @@ module simplez  #(
 )(
            input wire clk,          //-- Reloj del sistema
            input wire rstn_ini,     //-- Reset
-           output wire [3:0] leds,  //-- leds
+           output wire [6:0] leds,  //-- leds
            output wire stop,        //-- Indicador de stop
            output wire tx,          //-- Salida serie para la pantalla
            input wire rx            //-- Entrada serie del teclado
@@ -26,7 +26,7 @@ module simplez  #(
 
 //-- Direcciones para los perifericos
 localparam LEDS_ADR = 9'd507;
-localparam PANTALLA_STATUS_ADR = 9'd508;  //-- Pantalla: Unidad de transmisión serie
+localparam PANTALLA_STATUS_ADR = 9'd508;  //-- Pantalla: Unidad de transmision serie
 localparam PANTALLA_DATA_ADR = 9'd509;
 localparam TECLADO_STATUS_ADR = 9'd510;   //-- Teclado: Unidad de recepcion serie
 localparam TECLADO_DATA_ADR = 9'd511;
@@ -46,7 +46,7 @@ localparam HALT = 3'o7;  //-- OK
 localparam HALTE = 4'hE; //-- Halt extended
 localparam WAIT = 4'hF;  //-- Wait
 
-//-- Tamaño de la memoria RAM a instanciar
+//-- Tamano de la memoria RAM a instanciar
 localparam AW = 9;     //-- Anchura del bus de direcciones
 localparam DW = 12;     //-- Anchura del bus de datos
 
@@ -76,7 +76,7 @@ genram #(
         .data_in(reg_a)
       );
 
-//-- Registrar la señal de reset
+//-- Registrar la senal de reset
 reg rstn = 0;
 
 always @(posedge clk)
@@ -151,7 +151,7 @@ always @(posedge clk)
 
 
 //-- Debug: Acceso a los leds
-//-- Si DEBUG_LEDS, se saca directamente los 4 bits menos sig. del registro A
+//-- Si DEBUG_LEDS, se saca directamente los 4 bits menos sig del registro A
 //-- En caso contrario los leds estan mapeados y se accede a ellos como a cualquier
 //-- otro periferico
 assign leds = (DEBUG_LEDS == 1) ? reg_a[3:0] : leds_data;
@@ -159,7 +159,7 @@ assign leds = (DEBUG_LEDS == 1) ? reg_a[3:0] : leds_data;
 //-- Debug: 4 bits menos significativos del registro A conectados a los leds rojos
 //assign leds = reg_a[3:0];
 
-//-- Debug: Sacar señal de stop por el led verde de la icestick
+//-- Debug: Sacar senal de stop por el led verde de la icestick
 assign stop = reg_stop;
 
 
@@ -191,7 +191,7 @@ always @(*) begin
 end
 
   //-- Captura del flag de z
-  //-- Se captura con la misma señal de carga del registro A
+  //-- Se captura con la misma senal de carga del registro A
   always @(posedge clk)
     if (!rstn)
       flag_z <= 0;
@@ -303,13 +303,13 @@ uart_rx #(BAUD)
       );
 
 //-- Puerto de leds
-reg [3:0] leds_data;
+reg [7:0] leds_data;
 
 always @(posedge clk)
   if (!rstn)
     leds_data <= 0;
   else if (leds_cs)
-    leds_data <= reg_a[3:0];
+    leds_data <= reg_a[7:0];
 
 //-------------------- UNIDAD DE CONTROL
 localparam INIT = 0;
