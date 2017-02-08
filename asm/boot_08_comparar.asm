@@ -1,6 +1,6 @@
 ;-------------------------------------------------------------------------------------------
 ;-- Programa de ejemplo para Bootloader.
-;-- Deberá cargarse el programa una vez compilado en modo interativo desde consola:
+;-- Deberá cargarse el programa, una vez compilado, en modo interactivo desde consola:
 ;--       # sboot -i prog.list
 ;-------------------------------------------------------------------------------------------
 ;-- Programa que compara los datos de dos registros y realiza tres retornos distintos
@@ -19,7 +19,7 @@
 ;--
 ;-- Autor: Juan Manuel Rico (juanmard).
 ;-- Fecha: Febrero de 2017.
-;-- Versión: 1.0
+;-- Versión: 1.0.1
 ;-- 
 ;--------------------------------------------------------------------------------------------
 
@@ -68,17 +68,17 @@ main      LD  /br_code          ; Se preparan direcciones de destino.
           BR  /comparar
 
           ; Ejecuta si menor.
-          LD  /salida1
+menor     LD  /salida1
           ST  /LEDS
           BR  /fin
 
           ;Ejecuta si iguales.
-          LD  /salida2
+iguales   LD  /salida2
           ST  /LEDS
           BR  /fin
 
           ; Ejecuta si mayor.
-          LD  /salida3
+mayor     LD  /salida3
           ST  /LEDS
           BR  /fin
 
@@ -127,9 +127,9 @@ ret_mayor      DATA 0
 br_code        BR    /0
 dato1          DATA  0
 dato2          DATA  0
-direc_menor    DATA  H'5A
-direc_iguales  DATA  H'5D
-direc_mayor    DATA  H'60
+direc_menor    DATA  menor
+direc_iguales  DATA  iguales
+direc_mayor    DATA  mayor
 salida1        DATA  H'01
 salida2        DATA  H'02
 salida3        DATA  H'04

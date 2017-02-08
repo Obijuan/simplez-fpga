@@ -1,9 +1,9 @@
 ;-------------------------------------------------------------------------------------------
 ;-- Programa de ejemplo para Bootloader.
-;-- Deberá cargarse el programa una vez compilado en modo interativo desde consola:
+;-- Deberá cargarse el programa, una vez compilado, en modo interactivo desde consola:
 ;--       # sboot -i prog.list
 ;-------------------------------------------------------------------------------------------
-;-- Programa que filtra un conjunto de teclas leídas por del teclado, cada tecla ejecuta
+;-- Programa que filtra un conjunto de teclas leídas por el teclado, cada tecla ejecuta
 ;--   una porción de código.
 ;--
 ;-- A modo de prueba se utilizan las teclas 'q'(up), 'a'(down), 'o'(left) y 'p'(right).
@@ -22,7 +22,7 @@
 ;--
 ;-- Autor: Juan Manuel Rico (juanmard).
 ;-- Fecha: Febrero de 2017.
-;-- Versión: 1.0
+;-- Versión: 1.0.1
 ;-- 
 ;--------------------------------------------------------------------------------------------
 
@@ -153,10 +153,10 @@ ret_iguales    DATA 0               ; dato1 == dato2
 ;-- Variables y constantes --;
 ;----------------------------;
 br_code          BR    /0
-tecla_up         DATA  H'71   ; tecla 'q'
-tecla_down       DATA  H'61   ; tecla 'a'
-tecla_right      DATA  H'70   ; tecla 'p'
-tecla_left       DATA  H'6F   ; tecla 'o'
+tecla_up         DATA  "q"
+tecla_down       DATA  "a"
+tecla_right      DATA  "p"
+tecla_left       DATA  "o"
 tecla_leida      DATA  H'00
 dato1            DATA  H'00
 dato2            DATA  H'00
@@ -167,20 +167,50 @@ salida4          DATA  H'08
 
 ;-------------------------------------;
 ;-- Tabla de direcciones de memoria --;
-;-----------------------------------------------------------------------;
-; NOTA: Esta tabla se ha calculado compilando previamente el código y   ;
-;       apuntando las direcciones de memoria absolutas. Normalmente de  ; 
-;       esto se suele encargar el compilador en dos pasadas, pero para  ;
-;       ello habría que modificar el ensamblador de Simplez-F (sasm).   ;
-;-----------------------------------------------------------------------;
-direc_up         DATA  H'74   ; @up
-direc_down       DATA  H'77   ; @down
-direc_right      DATA  H'7A   ; @right
-direc_left       DATA  H'7D   ; @left
+;------------------------------------------------------------------------;
+; NOTA: Esta tabla se ha calculado compilando previamente el código y    ;
+;       apuntando las direcciones de memoria absolutas. Normalmente de   ; 
+;       esto se suele encargar el compilador en dos pasadas, pero para   ;
+;       ello habría que modificar el ensamblador de Simplez-F (sasm).    ;
+;------------------------------------------------------------------------;
+; NOTA2: No es necesario recalcular nada, puesto que se puede resolver   ;
+;        definiendo directamente el puntero a la dirección de memoria    ;
+;        de esta manera:                                                 ;
+;                        direc_test_down  DATA  test_down                ;
+;                                                                        ;
+;        quizás sí sería útil poder definir directamente sobre el código ;
+;        que queremos la dirección de memoria, así el compilador podría  ;
+;        generar esta tabla automáticamente.                             ;
+;        Es decir, ahora ponemos algo como esto:                         ;
+;                                                                        ;
+;           LD  /br_code                                                 ;
+;           ADD /direc_test_left                                         ;
+;           ST  /ret_distintos                                           ;
+;           BR  /comparar                                                ;
+;                                                                        ;
+;        Y hay que definir posteriormente:                               ;
+;                                                                        ;
+;          direc_test_left  DATA  test_left                              ;
+;                                                                        ;
+;        La idea sería poder definir código así:                         ;
+;                                                                        ;
+;           LD  /br_code                                                 ;
+;           ADD @test_left                                               ;
+;           ST  /ret_distintos                                           ;
+;           BR  /comparar                                                ;
+;                                                                        ;
+;        De esta forma le estamos indicando al compilador que queremos   ;
+;        una variable con la dirección de la etiqueta, sin necesidad de  ;
+;        definir esta tabla de direcciones explícitamente.               ;
+;------------------------------------------------------------------------;
+direc_up         DATA  up
+direc_down       DATA  down
+direc_right      DATA  right
+direc_left       DATA  left
 ;direc_test_up    DATA  H'48   ; @test_up
-direc_test_down  DATA  H'53   ; @test_down
-direc_test_right DATA  H'5E   ; @test_right
-direc_test_left  DATA  H'69   ; @test_left
-direc_fin        DATA  H'80   ; @fin
+direc_test_down  DATA  test_down
+direc_test_right DATA  test_right
+direc_test_left  DATA  test_left
+direc_fin        DATA  fin
 
 end
