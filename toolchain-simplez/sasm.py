@@ -1,54 +1,54 @@
 #!/usr/bin/python3
 # ------------------------------------------------------------------------------
-# --  Asembler for the Simplez microprocessor
+# --  Asembler for the Simplez-F microprocessor
 # --  (C) BQ November 2015. Written by Juan Gonzalez (obijuan)
+# --  (C) Ridotech Febrero 2017. Modified by Juan Manuel Rico (juanmard)
 # --  Python 3
-# --  v1.2
+# --  v1.3
 # ------------------------------------------------------------------------------
 # -- Released under the GPL v3 License
 # ------------------------------------------------------------------------------
 # - Grammar definition
 # -
-# --- A program is a list of lines with the END keyword in the end
-#     (finished by EOL)
-# --- Notice that after the END there could be more instructions, but
+# -- A program is a list of lines with the END keyword in the end
+#    (finished by EOL)
+# -- Notice that after the END there could be more instructions, but
 #     they will be ignored
 # <program> ::= <lines> "END" EOL
 #
-# --- There could be more than one lines. Each line should be end by EOL
+# -- There could be more than one lines. Each line should be end by EOL
 # <lines> ::= (<line> EOL+ )* | <lines>
 #
 # -- Each line can be a comment, a line of code followed by a commnet
 # -- or just a simple line of code
 # <line> ::= COMMENT | <lineofcode> COMMENT | <lineofcode>
 #
-# -- Lines of code can be either a directive or line with a simplez instructions
+# -- Lines of code can be either a directive or line with a Simplez-F instructions
 # <lineofcode> ::= <directive> | <lineinstruction>
 #
 # -- All the instruction can have a label in the beginning of the line
 #   (optionally)
 # <lineinstruction> ::= <instruction> | LABEL <instruction>
 #
-# -- There are 9 different simplez-F instructions
+# -- There are 9 different Simplez-F instructions
 # <instruction> ::= <instLD>  | <insST>   | <instADD>  | <instBR> | <instBZ> |
-# ----------------- <instCLR> | <instDEC> | <instHALT> | <instWAIT>
+#                   <instCLR> | <instDEC> | <instHALT> | <instWAIT>
 #
-
-# - There are 4 different directives
+# -- There are 4 different directives
 # <directive> ::= <dirORG> | <dirEQU> | <dirRES> | <dirDATA>
 #
-# - ORG directive do not have any label in the left
-#   The argument can be a number or a label
-# - label (defined by the EQU directive)
+# -- ORG directive do not have any label in the left
+#    The argument can be a number or a label
+# -- label (defined by the EQU directive)
 # <dirORG> ::= ORG NUMBER | ORG LABEL
 #
 # -- EQU Directive
 # <dirEQU> ::= LABEL EQU NUMBER
 #
-# -- DATA directive.  Label is optional
+# -- DATA directive. Label is optional
 # <dirDATA> ::= LABEL DATA <datacollection> |  DATA <datacollection>
 #
-# -- Collection of data,separated by ,
+# -- Collection of data separated by ,
 # <datacollection> ::= <data> (,<data>)*
 #
 # -- Type of data accepted as "DATA"
@@ -57,12 +57,11 @@
 # -- RES directive. Label is optional
 # <dirRES> ::= LABEL RES NUMBER | RES NUMBER
 #
-
 # -- Instruction LD
 # <instLD> ::= LD <addr>
 #
-# -- The address can be giben numerically (eg. /501), or by label (eg. /ini)
-# <addr> ::= ADDRNUM | ADDRLABEL
+# -- The address can be given numerically (eg. /501), or by label (eg. /ini), or by reference (eg. @ini)
+# <addr> ::= ADDRNUM | ADDRLABEL | RADDR
 #
 # -- Instruction ST
 # <instST> ::= ST <addr>
@@ -87,40 +86,39 @@
 #
 # -- Instruction WAIT
 # <instWAIT> ::= WAIT
-
-# - Tokens:
 #
-# - EOL, EOF, COMMENT, LABEL, ORG, NUMBER, STRING, ADDRNUM, ADDRLABEL
+# -------- Tokens:
+#
+# - EOL, EOF, COMMENT, LABEL, ORG, NUMBER, STRING, ADDRNUM, ADDRLABEL, RADDR
 # - LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT
-
+#
 # - COMMENT: ;(any ascii char)*
 # - LABEL: (any ascii char)*  That is NOT a reserved word
 # - NUMBER: Decimal or hexadecimal number:  [0-9]* | H'[0-9,a-f,A-F]*
 # - STRING: "(any ascii char)"
 # - ADDRNUM: /NUMBER
 # - ADDRLABEL: /LABEL
+# - RADDR: @LABEL
 
 import sys
 import re
 
-# --- Token types
-(EOL, EOF, COMMENT, LABEL, ORG, NUMBER, ADDR,
+# -- Token types
+(EOL, EOF, COMMENT, LABEL, ORG, NUMBER, ADDR, RADDR,
  LD, ST, ADD, BR, BZ, CLR, DEC, HALT, WAIT, UNKNOWN, END, EQU, RES,
  DATA, STRING, COMMA) = (
- 'EOL', 'EOF', 'COMMENT', 'LABEL', 'ORG', 'NUMBER',  'ADDR',
+ 'EOL', 'EOF', 'COMMENT', 'LABEL', 'ORG', 'NUMBER', 'ADDR', 'RADDR',
  'LD', 'ST', 'ADD', 'BR', 'BZ', 'CLR', 'DEC', 'HALT', 'WAIT', 'UNKNOWN', 'END',
  'EQU', 'RES', 'DATA', 'STRING', 'COMMA'
 )
 
-# -- default output file with the machine code for SIMPLEZ
+# -- Default output file with the machine code for Simplez-F
 OUTPUT_FILE = "prog.list"
-
-VERSION = "v1.2"
+VERSION = "v1.3"
 
 # -- Instruction opcodes
 OPCODES = {ST: 0, LD: 1, ADD: 2, BR: 3, BZ: 4,
            CLR: 5, DEC: 6, HALT: 7, WAIT: 0xF, DATA: 0xFF, }
-
 
 class Token(object):
     """Token generator"""
@@ -131,7 +129,6 @@ class Token(object):
         self.line = line
 
     def __str__(self):
-
         # -- Print the Token line number
         string = "[{}] Token: ".format(self.line)
 
@@ -141,15 +138,14 @@ class Token(object):
             string += self.type
 
         # -- Case 2: These tokens have values
-        elif self.type in [COMMENT, STRING, NUMBER, LABEL, ADDR]:
+        elif self.type in [COMMENT, STRING, NUMBER, LABEL, ADDR, RADDR]:
             string += "{} ({})".format(self.type, self.value)
-
         else:
             string += "Unknown ({})".format(self.value)
 
         return string
 
-# ------------- Regular expresion definitions for the Lexer --------
+# -------- Regular expresion definitions for the Lexer --------
 # -- Decimal number
 REGEX_DEC = r"[0-9]+"
 
@@ -177,6 +173,8 @@ REGEX_ADDRNUM2 = r"/H\'[0-9a-fA-F]+"
 # -- Address label
 REGEX_ADDRLABEL = r"/[a-zA-Z0-9_]+"
 
+# -- Reference address
+REGEX_RADDR = r"@[a-zA-Z0-9_]+"
 
 class Lexer(object):
     """Lexical analyzer"""
@@ -192,8 +190,8 @@ class Lexer(object):
 
     def check_hexnumber(self):
         """Check if it is an hexadecimal number. If so, return its value,
-           else None
-        """
+           else None"""
+
         scan = re.match(REGEX_HEX, self.text[self.pos:].upper())
         if scan:
             self.pos += len(scan.group())
@@ -204,7 +202,7 @@ class Lexer(object):
             return None
 
     def check_decimal(self):
-        """Check if it is a decimal number. If so, return it svalue,
+        """Check if it is a decimal number. If so, return its value,
            else None"""
 
         scan = re.match(REGEX_DEC, self.text[self.pos:])
@@ -241,6 +239,14 @@ class Lexer(object):
             self.pos += len(scan.group())
             return scan.group()[1:]
 
+    def check_raddr(self):
+        """Check if it is a reference address"""
+        
+        scan = re.match(REGEX_RADDR, self.text[self.pos:])
+        if scan:
+            self.pos += len(scan.group())
+            return scan.group()[1:]
+
     def check_directive(self):
         """Check if it is a directive"""
 
@@ -269,6 +275,7 @@ class Lexer(object):
 
     def check_string(self):
         """Check if it is a string"""
+        
         scan = re.match(REGEX_STRING, self.text[self.pos:])
         if scan:
             self.pos += len(scan.group())
@@ -306,6 +313,11 @@ class Lexer(object):
         addr = self.check_addr()
         if addr is not None:
             return Token(ADDR, addr, line=self.line)
+
+        # -- Is it a reference address?
+        raddr = self.check_raddr()
+        if raddr is not None:
+            return Token(RADDR, raddr, line=self.line)
 
         # -- Check if it is a directive
         direct = self.check_directive()
@@ -353,20 +365,21 @@ class Lexer(object):
             if token.type == EOF:
                 return string
 
-
-# ---------------------- AST
+# -- Abstract Syntax Tree
 class Prog_AST(object):
     def __init__(self):
-        self.addr = 0   # -- Current address
+        self.addr = 0    # -- Current address
         self.linst = []  # -- List of instructions
 
-        # -- Symbol table. It is used for storing the pairs label - address
+        # -- Symbol table. It is used for storing the pairs <label - address>
         self.symtable = {}
+
+        # -- Reference table. It is used for storing the pairs <address - reference>
+        self.reftable = {}
 
     def add(self, inst):
         """Add the instruction in the current address.
-           Increment the address counter
-        """
+           Increment the address counter"""
 
         # -- Assign the current address
         inst.addr = self.addr
@@ -378,7 +391,7 @@ class Prog_AST(object):
         self.addr += 1
 
     def solve_labels(self):
-        """semantic analysis. Assign a value to the instruction arguments
+        """Semantic analysis. Assign a value to the instruction arguments
            that do not have a numeric value"""
 
         for instr in self.linst:
@@ -404,6 +417,7 @@ class Prog_AST(object):
 
     def assembly(self):
         """Write the program in assembly language"""
+
         string = ""
         addr = 0
         for instr in self.linst:
@@ -418,8 +432,7 @@ class Prog_AST(object):
         return string
 
     def size(self):
-        """Calculate the program size (code, data), in words
-         """
+        """Calculate the program size (code, data), in words"""
 
         # -- Calculate the size of data
         # -- Data above the address 504 is not counted
@@ -451,12 +464,12 @@ class Prog_AST(object):
         addr = 0
         for instr in self.linst:
             if addr != instr.addr:
-
                 if asm:
                     string += "\n"
+
                 string += "@{0:03X}".format(instr.addr)
                 if asm:
-                    string += "  //--       ORG {0:03X}".format(instr.addr)
+                    string += "   //--       ORG {0:03X}".format(instr.addr)
 
                 string += "\n"
                 addr = instr.addr
@@ -464,11 +477,10 @@ class Prog_AST(object):
             string += "{:03X}".format(instr.mcode())
             if asm:
                 string += "   //-- {}".format(instr)
+
             string += "\n"
             addr += 1
-
         return string
-
 
 class Instruction(object):
     """Simplez instruction class"""
@@ -482,10 +494,12 @@ class Instruction(object):
 
     def opcode(self):
         """Return the instruction opcode"""
+        
         return OPCODES[self.nemonic]
 
     def mcode(self):
         """Return the machine code"""
+        
         if self.nemonic == "DATA":
             return self.arg
         elif self.nemonic == "WAIT":
@@ -518,11 +532,9 @@ class Instruction(object):
 
         return string
 
-# ----------- Syntax analyzer
-
-
+# -- Syntax analyzer
 class Parser(object):
-    """Sintax analysis"""
+    """Syntax analysis"""
 
     def __init__(self, lexer):
         self.lexer = lexer
@@ -552,6 +564,7 @@ class Parser(object):
         """<program> ::= <lines> "END" EOL"""
 
         self.lines()
+        self.create_reftable()
         self.assert_type(END, "END expected")
         self.assert_type(EOL, "No EOL after END")
 
@@ -559,7 +572,6 @@ class Parser(object):
         """<lines> ::= EOL*  (<line> EOL+)* """
 
         while self.current_token.type not in [EOF, END]:
-
             self.line()
             self.assert_type(EOL, "Unexpected element")
 
@@ -567,12 +579,20 @@ class Parser(object):
             while (self.current_token.type == EOL):
                 self.assert_type(EOL)
 
+    def create_reftable(self):
+        """ <reftable> """
+        
+        # -- Add instructions DATA for all references table.
+        for ref in self.prog.reftable:
+            instr = Instruction(DATA, arg=self.prog.reftable[ref])
+            self.prog.add(instr)
+            self.prog.symtable[ref]=instr.addr
+
     def line(self):
         """<line> ::= COMMENT | <lineofcode> (COMMENT)"""
 
         if self.current_token.type == COMMENT:
             self.assert_type(COMMENT)
-
         else:
             if self.lineofcode():
                 if (self.current_token.type == COMMENT):
@@ -584,7 +604,7 @@ class Parser(object):
         if self.directive():
             return True
         else:
-            # -- It is not a directive, should be a instruction
+            # -- It is not a directive, should be an instruction
             return self.lineinstruction()
 
     def directive(self):
@@ -648,14 +668,14 @@ class Parser(object):
             value = self.current_token.value
             self.assert_type(NUMBER, "EQU: Expected a number")
 
-            # - check if the label is already in the table
+            # - Check if the label is already in the table
             if label in self.prog.symtable:
                 self.error(msg="Duplicated label: {}".format(label), line=line)
 
             # - Insert the label in the symbol table
             self.prog.symtable[label] = value
-
             return True
+
         elif self.current_token.type == EQU:
             self.error("EQU without label", line=self.current_token.line)
         else:
@@ -689,7 +709,7 @@ class Parser(object):
             if value == 0:
                 self.error(msg="Not possible to reserve 0 words", line=line)
 
-            # - Create all the data instructions reserved by the directive res
+            # - Create all the data instructions reserved by the directive RES
             for i in range(value):
                 instr = Instruction(DATA, line=line, arg=0)
                 self.prog.add(instr)
@@ -801,7 +821,7 @@ class Parser(object):
             if self.parse_instr0(instr):
                 return True
 
-        # -- Case 2: Instructions with 1 argument (an absolute address)
+        # -- Case 2: Instructions with 1 argument (an absolute address and reference address)
         for instr in [ST, LD, ADD, BR, BZ]:
             if self.parse_instr1(instr):
                 return True
@@ -811,8 +831,7 @@ class Parser(object):
 
     def parse_instr0(self, inst_type):
         """Parse the instructions with 0 arguments
-           HALT, WAIT, DEC, CLR
-        """
+           HALT, WAIT, DEC, CLR"""
 
         if self.current_token.type == inst_type:
             line = self.current_token.line
@@ -825,16 +844,27 @@ class Parser(object):
 
     def parse_instr1(self, inst_type):
         """Parse the instructions with 1 argument
-           ST, LD, ADD, BR, BZ
-        """
+           ST, LD, ADD, BR, BZ"""
 
         if self.current_token.type == inst_type:
             line = self.current_token.line
-            self.assert_type(inst_type)
+            self.assert_type(inst_type)         # Warning! This instruction change the current_token for next_token if ok.
             arg = self.current_token.value
-            self.assert_type(ADDR, "Invalid address")
-            instr = Instruction(inst_type, arg=arg, line=line)
+
+            # Is it the argument a reference address?
+            if (self.current_token.type == 'ADDR'):
+                self.assert_type(ADDR, "Invalid address")
+                instr = Instruction(inst_type, arg=arg, line=line)
+                
+            elif (self.current_token.type == 'RADDR'):
+                self.assert_type (RADDR, "Invalid reference address")
+                reference = "ref_" + arg
+                instr = Instruction(inst_type, arg=reference, line=line)
+                self.prog.symtable[reference] = arg
+                self.prog.reftable[reference] = arg
+
             self.prog.add(instr)
+
             return True
         else:
             return False
@@ -842,7 +872,6 @@ class Parser(object):
     def parse(self):
         self.program()
         return self.prog
-
 
 def parse_arguments():
     """Parse the arguments, open the asm file and return the raw contents"""
@@ -859,11 +888,10 @@ def parse_arguments():
     parser.add_argument("asmfile", help="Simplez asembly file (.asm)")
 
     # -- Add the assembler argument: verbose
-    parser.add_argument("-verbose", help="verbose mode on", action="store_true")
+    parser.add_argument("-verbose", help="Verbose mode on", action="store_true")
 
     # -- Output file argument
-    parser.add_argument("-o", metavar="output", default=OUTPUT_FILE,
-                        help="Specify the output filename")
+    parser.add_argument("-o", metavar="output", default=OUTPUT_FILE, help="Specify the output filename")
 
     # -- Parse the anguments
     args = parser.parse_args()
@@ -885,28 +913,23 @@ def parse_arguments():
     # -- Return the file and verbose arguments
     return raw, asmfile, output_file, args.verbose
 
-
 def main():
 
     # -- Process the arguments. Return the source file and the verbose flags
     asmfile, filename, output_file, verbose = parse_arguments()
 
-    print("Assembler for the SIMPLEZ microprocessor (Version: {})".format(
-        VERSION))
-
+    print("Assembler for the SIMPLEZ microprocessor (Version: {})".format(VERSION))
     print("Released under the GPL license\n")
 
     # -- Lexical analysis
     lexer = Lexer(asmfile)
 
     if verbose:
-        print("\n------- Lexical analysis")
-
+        print("\n------- Lexical analysis -------")
         lexer_log = lexer.test()
         print(lexer_log)
         lexer.reset()
-
-        print("\n------- Sintax Analysis ------")
+        print("\n------- Syntax analysis --------")
 
     # -- Syntax analysis
     parser = Parser(lexer)
@@ -923,11 +946,11 @@ def main():
         print("Symbols:")
         prog.show_symbols()
 
-        print()
-        print("-------- Semantics analysis:")
+        print("\n-------- Semantics analysis --------")
 
     try:
         prog.solve_labels()
+    
     except Exception as inst:
         print(inst)
         sys.exit(0)
@@ -936,7 +959,7 @@ def main():
         asmcode2 = prog.assembly()
         print(asmcode2)
 
-        print("-------- Generated machine code")
+        print("-------- Generated machine code --------")
 
     mcode = ""
     mcode += "//-- Source file: {}\n".format(filename)
@@ -946,7 +969,7 @@ def main():
     if verbose:
         print(mcode)
 
-    # -- Write the machine code in the output file file
+    # -- Write the machine code in the output file
     with open(output_file, mode='w') as f:
         f.write(mcode)
 
@@ -954,8 +977,8 @@ def main():
     print("File: {}".format(output_file))
     scode, sdata = prog.size()
     print("Size:   {} words".format(scode + sdata))
-    print("  Code: {} words".format(scode))
-    print("  data: {} words".format(sdata))
+    print("Code:   {} words".format(scode))
+    print("Data:   {} words".format(sdata))
 
 # -- Main program
 if __name__ == '__main__':
