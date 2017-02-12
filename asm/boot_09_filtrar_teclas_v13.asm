@@ -3,6 +3,9 @@
 ;-- Deberá cargarse el programa, una vez compilado, en modo interactivo desde consola:
 ;--       # sboot -i prog.list
 ;-------------------------------------------------------------------------------------------
+;   Este código utiliza referencias a direcciones. Debe ser compilado con una
+;   versión 1.3 del compilador "sasm" para Simplez.
+;-------------------------------------------------------------------------------------------
 ;-- Programa que filtra un conjunto de teclas leídas por el teclado, cada tecla ejecuta
 ;--   una porción de código.
 ;--
@@ -22,7 +25,7 @@
 ;--
 ;-- Autor: Juan Manuel Rico (juanmard).
 ;-- Fecha: Febrero de 2017.
-;-- Versión: 1.0.1
+;-- Versión: 1.0.0
 ;-- 
 ;--------------------------------------------------------------------------------------------
 
@@ -53,10 +56,10 @@ test_up   LD  /tecla_leida      ; Se preparan los parámetros.
           LD  /tecla_up         ; <dato2 = tecla_up>
           ST  /dato2            ;
           LD  /br_code          ; Se preparan direcciones de destino segun la comparación.
-          ADD /direc_up         ; @up - El retorno de valores iguales apunta a la función "up" cuya referencia está en la dirección "direc_up".
+          ADD @up               ; @up - El retorno de valores iguales apunta a la función "up" cuya referencia está en la dirección "direc_up".
           ST  /ret_iguales      ;
           LD  /br_code          ; El retorno de valores distintos apunta a "test_down" para seguir probando con la tecla "down".
-          ADD /direc_test_down  ; @test_down
+          ADD @test_down        ; @test_down
           ST  /ret_distintos    ;
           BR  /comparar         ; Una vez preparados los parámetros y las direcciones de retorno se ejecuta la subrutina. 
           
@@ -65,10 +68,10 @@ test_down  LD  /tecla_leida      ; Idem para "tecla_down".
            LD  /tecla_down       ;
            ST  /dato2            ;
            LD  /br_code          ;
-           ADD /direc_down       ; @down
+           ADD @down             ; @down
            ST  /ret_iguales      ;
            LD  /br_code          ;
-           ADD /direc_test_right ; @test_right.
+           ADD @test_right       ; @test_right.
            ST  /ret_distintos    ;
            BR  /comparar         ;
            
@@ -77,10 +80,10 @@ test_right LD  /tecla_leida      ; Idem para "tecla_right".
            LD  /tecla_right
            ST  /dato2
            LD  /br_code
-           ADD /direc_right      ; @right
+           ADD @right            ; @right
            ST  /ret_iguales
            LD  /br_code
-           ADD /direc_test_left  ; @test_left.
+           ADD @test_left        ; @test_left.
            ST  /ret_distintos
            BR  /comparar
 
@@ -89,10 +92,10 @@ test_left  LD  /tecla_leida      ; Idem para "tecla_left".
            LD  /tecla_left
            ST  /dato2
            LD  /br_code
-           ADD /direc_left       ; @left
+           ADD @left             ; @left
            ST  /ret_iguales
            LD  /br_code
-           ADD /direc_fin        ; @fin
+           ADD @fin              ; @fin
            ST  /ret_distintos
            BR  /comparar
 
@@ -167,50 +170,7 @@ salida4          DATA  H'08
 
 ;-------------------------------------;
 ;-- Tabla de direcciones de memoria --;
-;------------------------------------------------------------------------;
-; NOTA: Esta tabla se ha calculado compilando previamente el código y    ;
-;       apuntando las direcciones de memoria absolutas. Normalmente de   ; 
-;       esto se suele encargar el compilador en dos pasadas, pero para   ;
-;       ello habría que modificar el ensamblador de Simplez-F (sasm).    ;
-;------------------------------------------------------------------------;
-; NOTA2: No es necesario recalcular nada, puesto que se puede resolver   ;
-;        definiendo directamente el puntero a la dirección de memoria    ;
-;        de esta manera:                                                 ;
-;                        direc_test_down  DATA  test_down                ;
-;                                                                        ;
-;        quizás sí sería útil poder definir directamente sobre el código ;
-;        que queremos la dirección de memoria, así el compilador podría  ;
-;        generar esta tabla automáticamente.                             ;
-;        Es decir, ahora ponemos algo como esto:                         ;
-;                                                                        ;
-;           LD  /br_code                                                 ;
-;           ADD /direc_test_left                                         ;
-;           ST  /ret_distintos                                           ;
-;           BR  /comparar                                                ;
-;                                                                        ;
-;        Y hay que definir posteriormente:                               ;
-;                                                                        ;
-;          direc_test_left  DATA  test_left                              ;
-;                                                                        ;
-;        La idea sería poder definir código así:                         ;
-;                                                                        ;
-;           LD  /br_code                                                 ;
-;           ADD @test_left                                               ;
-;           ST  /ret_distintos                                           ;
-;           BR  /comparar                                                ;
-;                                                                        ;
-;        De esta forma le estamos indicando al compilador que queremos   ;
-;        una variable con la dirección de la etiqueta, sin necesidad de  ;
-;        definir esta tabla de direcciones explícitamente.               ;
-;------------------------------------------------------------------------;
-direc_up         DATA  up
-direc_down       DATA  down
-direc_right      DATA  right
-direc_left       DATA  left
-;direc_test_up    DATA  H'48   ; @test_up
-direc_test_down  DATA  test_down
-direc_test_right DATA  test_right
-direc_test_left  DATA  test_left
-direc_fin        DATA  fin
+;-------------------------------------;
+; ¡Ya no es necesaria definirla en la versión 1.3 del compilador! :) ;
 
 end
