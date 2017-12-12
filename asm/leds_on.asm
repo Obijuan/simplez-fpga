@@ -6,7 +6,7 @@
     HALT       ; Terminar
 
 ;-- Datos
-val  DATA H'0F   ;-- Valor a sacar por los leds
+val  DATA H'FF   ;-- Valor a sacar por los leds
 
 
 ;------ PERIFERICO: puerto de leds ------------------
