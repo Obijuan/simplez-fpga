@@ -13,7 +13,7 @@
 module simplez  #(
            parameter BAUD = `B115200,        //-- Velocidad de comunicacion de la pantalla / Teclado
            parameter WAIT_DELAY = `T_200ms,  //-- Tiempo de espera para la instruccion WAIT (Debug)
-           parameter ROMFILE = "prog.list",  //-- Fichero con el contenido de la RAM a cargar
+           parameter ROMFILE = "",  //-- Fichero con el contenido de la RAM a cargar
            parameter DEBUG_LEDS = 0          //-- Uso de los leds para depuracion
 )(
            input wire clk,          //-- Reloj del sistema

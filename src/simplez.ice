@@ -165,45 +165,16 @@
           }
         },
         {
-          "id": "1504a1b5-7530-458a-a51e-64d6055af0a1",
-          "type": "basic.code",
+          "id": "4ff79951-2aed-47dc-b114-57db172eb5a2",
+          "type": "basic.constant",
           "data": {
-            "code": "// @include prog.list\n// @include simplez.v\n// @include divider.vh\n// @include baudgen.vh\n// @include genram.v\n// @include baudgen_rx.v\n// @include baudgen_tx.v\n// @include dividerp1.v\n// @include uart_tx.v\n// @include uart_rx.v\n\nsimplez  \nP0 (clk,         //-- Reloj del sistema\n    rstn,        //-- Reset\n    leds,        //-- leds\n    stop,        //-- Indicador de stop\n    tx,          //-- Salida serie para la pantalla\n    rx           //-- Entrada serie del teclado\n);\n\n",
-            "params": [],
-            "ports": {
-              "in": [
-                {
-                  "name": "clk"
-                },
-                {
-                  "name": "rstn"
-                },
-                {
-                  "name": "rx"
-                }
-              ],
-              "out": [
-                {
-                  "name": "stop"
-                },
-                {
-                  "name": "leds",
-                  "range": "[7:0]",
-                  "size": 8
-                },
-                {
-                  "name": "tx"
-                }
-              ]
-            }
+            "name": "File",
+            "value": "\"sec.list\"",
+            "local": false
           },
           "position": {
-            "x": -80,
-            "y": -72
-          },
-          "size": {
-            "width": 464,
-            "height": 336
+            "x": 104,
+            "y": -200
           }
         },
         {
@@ -260,6 +231,52 @@
           "size": {
             "width": 208,
             "height": 32
+          }
+        },
+        {
+          "id": "1504a1b5-7530-458a-a51e-64d6055af0a1",
+          "type": "basic.code",
+          "data": {
+            "code": "// @include simplez.v\n// @include divider.vh\n// @include baudgen.vh\n// @include genram.v\n// @include baudgen_rx.v\n// @include baudgen_tx.v\n// @include dividerp1.v\n// @include uart_tx.v\n// @include uart_rx.v\n\nsimplez  #(.ROMFILE(ROMFILE))\nP0 (clk,         //-- Reloj del sistema\n    rstn,        //-- Reset\n    leds,        //-- leds\n    stop,        //-- Indicador de stop\n    tx,          //-- Salida serie para la pantalla\n    rx           //-- Entrada serie del teclado\n);\n\n",
+            "params": [
+              {
+                "name": "ROMFILE"
+              }
+            ],
+            "ports": {
+              "in": [
+                {
+                  "name": "clk"
+                },
+                {
+                  "name": "rstn"
+                },
+                {
+                  "name": "rx"
+                }
+              ],
+              "out": [
+                {
+                  "name": "stop"
+                },
+                {
+                  "name": "leds",
+                  "range": "[7:0]",
+                  "size": 8
+                },
+                {
+                  "name": "tx"
+                }
+              ]
+            }
+          },
+          "position": {
+            "x": -80,
+            "y": -72
+          },
+          "size": {
+            "width": 464,
+            "height": 336
           }
         }
       ],
@@ -344,15 +361,25 @@
             "block": "d18a5000-1dba-46e3-8b6b-a65809d8ca96",
             "port": "1a93168d-3764-4337-8a5a-2f4fc62a1ecc"
           }
+        },
+        {
+          "source": {
+            "block": "4ff79951-2aed-47dc-b114-57db172eb5a2",
+            "port": "constant-out"
+          },
+          "target": {
+            "block": "1504a1b5-7530-458a-a51e-64d6055af0a1",
+            "port": "ROMFILE"
+          }
         }
       ]
     },
     "state": {
       "pan": {
-        "x": 792.5,
-        "y": 324.5
+        "x": 444.5333,
+        "y": 192.4333
       },
-      "zoom": 1
+      "zoom": 0.6833
     }
   },
   "dependencies": {

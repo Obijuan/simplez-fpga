@@ -25,7 +25,7 @@ module genram #(             //-- Parametros
          output reg [DW-1: 0] data_out); //-- Dato a escribir
 
 //-- Parametro: Nombre del fichero con el contenido de la RAM
-parameter ROMFILE = "prog.list";
+parameter ROMFILE = "";
 
 //-- Calcular el numero de posiciones totales de memoria
 localparam NPOS = 2 ** AW;
@@ -50,7 +50,7 @@ localparam NPOS = 2 ** AW;
 //-- Cargar en la memoria el fichero ROMFILE
 //-- Los valores deben estan dados en hexadecimal
 initial begin
-  $readmemh(ROMFILE, ram);
+  if (ROMFILE) $readmemh(ROMFILE, ram);
 end
 
 
