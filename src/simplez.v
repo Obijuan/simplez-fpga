@@ -1,9 +1,10 @@
-//--------------------------------------------------------------------------------------------
-//-- Procesador SIMPLEZ F:   Implementacion del procesador SIMPLEZ de Gregorio Fernandez en
-//--  FPGA, mediante lenguaje Verilog
-//--------------------------------------------------------------------------------------------
-//-- (C) BQ. December 2015. Written by Juan Gonzalez-Gomez (Obijuan)
-//--------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+//-- Procesador SIMPLEZ F:   Implementacion del procesador SIMPLEZ de Gregorio //-- Fernandez en FPGA, mediante lenguaje Verilog
+//------------------------------------------------------------------------------
+//-- (C) 2015-2017, Juan Gonzalez-Gomez (Obijuan)
+//-----------------------------------------------------------------------------
+//-- Released under the LGPL v3 License
+//------------------------------------------------------------------------------
 `default_nettype none
 `include "divider.vh"
 `include "baudgen.vh"
@@ -90,16 +91,16 @@ always @(posedge clk)
   reg halt = 0;     //-- Instruccion halt ejecutada
   reg a_load = 0;   //-- Cargar el acumulador
   reg rw = 1;       //-- Lectura / escritura en RAM
-  reg timer_ena;   //-- Habilitacion del temporizador
+  reg timer_ena = 0;   //-- Habilitacion del temporizador
 
   //-- Microordenes para la ALU
-  reg alu_op2;  //-- Sacar el operando 2 por la salida (sin modificar)
-  reg alu_clr;  //-- Sacar un 0 por la salida
-  reg alu_add;  //-- Sumar al acumulador el operando 2
-  reg alu_dec;  //-- Decrementar operando 1 en una unidad
+  reg alu_op2 = 0;  //-- Sacar el operando 2 por la salida (sin modificar)
+  reg alu_clr = 0;  //-- Sacar un 0 por la salida
+  reg alu_add = 0;  //-- Sumar al acumulador el operando 2
+  reg alu_dec = 0;  //-- Decrementar operando 1 en una unidad
 
   //-- Contador de programa
-  reg [AW-1: 0] cp;
+  reg [AW-1: 0] cp = 0;
 
   always @(posedge clk)
     if (!rstn)
@@ -117,7 +118,7 @@ always @(posedge clk)
 
 
   //-- Registro de instruccion
-  reg [DW-1: 0] ri;
+  reg [DW-1: 0] ri = 0;
 
   //-- Descomponer la instruccion en los campos CO y CD
   wire [2:0] CO = ri[11:9];  //-- Codigo de operacion
@@ -132,7 +133,7 @@ always @(posedge clk)
 
 //-- Registro de stop
 //-- Se pone a 1 cuando se ha ejecutado una instruccion de HALT
-reg reg_stop;
+reg reg_stop = 0;
 
 always @(posedge clk)
   if (!rstn)
@@ -141,7 +142,7 @@ always @(posedge clk)
     reg_stop <= 1;
 
 //-- Registro acumulador
-reg [DW-1: 0] reg_a;
+reg [DW-1: 0] reg_a = 0;
 
 always @(posedge clk)
   if (!rstn)
@@ -164,8 +165,8 @@ assign stop = reg_stop;
 
 
 //----- ALU ----
-reg [DW-1: 0] alu_out;
-reg flag_z;
+reg [DW-1: 0] alu_out = 0;
+reg flag_z = 0;
 
 
 always @(*) begin
@@ -227,16 +228,16 @@ wire pant_status_cs;
 
 //-- Otros cables para la pantalla
 wire tx_ready;
-reg [7:0] pant_status;
+reg [7:0] pant_status = 0;
 
 //-- Chip select para el teclado de simplez
 wire tecl_data_cs;
-reg [7:0] tecl_data;
+reg [7:0] tecl_data = 0;
 wire tecl_status_cs;
-reg [7:0] tecl_status;
+reg [7:0] tecl_status = 0;
 wire [7:0] rxdata;
 wire rxrcv;
-reg rcv_flag;
+reg rcv_flag = 0;
 
 //-- Chip select para el registro de LEDs
 wire leds_cs = (CD == LEDS_ADR) ? 1 : 0;
@@ -303,7 +304,7 @@ uart_rx #(BAUD)
       );
 
 //-- Puerto de leds
-reg [7:0] leds_data;
+reg [7:0] leds_data = 0;
 
 always @(posedge clk)
   if (!rstn)
@@ -319,8 +320,8 @@ localparam EXEC2 = 3;
 localparam END = 4;
 
 //-- Estado del automata
-reg [2:0] state;
-reg [2:0] next_state;
+reg [2:0] state = 0;
+reg [2:0] next_state = 0;
 
 //-- Transiciones de estados
 
@@ -352,7 +353,11 @@ always @(*) begin
   case(state)
     //-- Estado inicial
     INIT:
-      next_state = FETCH;
+      if (!rstn)
+        next_state = INIT;
+      else
+        next_state = FETCH;
+
 
     FETCH: begin
       next_state = EXEC1;
