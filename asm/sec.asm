@@ -11,8 +11,8 @@ loop    LD /val1   ;-- Sacar valor 1 por los leds
 
 
 ;-- Datos
-val1  DATA H'03   ;-- Valor 1 de la secuencia
-val2  DATA H'0C   ;-- Valor 2 de la secuencia
+val1  DATA H'AA   ;-- Valor 1 de la secuencia
+val2  DATA H'55   ;-- Valor 2 de la secuencia
 
 
 ;------ PERIFERICO: puerto de leds ------------------
