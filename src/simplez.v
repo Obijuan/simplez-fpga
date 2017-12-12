@@ -17,7 +17,7 @@ module simplez  #(
 )(
            input wire clk,          //-- Reloj del sistema
            input wire rstn_ini,     //-- Reset
-           output wire [6:0] leds,  //-- leds
+           output wire [7:0] leds,  //-- leds
            output wire stop,        //-- Indicador de stop
            output wire tx,          //-- Salida serie para la pantalla
            input wire rx            //-- Entrada serie del teclado
@@ -154,10 +154,10 @@ always @(posedge clk)
 //-- Si DEBUG_LEDS, se saca directamente los 4 bits menos sig del registro A
 //-- En caso contrario los leds estan mapeados y se accede a ellos como a cualquier
 //-- otro periferico
-assign leds = (DEBUG_LEDS == 1) ? reg_a[3:0] : leds_data;
+assign leds = (DEBUG_LEDS == 1) ? reg_a[7:0] : leds_data;
 
-//-- Debug: 4 bits menos significativos del registro A conectados a los leds rojos
-//assign leds = reg_a[3:0];
+//-- Debug: 8 bits menos significativos del registro A conectados a los leds rojos
+//assign leds = reg_a[7:0];
 
 //-- Debug: Sacar senal de stop por el led verde de la icestick
 assign stop = reg_stop;
