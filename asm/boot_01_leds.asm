@@ -15,6 +15,6 @@ LEDS    EQU 507
         ST /LEDS
         HALT
 
-val     DATA h'7
+val     DATA h'AA
 
 END
