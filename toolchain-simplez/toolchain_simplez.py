@@ -13,6 +13,6 @@ Simplez. The included tools are:
 """
 
 __author__ = 'Juan Gonzalez-Gomez (obijuan)'
-__email__ = 'juan.gonzalez@bq.com'
+__email__ = 'obijuan.cube@gmail.com'
 __license__ = 'GPLv2'
-__version__ = '0.0.12'
+__version__ = '0.0.13'
