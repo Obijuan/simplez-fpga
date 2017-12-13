@@ -55,7 +55,7 @@ def to_bytes(n, length):
 def download_27(ser, prog):
 
     tam = len(prog)
-    
+
     # -- Send program size (in words)
     tamb = to_bytes(tam, 2)
     ser.write(tamb)
@@ -150,7 +150,7 @@ def parse_arguments():
         action="store_true")
 
     parser.add_argument(
-        "-p", "--port", default='/dev/ttyUSB0',
+        "-p", "--port", default='/dev/ttyUSB1',
         help="Port for serial terminal")
 
     # -- Parse the anguments
