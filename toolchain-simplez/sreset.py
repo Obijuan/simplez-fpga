@@ -7,7 +7,7 @@ import sys
 
 def main():
     parser = argparse.ArgumentParser(description="Send reset signal to Simplez from serial port")
-    parser.add_argument("-p", "--port", default='/dev/ttyUSB0', help="Port for serial terminal", action="store")
+    parser.add_argument("-p", "--port", default='/dev/ttyUSB1', help="Port for serial terminal", action="store")
     args = parser.parse_args()
     try:
         ser = serial.Serial(args.port, baudrate=115200)
