@@ -169,7 +169,7 @@
           "type": "basic.constant",
           "data": {
             "name": "ROMFILE",
-            "value": "\"sec.list\"",
+            "value": "\"\"",
             "local": false
           },
           "position": {
