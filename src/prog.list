@@ -1,16 +1,17 @@
-//-- Source file: ../asm/boot_02_sec1.asm
+//-- Source file: ../asm/sec.asm
 //-- Output file format: verilog
 
 //mcode    addr nemonic
 //-----    ---- -------
+207   //-- [000] LD /007
+1FB   //-- [001] ST /1FB
+F00   //-- [002] WAIT
+208   //-- [003] LD /008
+1FB   //-- [004] ST /1FB
+F00   //-- [005] WAIT
+600   //-- [006] BR /000
+0AA   //-- [007] DATA 170
+055   //-- [008] DATA 85
 
-@040   //--       ORG 040
-247   //-- [040] LD /047
-1FB   //-- [041] ST /1FB
-F00   //-- [042] WAIT
-248   //-- [043] LD /048
-1FB   //-- [044] ST /1FB
-F00   //-- [045] WAIT
-640   //-- [046] BR /040
-0C3   //-- [047] DATA 195
-03C   //-- [048] DATA 60
+@1FB   //--       ORG 1FB
+000   //-- [1FB] DATA 0
