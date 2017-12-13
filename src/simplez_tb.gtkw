@@ -40,7 +40,7 @@ simplez_tb.dut.CO[2:0]
 @22
 simplez_tb.dut.CD[8:0]
 simplez_tb.dut.COE[3:0]
-simplez_tb.leds[3:0]
+simplez_tb.leds[7:0]
 @28
 simplez_tb.stop
 simplez_tb.dut.clk_tic

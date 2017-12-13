@@ -18,7 +18,7 @@ parameter WAIT_DELAY = 20;
 reg clk = 0;
 
 //-- Datos de salida del componente
-wire [3:0] leds;
+wire [7:0] leds;
 wire stop;
 reg rstn = 0;
 wire tx;
@@ -41,7 +41,7 @@ always #1 clk = ~clk;
 initial begin
 
   //-- Fichero donde almacenar los resultados
-  $dumpfile("simulation.vcd");
+  $dumpfile("simplez_tb.vcd");
   $dumpvars(0, simplez_tb);
 
   #2 rstn <= 1;
