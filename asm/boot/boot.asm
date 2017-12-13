@@ -2,7 +2,8 @@
 ;------------------------------------------------------------------------------
 ;-- Bootloader para Simplez
 ;------------------------------------------------------------------------------
-;-- (c) BQ. January 2016. Written by Juan Gonzalez (obijuan)
+;-- (c) 2016-2017. Juan Gonzalez (obijuan)
+;-- Licensed under the LGLP v3 License
 ;------------------------------------------------------------------------------
 ;-- El protocolo de comunicacion entre el PC y simplez es el siguiente:
 ;--
