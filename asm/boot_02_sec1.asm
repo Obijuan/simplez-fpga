@@ -20,7 +20,7 @@ loop    LD /val1    ;-- Valor secuencia 1
         wait
         BR /loop
 
-val1     DATA h'9
-val2     DATA h'6
+val1     DATA h'C3
+val2     DATA h'3C
 
 END
