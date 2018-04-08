@@ -72,7 +72,7 @@ reg [9:0] raw_data;
 
 always @(posedge clk)
   if (clk_baud == 1) begin
-    raw_data = {rx_r, raw_data[9:1]};
+    raw_data <= {rx_r, raw_data[9:1]};
   end
 
 //-- Data register. Store the character received

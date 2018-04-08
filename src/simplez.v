@@ -429,6 +429,9 @@ always @(*) begin
                 next_state = EXEC2;
             end
 
+            default:
+              next_state = INIT;
+
           endcase
 
         end
@@ -465,9 +468,15 @@ always @(*) begin
                 else next_state = EXEC2;
             end
 
+            default:
+              next_state = INIT;
+
           endcase
 
         end
+
+        default:
+          next_state = INIT;
 
 
       endcase
