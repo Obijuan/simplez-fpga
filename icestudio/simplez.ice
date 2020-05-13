@@ -2106,12 +2106,30 @@
             "format": 10
           },
           "position": {
-            "x": -848,
-            "y": -1120
+            "x": -1440,
+            "y": -1432
           },
           "size": {
             "width": 280,
             "height": 152
+          }
+        },
+        {
+          "id": "56f2bccf-49c6-4184-835f-f3f45503a2b8",
+          "type": "basic.memory",
+          "data": {
+            "name": "",
+            "list": "006  //-- LD /6\n007  //-- LD /7\n008  //-- LD /8\nC00  //-- DEC\nA00  //-- CLR\nFFF  // HALT\n001  //-- Dato\n002  //-- Dato\n003  //-- Dato",
+            "local": false,
+            "format": 10
+          },
+          "position": {
+            "x": -848,
+            "y": -1168
+          },
+          "size": {
+            "width": 280,
+            "height": 192
           }
         },
         {
@@ -4113,7 +4131,7 @@
         },
         {
           "source": {
-            "block": "9f959134-4bd5-48e5-9382-db21a3536ce5",
+            "block": "56f2bccf-49c6-4184-835f-f3f45503a2b8",
             "port": "memory-out"
           },
           "target": {
