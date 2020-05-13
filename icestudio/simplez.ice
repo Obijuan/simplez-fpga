@@ -2189,7 +2189,7 @@
           "type": "basic.memory",
           "data": {
             "name": "µPrograma",
-            "list": "0_3_0_8  // LD (I1)  0011-0000 sri, lec \n0000\n0000\n0000\n0000\n2_4_0_A  // CLR (I1) 0010-0100-0000 pac, eac\n4_C_0_E  // DEC (I1) 0100-1100-0000 dec1, incp, eac \n0_0_8_7  // 1000 HALT \n1_5_0_9  // LD (O0):  0101 0000 tra2, eac, lec\n0_8_0_E  // LD (O1):  1000 0000 incp\n0_8_0_E  // CLR (O0): 0000 1000 0000 incp\n0000\n0_0_0_0\n0000\n0_1_1_F // 0000-0001 -- Fetch: lec scp\n0_1_6_F // 0001-0110 -- Fetch: lec eco eura\n//-- Fin",
+            "list": "0_3_0_8  // LD (I1)  0011-0000 sri, lec \n0000\n0000\n0000\n0000\n2_C_0_E  // CLR (I1) 0010-1100-0000 pac, incp, eac\n4_C_0_E  // DEC (I1) 0100-1100-0000 dec1, incp, eac \n0_0_8_7  // 1000 HALT \n1_5_0_9  // LD (O0):  0101 0000 tra2, eac, lec\n0_8_0_E  // LD (O1):  1000 0000 incp\n0_0_0_0  \n0000\n0_0_0_0\n0000\n0_1_1_F // 0000-0001 -- Fetch: lec scp\n0_1_6_F // 0001-0110 -- Fetch: lec eco eura\n//-- Fin",
             "local": false,
             "format": 16
           },
