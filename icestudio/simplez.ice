@@ -1653,13 +1653,13 @@
           "type": "basic.memory",
           "data": {
             "name": "",
-            "list": "004  // LD /4\nFFF  // HALT\n50F\n000\n009  //-- Dato",
+            "list": "004  //-- LD /4\n005  //-- LD /5\n006  //-- LD /6\nFFF  // HALT\n001  //-- Dato\n002  //-- Dato\n003  //-- Dato",
             "local": false,
             "format": 10
           },
           "position": {
             "x": -824,
-            "y": -944
+            "y": -968
           },
           "size": {
             "width": 280,
