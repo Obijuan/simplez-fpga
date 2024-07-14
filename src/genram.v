@@ -13,6 +13,7 @@
 //----------------------------------------------------------------------------
 
 module genram #(             //-- Parametros
+         parameter ROMFILE = "",
          parameter AW = 9,   //-- Bits de las direcciones (Adress width)
          parameter DW = 12)   //-- Bits de los datos (Data witdh)
 
@@ -25,7 +26,7 @@ module genram #(             //-- Parametros
          output reg [DW-1: 0] data_out); //-- Dato a escribir
 
 //-- Parametro: Nombre del fichero con el contenido de la RAM
-parameter ROMFILE = "";
+//parameter ROMFILE = "";
 
 //-- Calcular el numero de posiciones totales de memoria
 localparam NPOS = 2 ** AW;

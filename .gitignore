@@ -7,3 +7,10 @@ __pycache__/
 dist/
 *~
 *.egg-info
+ice-build/
+abc.history
+*.asc
+hardware.bin
+hardware.json
+
+

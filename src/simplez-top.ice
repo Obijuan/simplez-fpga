@@ -1,5 +1,5 @@
 {
-  "version": "1.1",
+  "version": "1.2",
   "package": {
     "name": "",
     "version": "",
@@ -8,7 +8,7 @@
     "image": ""
   },
   "design": {
-    "board": "icezum",
+    "board": "alhambra-ii",
     "graph": {
       "blocks": [
         {
@@ -20,7 +20,7 @@
               {
                 "index": "0",
                 "name": "D13",
-                "value": "144"
+                "value": "64"
               }
             ],
             "virtual": false
@@ -39,7 +39,7 @@
               {
                 "index": "0",
                 "name": "SW2",
-                "value": "11"
+                "value": "33"
               }
             ],
             "virtual": false,
@@ -60,42 +60,42 @@
               {
                 "index": "7",
                 "name": "LED7",
-                "value": "104"
+                "value": "37"
               },
               {
                 "index": "6",
                 "name": "LED6",
-                "value": "102"
+                "value": "38"
               },
               {
                 "index": "5",
                 "name": "LED5",
-                "value": "101"
+                "value": "39"
               },
               {
                 "index": "4",
                 "name": "LED4",
-                "value": "99"
+                "value": "41"
               },
               {
                 "index": "3",
                 "name": "LED3",
-                "value": "98"
+                "value": "42"
               },
               {
                 "index": "2",
                 "name": "LED2",
-                "value": "97"
+                "value": "43"
               },
               {
                 "index": "1",
                 "name": "LED1",
-                "value": "96"
+                "value": "44"
               },
               {
                 "index": "0",
                 "name": "LED0",
-                "value": "95"
+                "value": "45"
               }
             ],
             "virtual": false
@@ -114,7 +114,7 @@
               {
                 "index": "0",
                 "name": "DTR",
-                "value": "3"
+                "value": "52"
               }
             ],
             "virtual": false,
@@ -134,7 +134,7 @@
               {
                 "index": "0",
                 "name": "RX",
-                "value": "9"
+                "value": "62"
               }
             ],
             "virtual": false,
@@ -154,7 +154,7 @@
               {
                 "index": "0",
                 "name": "TX",
-                "value": "8"
+                "value": "61"
               }
             ],
             "virtual": false
@@ -169,7 +169,7 @@
           "type": "basic.constant",
           "data": {
             "name": "File",
-            "value": "\"prog.list\"",
+            "value": "\"boot.list\"",
             "local": false
           },
           "position": {
@@ -399,13 +399,6 @@
           ]
         }
       ]
-    },
-    "state": {
-      "pan": {
-        "x": 436.0313,
-        "y": 214.6094
-      },
-      "zoom": 0.873
     }
   },
   "dependencies": {
@@ -522,13 +515,6 @@
               }
             }
           ]
-        },
-        "state": {
-          "pan": {
-            "x": 34,
-            "y": 59.5
-          },
-          "zoom": 1
         }
       }
     },
@@ -728,13 +714,6 @@
               }
             }
           ]
-        },
-        "state": {
-          "pan": {
-            "x": 30,
-            "y": 63.5
-          },
-          "zoom": 1
         }
       }
     },
@@ -823,13 +802,6 @@
             }
           ],
           "wires": []
-        },
-        "state": {
-          "pan": {
-            "x": 42,
-            "y": 39.5
-          },
-          "zoom": 1
         }
       }
     },
@@ -958,13 +930,6 @@
             }
           ],
           "wires": []
-        },
-        "state": {
-          "pan": {
-            "x": -7,
-            "y": -122.5
-          },
-          "zoom": 1
         }
       }
     },
@@ -1089,13 +1054,6 @@
             }
           ],
           "wires": []
-        },
-        "state": {
-          "pan": {
-            "x": 124,
-            "y": 59.5
-          },
-          "zoom": 1
         }
       }
     },
@@ -1128,13 +1086,6 @@
             }
           ],
           "wires": []
-        },
-        "state": {
-          "pan": {
-            "x": 0,
-            "y": 0
-          },
-          "zoom": 1
         }
       }
     },
@@ -1223,13 +1174,6 @@
               ]
             }
           ]
-        },
-        "state": {
-          "pan": {
-            "x": -82.4973,
-            "y": 5.3883
-          },
-          "zoom": 1.2451
         }
       }
     },
@@ -1448,13 +1392,6 @@
               }
             }
           ]
-        },
-        "state": {
-          "pan": {
-            "x": 336.3025,
-            "y": 235.937
-          },
-          "zoom": 0.8613
         }
       }
     }
