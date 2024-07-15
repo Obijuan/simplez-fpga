@@ -1,12 +1,12 @@
-//-- Source file: ../asm/simplez1.asm
+//-- Source file: ../asm/leds_on.asm
 //-- Output file format: verilog
 
 //mcode    addr nemonic
 //-----    ---- -------
-204   //-- [000] LD /004
-405   //-- [001] ADD /005
-006   //-- [002] ST /006
-E00   //-- [003] HALT
-007   //-- [004] DATA 7
-008   //-- [005] DATA 8
-000   //-- [006] DATA 0
+203   //-- [000] LD /003
+1FB   //-- [001] ST /1FB
+E00   //-- [002] HALT
+0FF   //-- [003] DATA 255
+
+@1FB   //--       ORG 1FB
+000   //-- [1FB] DATA 0
