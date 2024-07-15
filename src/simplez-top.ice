@@ -169,7 +169,7 @@
           "type": "basic.constant",
           "data": {
             "name": "File",
-            "value": "\"boot.list\"",
+            "value": "\"prog.list\"",
             "local": false
           },
           "position": {
